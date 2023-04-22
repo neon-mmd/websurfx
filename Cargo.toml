@@ -1,0 +1,17 @@
+[package]
+name = "websurfx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = {version="*",features=["json"]}
+tokio = {version="*",features=["full"]}
+serde = {version="*",features=["derive"]}
+handlebars = { version = "4.2.1", features = ["dir_source"] }
+scraper = {version="*"}
+actix-web = {version="4"}
+actix-files = {version="0.6.2"}
+serde_json = {version="*"}
+fake-useragent = {version="*"}

@@ -1,0 +1,47 @@
+* TODO Goals for v0.1.0
+
+- [ ] Add code to remove nsfw content from search results using a blocklist.
+  
+- [ ] Add code to disallow user to search sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
+  
+- [ ] Add better error handling code to handle scraping error, reqwest error, etc.
+  
+- [ ] Add ability to change colorschemes with the theme style of the page.
+
+  =For example:=
+
+  If there is simple theme is there then there is option of 9 different colorschemes to choose from such as catppuccin-mocha, solarized dark, nord, etc.
+  
+- [ ] Add random delays and behaviours to emulate human behaviour if needed to evade ip blocking.
+  
+- [ ] Add python/lua config to the search engine and also ensuring and giving more control to the user (server maintainer/administrator).
+  
+- [ ] Add settings page to configure search engine on the fly by the user and save his preferences using cookies.
+   
+- [ ] Add search engine logo to index page and to the navbar (on the right hand side).
+
+- [X] Add code to generate random user agent to protect user's privacy.
+
+- [X] Add duckduckgo engine as an upstream.
+
+- [X] Add atleast one searx engine instance as an upstream engine.
+
+- [X] Add pagination support.
+
+- [X] Add basic handlebars pages and theme with catppuccin colorscheme.
+  
+* Goals for the future
+
+- Move from handlebars to faster templating engine /Tera/.
+  
+- Adding more upstream search engines.
+  
+- Add dorking support (like google).
+  
+- Add advanced search functionality and dropdown menu for it.
+  
+- Add more categories to search engine's search page like images, files, all, news, maps, etc.
+  
+- Add advanced image functionality to images category (which will be a great aid for content creators, video editors, etc.).
+  
+- Add GPT integration (taking insipiration from langchain module of python or incorporating it using pyo3) and give user the choice to add api key (giving user the choice is important as there are many people who are against ai and so this will ensure that those people also get satisfied like if they don't gpt so they will not their api key and so it will be disabled). 

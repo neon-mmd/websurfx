@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /search
+Disallow: /*?*q=*
+Disallow: /static
+Disallow: /images

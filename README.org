@@ -1,0 +1,34 @@
+* Websurfx
+
+a lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. (pronounced as websurface or web-surface //wɛbˈsɜːrfəs//.)
+
+
+* Installation and Testing
+
+To start installing, testing and playing around with search engine. Clone the repo and then *cargo run* as shown below:
+
+#+begin_src shell
+  git clone https://gitlab.com/NEON-MMD/websurfx.git
+  cd websurfx
+  cargo run
+#+end_src
+
+and then open your browser of choice and visit [[http://127.0.0.1:8080]] and then you can start playing with it right away.
+
+*Important Note:* Do not over refresh your page or put too many requests or start hosting on production server as there are no behaviours right now in the code to prevent ip blocking (it is still work under process) and you can potential can get your ip blocked/banned and also the project is still under testing phase and far from being complete and ready to be hosted on production machines.
+
+* Contributing
+
+Contributions are welcome. It does not matter who you are you can still contribute to the project in your way :).
+
+** Not a developer but still want to contribute
+
+Here is [[https://youtu.be/FccdqCucVSI][video]] by Mr. Nick on how to contribute and credit to him as well
+
+** Developer
+
+If you are developer, have a look at the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] document for more information.
+
+* License
+
+The project is available under the [[file:LICENSE][GPLv3]] license.

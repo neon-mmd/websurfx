@@ -1,0 +1,24 @@
+* Things to consider before contributing.
+
+** Knowledge Required
+- Rust basics.
+- Actix-web crate basics.
+- Tokio crate and async/await.
+- Reqwest crate basics.
+- Serde and serde_json crate basics.
+- fake_useragent crate basics.
+- pyo3/hlua/rlua crates basics.
+
+** Guidelines
+
+- Please be patient.
+  
+- Treat everyone with respect --- ("give respect and take respect").
+  
+- Document your code properly with rust coding conventions in mind.
+  
+- Provide a brief description of what changes you made in the pull request.
+  
+- Provide an apropriate header to pull request.
+
+  *NOTE:* The rolling branch is where all the contributions should go. In simple terms, it is the working branch for this project.
