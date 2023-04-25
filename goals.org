@@ -1,5 +1,9 @@
 * TODO Goals for v0.1.0
 
+- [ ] Add unit tests, integration test, doc tests in the project source code.
+
+- [ ] Write .gitlab-ci.yml for automating testing of the project.
+
 - [ ] Add FAQ section in readme.org for answering commonly asked questions like why websurfx?, why rust?, why GPLv3?, etc.
 
 - [ ] Add code to remove nsfw content from search results using a blocklist.
