@@ -3,8 +3,9 @@ use std::ops::RangeInclusive;
 use websurfx::server::routes;
 
 use actix_files as fs;
-use actix_web::{web, App, HttpServer};
+use actix_web::{middleware::Logger, web, App, HttpServer};
 use clap::{command, Parser};
+use env_logger::Env;
 use handlebars::Handlebars;
 
 #[derive(Parser, Debug, Default)]
@@ -38,7 +39,9 @@ fn is_port_in_range(s: &str) -> Result<u16, String> {
 async fn main() -> std::io::Result<()> {
     let args = CliArgs::parse();
 
-    println!("started server on port {}", args.port);
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    log::info!("started server on port {}", args.port);
 
     let mut handlebars: Handlebars = Handlebars::new();
 
@@ -51,6 +54,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(handlebars_ref.clone())
+            .wrap(Logger::default())
             // Serve images and static files (css and js files).
             .service(fs::Files::new("/static", "./public/static").show_files_listing())
             .service(fs::Files::new("/images", "./public/images").show_files_listing())
