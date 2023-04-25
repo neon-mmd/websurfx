@@ -19,6 +19,8 @@ struct CliArgs {
 
 const PORT_RANGE: RangeInclusive<usize> = 1024..=65535;
 
+// A function to check whether port is valid u32 number or is in range
+// between [1024-65536] otherwise display an appropriate error message.
 fn is_port_in_range(s: &str) -> Result<u16, String> {
     let port: usize = s
         .parse()
@@ -39,6 +41,7 @@ fn is_port_in_range(s: &str) -> Result<u16, String> {
 async fn main() -> std::io::Result<()> {
     let args = CliArgs::parse();
 
+    // Initializing logging middleware with level set to default or info.
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     log::info!("started server on port {}", args.port);
@@ -54,7 +57,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(handlebars_ref.clone())
-            .wrap(Logger::default())
+            .wrap(Logger::default()) // added logging middleware for logging.
             // Serve images and static files (css and js files).
             .service(fs::Files::new("/static", "./public/static").show_files_listing())
             .service(fs::Files::new("/images", "./public/images").show_files_listing())

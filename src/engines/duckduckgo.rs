@@ -48,49 +48,37 @@ pub async fn results(
     let result_url: Selector = Selector::parse(".result__url")?;
     let result_desc: Selector = Selector::parse(".result__snippet")?;
 
-    let mut search_results: HashMap<String, RawSearchResult> = HashMap::new();
-
     // scrape all the results from the html
-    for result in document.select(&results) {
-        let search_result: RawSearchResult = RawSearchResult {
-            title: result
-                .select(&result_title)
-                .next()
-                .unwrap()
-                .inner_html()
-                .trim()
-                .to_string(),
-            visiting_url: format!(
-                "https://{}",
+    Ok(document
+        .select(&results)
+        .map(|result| {
+            RawSearchResult::new(
                 result
-                    .select(&result_url)
+                    .select(&result_title)
                     .next()
                     .unwrap()
                     .inner_html()
                     .trim()
-            ),
-            description: result
-                .select(&result_desc)
-                .next()
-                .unwrap()
-                .inner_html()
-                .trim()
-                .to_string(),
-            engine: vec!["duckduckgo".to_string()],
-        };
-        search_results.insert(
-            format!(
-                "https://{}",
+                    .to_string(),
+                format!(
+                    "https://{}",
+                    result
+                        .select(&result_url)
+                        .next()
+                        .unwrap()
+                        .inner_html()
+                        .trim()
+                ),
                 result
-                    .select(&result_url)
+                    .select(&result_desc)
                     .next()
                     .unwrap()
                     .inner_html()
                     .trim()
-            ),
-            search_result,
-        );
-    }
-
-    Ok(search_results)
+                    .to_string(),
+                vec!["duckduckgo".to_string()],
+            )
+        })
+        .map(|search_result| (search_result.visiting_url.clone(), search_result))
+        .collect())
 }

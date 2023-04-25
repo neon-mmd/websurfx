@@ -43,47 +43,36 @@ pub async fn results(
     let result_url: Selector = Selector::parse("h3>a")?;
     let result_desc: Selector = Selector::parse(".content")?;
 
-    let mut search_results: HashMap<String, RawSearchResult> = HashMap::new();
-
     // scrape all the results from the html
-    for result in document.select(&results) {
-        let search_result: RawSearchResult = RawSearchResult {
-            title: result
-                .select(&result_title)
-                .next()
-                .unwrap()
-                .inner_html()
-                .trim()
-                .to_string(),
-            visiting_url: result
-                .select(&result_url)
-                .next()
-                .unwrap()
-                .value()
-                .attr("href")
-                .unwrap()
-                .to_string(),
-            description: result
-                .select(&result_desc)
-                .next()
-                .unwrap()
-                .inner_html()
-                .trim()
-                .to_string(),
-            engine: vec!["searx".to_string()],
-        };
-        search_results.insert(
-            result
-                .select(&result_url)
-                .next()
-                .unwrap()
-                .value()
-                .attr("href")
-                .unwrap()
-                .to_string(),
-            search_result,
-        );
-    }
-
-    Ok(search_results)
+    Ok(document
+        .select(&results)
+        .map(|result| {
+            RawSearchResult::new(
+                result
+                    .select(&result_title)
+                    .next()
+                    .unwrap()
+                    .inner_html()
+                    .trim()
+                    .to_string(),
+                result
+                    .select(&result_url)
+                    .next()
+                    .unwrap()
+                    .value()
+                    .attr("href")
+                    .unwrap()
+                    .to_string(),
+                result
+                    .select(&result_desc)
+                    .next()
+                    .unwrap()
+                    .inner_html()
+                    .trim()
+                    .to_string(),
+                vec!["searx".to_string()],
+            )
+        })
+        .map(|search_result| (search_result.visiting_url.clone(), search_result))
+        .collect())
 }

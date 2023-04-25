@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
-use fake_useragent::{Browsers, UserAgentsBuilder};
+use super::{
+    aggregation_models::{RawSearchResult, SearchResult, SearchResults},
+    user_agent::random_user_agent,
+};
 
-use super::aggregation_models::{RawSearchResult, SearchResult, SearchResults};
 use crate::engines::{duckduckgo, searx};
 
 // A function that aggregates all the scraped results from the above upstream engines and
@@ -20,23 +22,7 @@ pub async fn aggregate(
     query: &str,
     page: Option<u32>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    // Generate random user agent to improve privacy of the user.
-    let user_agent: String = UserAgentsBuilder::new()
-        .cache(false)
-        .dir("/tmp")
-        .thread(1)
-        .set_browsers(
-            Browsers::new()
-                .set_chrome()
-                .set_safari()
-                .set_edge()
-                .set_firefox()
-                .set_mozilla(),
-        )
-        .build()
-        .random()
-        .to_string();
-
+    let user_agent: String = random_user_agent();
     let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
 
     let ddg_map_results: HashMap<String, RawSearchResult> =
@@ -46,32 +32,35 @@ pub async fn aggregate(
 
     result_map.extend(ddg_map_results);
 
-    for (key, value) in searx_map_results.into_iter() {
-        if result_map.contains_key(&key) {
-            result_map
-                .get_mut(&key)
-                .unwrap()
-                .engine
-                .push(value.engine.get(0).unwrap().to_string())
-        } else {
-            result_map.insert(key, value);
-        }
-    }
+    searx_map_results.into_iter().for_each(|(key, value)| {
+        result_map
+            .entry(key)
+            .and_modify(|result| {
+                result.add_engines(value.engine[0].clone());
+            })
+            .or_insert_with(|| -> RawSearchResult {
+                RawSearchResult::new(
+                    value.title.clone(),
+                    value.visiting_url.clone(),
+                    value.description.clone(),
+                    value.engine.clone(),
+                )
+            });
+    });
 
-    let mut search_results: Vec<SearchResult> = Vec::new();
-
-    for (key, value) in result_map.into_iter() {
-        search_results.push(SearchResult {
-            title: value.title,
-            visiting_url: value.visiting_url,
-            url: key,
-            description: value.description,
-            engine: value.engine,
-        })
-    }
-
-    Ok(SearchResults {
-        results: search_results,
-        page_query: query.to_string(),
-    })
+    Ok(SearchResults::new(
+        result_map
+            .into_iter()
+            .map(|(key, value)| {
+                SearchResult::new(
+                    value.title,
+                    value.visiting_url,
+                    key,
+                    value.description,
+                    value.engine,
+                )
+            })
+            .collect(),
+        query.to_string(),
+    ))
 }
