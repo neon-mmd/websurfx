@@ -1,5 +1,7 @@
 * TODO Goals for v0.1.0
 
+- [ ] Add FAQ section in readme.org for answering commonly asked questions like why websurfx?, why rust?, why GPLv3?, etc.
+
 - [ ] Add code to remove nsfw content from search results using a blocklist.
   
 - [ ] Add code to disallow user to search sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
@@ -20,6 +22,8 @@
    
 - [ ] Add search engine logo to index page and to the navbar (on the right hand side).
 
+- [X] Add logging to websurfx project.
+  
 - [X] Add code to generate random user agent to protect user's privacy.
 
 - [X] Add duckduckgo engine as an upstream.
