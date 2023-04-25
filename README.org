@@ -11,7 +11,7 @@ To start installing, testing and playing around with search engine. Clone the re
   git clone https://gitlab.com/NEON-MMD/websurfx.git
   cd websurfx
   cargo build
-  ./target/debug/websurfx --port <what ever port you want the server to launch on> 
+  ./target/debug/websurfx --port 8080
 #+end_src
 
 and then open your browser of choice and visit [[http://127.0.0.1:8080]] and then you can start playing with it right away.
