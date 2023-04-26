@@ -36,7 +36,7 @@ pub async fn aggregate(
         result_map
             .entry(key)
             .and_modify(|result| {
-                result.add_engines(value.engine[0].clone());
+                result.add_engines(value.clone().engine());
             })
             .or_insert_with(|| -> RawSearchResult {
                 RawSearchResult::new(

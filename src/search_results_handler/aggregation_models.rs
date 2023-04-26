@@ -28,6 +28,7 @@ impl SearchResult {
     }
 }
 
+#[derive(Clone)]
 pub struct RawSearchResult {
     pub title: String,
     pub visiting_url: String,
@@ -51,6 +52,10 @@ impl RawSearchResult {
     }
     pub fn add_engines(&mut self, engine: String) {
         self.engine.push(engine)
+    }
+
+    pub fn engine(self) -> String {
+        self.engine.get(0).unwrap().to_string()
     }
 }
 
