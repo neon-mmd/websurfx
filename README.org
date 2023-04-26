@@ -2,6 +2,19 @@
 
 a lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. (pronounced as websurface or web-surface //wɛbˈsɜːrfəs//.)
 
+* Preview
+
+** Main Page
+
+[[file:images/main_page.png]]
+
+** Search Page
+
+[[file:images/search_page.png]]
+
+** 404 Error Page
+
+[[file:images/404_error_page.png]]
 
 * Installation and Testing
 
@@ -14,9 +27,33 @@ To start installing, testing and playing around with search engine. Clone the re
   ./target/debug/websurfx --port 8080
 #+end_src
 
+If you want to be on the rolling/edge branch then do the following steps:
+
+#+begin_src shell
+  git clone https://gitlab.com/NEON-MMD/websurfx.git
+  cd websurfx
+  git checkout rolling
+  cargo build
+  ./target/debug/websurfx --port 8080
+#+end_src
+
 and then open your browser of choice and visit [[http://127.0.0.1:8080]] and then you can start playing with it right away.
 
 *Important Note:* Do not over refresh your page or put too many requests or start hosting on production server as there are no behaviours right now in the code to prevent ip blocking (it is still work under process) and you can potential can get your ip blocked/banned and also the project is still under testing phase and far from being complete and ready to be hosted on production machines.
+
+* FAQ (Frequently Asked Questions)
+
+** Why Websurfx?
+
+The main goal of the project is to provide a fast, secure and privacy focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. Though there are many meta search engine out there but they don't provide gaurantee security of the their search engine which is essential because sometimes privacy is related to security like for example some memory vulnerabilities can leak private or sensitive information which is never good so the project being written in rust gaurantees memory safety and thus eliminating such problems.
+
+** Why GPLv3?
+
+The reason why I am releasing my meta search engine under *GPLv3* is because my main motive of this meta search is to provide privacy, speed and security to the user and *AGPL licensing or closed sourcing or any other licensing* makes it loose for the user/server admin to not release the source code which is shady because you never know what he is putting in the source code lets say he is adding telemetry, spyware stuff, logging and what not which gets shady and is against privacy.
+
+** Why Rust?
+
+Rust provides memory safe code which eliminates issues relating memory based vulnerabilites which makes the project more secure and less vulnerable to memory based bugs and issues and also rust being a faster programming language than c++ provides a much faster, smooth and secure meta search engine :).
 
 * Contributing
 
