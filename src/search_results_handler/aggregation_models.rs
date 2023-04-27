@@ -1,5 +1,19 @@
+//! This module provides public models for handling, storing and serializing of search results
+//! data scraped from the upstream search engines.
+
 use serde::Serialize;
 
+/// A named struct to store and serialize the individual search result from all the scraped
+/// and aggregated search results from the upstream search engines.
+///
+/// # Fields
+///
+/// * `title` - The title of the search result.
+/// * `visiting_url` - The url which is accessed when clicked on it (href url in html in simple
+/// words).
+/// * `url` - The url to be displayed below the search result title in html.
+/// * `description` - The description of the search result.
+/// * `engine` - The names of the upstream engines from which this results were provided.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
@@ -11,6 +25,16 @@ pub struct SearchResult {
 }
 
 impl SearchResult {
+    /// Constructs a new `SearchResult` with the given arguments needed for the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `title` - The title of the search result.
+    /// * `visiting_url` - The url which is accessed when clicked on it
+    /// (href url in html in simple words).
+    /// * `url` - The url to be displayed below the search result title in html.
+    /// * `description` - The description of the search result.
+    /// * `engine` - The names of the upstream engines from which this results were provided.
     pub fn new(
         title: String,
         visiting_url: String,
@@ -28,6 +52,17 @@ impl SearchResult {
     }
 }
 
+/// A named struct to store the raw scraped search results scraped search results from the
+/// upstream search engines before aggregating it.It derives the Clone trait which is needed
+/// to write idiomatic rust using `Iterators`.
+///
+/// # Fields
+///
+/// * `title` - The title of the search result.
+/// * `visiting_url` - The url which is accessed when clicked on it
+/// (href url in html in simple words).
+/// * `description` - The description of the search result.
+/// * `engine` - The names of the upstream engines from which this results were provided.
 #[derive(Clone)]
 pub struct RawSearchResult {
     pub title: String,
@@ -37,6 +72,15 @@ pub struct RawSearchResult {
 }
 
 impl RawSearchResult {
+    /// Constructs a new `RawSearchResult` with the given arguments needed for the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `title` - The title of the search result.
+    /// * `visiting_url` - The url which is accessed when clicked on it
+    /// (href url in html in simple words).
+    /// * `description` - The description of the search result.
+    /// * `engine` - The names of the upstream engines from which this results were provided.
     pub fn new(
         title: String,
         visiting_url: String,
@@ -50,6 +94,12 @@ impl RawSearchResult {
             engine,
         }
     }
+
+    /// A function which adds the engine name provided as a string into a vector of strings.
+    ///
+    /// # Arguments
+    ///
+    /// * `engine` - Takes an engine name provided as a String.
     pub fn add_engines(&mut self, engine: String) {
         self.engine.push(engine)
     }
@@ -59,6 +109,14 @@ impl RawSearchResult {
     }
 }
 
+/// A named struct to store and serialize the all the search results scraped and aggregated
+/// from the upstream search engines.
+///
+/// # Fields
+///
+/// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
+/// `SearchResult` structs.
+/// * `page_query` - Stores the current pages search query `q` provided in the search url.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
@@ -67,6 +125,14 @@ pub struct SearchResults {
 }
 
 impl SearchResults {
+    /// Constructs a new `SearchResult` with the given arguments needed for the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `results` - Takes an argument of individual serializable `SearchResult` struct
+    /// and stores it into a vector of `SearchResult` structs.
+    /// * `page_query` - Takes an argument of current page`s search query `q` provided in
+    /// the search url.
     pub fn new(results: Vec<SearchResult>, page_query: String) -> Self {
         SearchResults {
             results,

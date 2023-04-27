@@ -23,7 +23,7 @@ use crate::search_results_handler::aggregation_models::RawSearchResult;
 /// # Errors
 ///
 /// Returns a reqwest error if the user is not connected to the internet or if their is failure to
-/// reach the above **upstream search engine** page and also returns error if the scraping
+/// reach the above `upstream search engine` page and also returns error if the scraping
 /// selector fails to initialize"
 pub async fn results(
     query: &str,

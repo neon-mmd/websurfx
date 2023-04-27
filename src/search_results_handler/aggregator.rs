@@ -1,3 +1,6 @@
+//! This module provides the functionality to scrape and gathers all the results from the upstream
+//! search engines and then removes duplicate results.
+
 use std::collections::HashMap;
 
 use super::{
@@ -7,17 +10,28 @@ use super::{
 
 use crate::engines::{duckduckgo, searx};
 
-// A function that aggregates all the scraped results from the above upstream engines and
-// then removes duplicate results and if two results are found to be from two or more engines
-// then puts their names together to show the results are fetched from these upstream engines
-// and then removes all data from the HashMap and puts into a struct of all results aggregated
-// into a vector and also adds the query used into the struct this is neccessory because otherwise
-// the search bar in search remains empty if searched from the query url
-//
-// For Example:
-//
-// If you search from the url like *https://127.0.0.1/search?q=huston* then the search bar should
-// contain the word huston and not remain empty.
+/// A function that aggregates all the scraped results from the above upstream engines and
+/// then removes duplicate results and if two results are found to be from two or more engines
+/// then puts their names together to show the results are fetched from these upstream engines
+/// and then removes all data from the HashMap and puts into a struct of all results aggregated
+/// into a vector and also adds the query used into the struct this is neccessory because 
+/// otherwise the search bar in search remains empty if searched from the query url
+///
+/// # Example:
+///
+/// If you search from the url like `https://127.0.0.1/search?q=huston` then the search bar should
+/// contain the word huston and not remain empty.
+/// 
+/// # Arguments
+///
+/// * `query` - Accepts a string to query with the above upstream search engines.
+/// * `page` - Accepts an Option<u32> which could either be a None or a valid page number.
+///
+/// # Error
+///
+/// Returns an error a reqwest and scraping selector errors if any error occurs in the results 
+/// function in either `searx` or `duckduckgo` or both otherwise returns a `SearchResults struct`
+/// containing appropriate values.
 pub async fn aggregate(
     query: &str,
     page: Option<u32>,
