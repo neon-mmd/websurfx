@@ -47,9 +47,9 @@ and then open your browser of choice and visit [[http://127.0.0.1:8080]] and the
 
 The main goal of the project is to provide a fast, secure and privacy focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. Though there are many meta search engine out there but they don't provide gaurantee security of the their search engine which is essential because sometimes privacy is related to security like for example some memory vulnerabilities can leak private or sensitive information which is never good so the project being written in rust gaurantees memory safety and thus eliminating such problems and also many meta search engines lack many features like advanced image search *(which is required by may graphics designers, content creators, etc), proper nsfw blocking (many links are still visible even on strict safe search), etc which *websurfx* aims to provide.
 
-** Why GPLv3?
+** Why AGPLv3?
 
-The reason why I am releasing my meta search engine under *GPLv3* is because my main motive of this meta search is to provide privacy, speed and security to the user and *AGPL licensing or closed sourcing or any other licensing* makes it loose for the user/server admin to not release the source code which is shady because you never know what he is putting in the source code lets say he is adding telemetry, spyware stuff, logging and what not which gets shady and is against privacy.
+The reason why I am releasing my meta search engine under *AGPLv3* is because my main motive of this meta search is to provide privacy, speed and security to the user and *GPL licensing or closed sourcing or any other licensing* makes it loose for the user/server admin to not release the source code which is shady because you never know what he is putting in the source code lets say he is adding telemetry, spyware stuff, logging and what not which gets shady and is against privacy.
 
 ** Why Rust?
 
