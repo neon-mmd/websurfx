@@ -4,10 +4,8 @@
 
 - [ ] Write .gitlab-ci.yml for automating testing of the project.
 
-- [ ] Add FAQ section in readme.org for answering commonly asked questions like why websurfx?, why rust?, why GPLv3?, etc.
-
 - [ ] Add code to remove nsfw content from search results using a blocklist.
-  
+
 - [ ] Add code to disallow user to search sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
   
 - [ ] Add better error handling code to handle scraping error, reqwest error, etc.
@@ -23,8 +21,12 @@
 - [ ] Add python/lua config to the search engine and also ensuring and giving more control to the user (server maintainer/administrator).
   
 - [ ] Add settings page to configure search engine on the fly by the user and save his preferences using cookies.
-   
+  
 - [ ] Add search engine logo to index page and to the navbar (on the right hand side).
+
+- [X] Add better documentation to source code.
+   
+- [X] Add FAQ section in readme.org for answering commonly asked questions like why websurfx?, why rust?, why GPLv3?, etc.
 
 - [X] Add logging to websurfx project.
   
