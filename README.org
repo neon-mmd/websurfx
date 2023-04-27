@@ -1,6 +1,6 @@
 * Websurfx
 
-a lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. (pronounced as websurface or web-surface //wɛbˈsɜːrfəs//.)
+A lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.)
 
 * Preview
 
@@ -45,7 +45,7 @@ and then open your browser of choice and visit [[http://127.0.0.1:8080]] and the
 
 ** Why Websurfx?
 
-The main goal of the project is to provide a fast, secure and privacy focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. Though there are many meta search engine out there but they don't provide gaurantee security of the their search engine which is essential because sometimes privacy is related to security like for example some memory vulnerabilities can leak private or sensitive information which is never good so the project being written in rust gaurantees memory safety and thus eliminating such problems.
+The main goal of the project is to provide a fast, secure and privacy focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. Though there are many meta search engine out there but they don't provide gaurantee security of the their search engine which is essential because sometimes privacy is related to security like for example some memory vulnerabilities can leak private or sensitive information which is never good so the project being written in rust gaurantees memory safety and thus eliminating such problems and also many meta search engines lack many features like advanced image search *(which is required by may graphics designers, content creators, etc), proper nsfw blocking (many links are still visible even on strict safe search), etc which *websurfx* aims to provide.
 
 ** Why GPLv3?
 
