@@ -70,3 +70,10 @@ If you are developer, have a look at the [[file:CONTRIBUTING.org][CONTRIBUTING.o
 * License
 
 The project is available under the [[file:LICENSE][GPLv3]] license.
+
+* Credits
+
+Thanks to this wonderful people for *contributing* and *supporting* this project:
+
+- [[https://gitlab.com/XFFXFF][zhou fan]]
+- [[https://gitlab.com/johannesrexx][johannes rex]]
