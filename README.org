@@ -41,6 +41,10 @@ and then open your browser of choice and visit [[http://127.0.0.1:8080]] and the
 
 *Important Note:* Do not over refresh your page or put too many requests or start hosting on production server as there are no behaviours right now in the code to prevent ip blocking (it is still work under process) and you can potential can get your ip blocked/banned and also the project is still under testing phase and far from being complete and ready to be hosted on production machines.
 
+* More Contributers Wanted
+
+I am looking for more willing contributors for this project so that it helps grow this project. For more information on what you can contribute this project check out the [[file:goals.org][goals.org]] and also check out the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] for guidelines and rules for making the contribution. 
+
 * FAQ (Frequently Asked Questions)
 
 ** Why Websurfx?
