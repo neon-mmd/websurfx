@@ -1,57 +1,55 @@
 * TODO Goals for v0.1.0
 
-- [ ] Add unit tests, integration test, doc tests in the project source code.
+- [ ] Add unit tests, integration test, and doc tests to the project source code.
 
-- [ ] Add code to remove nsfw content from search results using a blocklist.
+- [ ] Add code to remove NSFW content from search results using a blocklist.
 
-- [ ] Add code to disallow user to search sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
+- [ ] Add code to disallow user from searching for sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
 
-- [ ] Add better error handling code to handle scraping error, reqwest error, etc.
+- [ ] Improve error handling to handle scraping errors, reqwest errors, and other issues.
   
-- [ ] Add ability to change colorschemes with the theme style of the page.
+- [ ] Add the ability for users to change the colorscheme of the page.
 
   =For example:=
 
-  If there is simple theme is there then there is option of 9 different colorschemes to choose from such as catppuccin-mocha, solarized dark, nord, etc.
+  If a simple theme is used, then there should be the option of 9 different colorschemes to choose from, such as Catppuccino-Mocha, Solarized Dark, Nord, etc.
   
-- [ ] Add random delays and behaviours to emulate human behaviour if needed to evade ip blocking.
+- [ ] Implement random delays and behaviors to emulate human behavior to evade IP blocking.
   
-- [ ] Add python/lua config to the search engine and also ensuring and giving more control to the user (server maintainer/administrator).
+- [ ] Add Python/Lua configuration options to give more control to the user (server maintainer/administrator).
   
-- [ ] Add settings page to configure search engine on the fly by the user and save his preferences using cookies.
+- [ ] Create a settings page to allow users to configure the search engine and save their preferences using cookies.
   
-- [ ] Add search engine logo to index page and to the navbar (on the right hand side).
+- [ ] Add a search engine logo to the index page and the navbar.
   
-- [X] Write rust.yml for automating testing of the project.
+- [X] Write a rust.yml file for automated testing of the project.
 
-- [X] Add better documentation to source code.
+- [X] Improve documentation for the project source code.
    
-- [X] Add FAQ section in readme.org for answering commonly asked questions like why websurfx?, why rust?, why GPLv3?, etc.
+- [X] Add a FAQ section to the README.org file to answer common questions about the project.
 
-- [X] Add logging to websurfx project.
+- [X] Add logging to the websurfx project.
   
-- [X] Add code to generate random user agent to protect user's privacy.
+- [X] Generate random user agents to protect user privacy.
 
-- [X] Add duckduckgo engine as an upstream.
+- [X] Add DuckDuckGo and at least one Searx engine instance as upstream providers.
 
-- [X] Add atleast one searx engine instance as an upstream engine.
+- [X] Add pagination support for search results.
 
-- [X] Add pagination support.
+- [X] Create basic Handlebars pages and theme with Catppuccino colorscheme.
+  
+* Goals for future development
 
-- [X] Add basic handlebars pages and theme with catppuccin colorscheme.
+- Replace Handlebars with the faster templating engine /Tera/.
   
-* Goals for the future
-
-- Move from handlebars to faster templating engine /Tera/.
+- Add more upstream search engines.
   
-- Adding more upstream search engines.
+- Implement dorking support (like Google).
   
-- Add dorking support (like google).
+- Add advanced search functionality and a dropdown menu for it.
   
-- Add advanced search functionality and dropdown menu for it.
+- Add more categories to the search engine's search page, such as images, files, news, and maps.
   
-- Add more categories to search engine's search page like images, files, all, news, maps, etc.
+- Add advanced image functionality for content creators, video editors, etc.
   
-- Add advanced image functionality to images category (which will be a great aid for content creators, video editors, etc.).
-  
-- Add GPT integration (taking insipiration from langchain module of python or incorporating it using pyo3) and give user the choice to add api key (giving user the choice is important as there are many people who are against ai and so this will ensure that those people also get satisfied like if they don't gpt so they will not their api key and so it will be disabled). 
+- Add GPT integration, taking inspiration from the Langchain module of Python or incorporating it using pyo3, and give users the choice to add an API key. Giving users the choice is important, as some people may be against AI, and this will ensure that those users who don't want to use GPT can disable it by not adding an API key.
