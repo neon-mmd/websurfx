@@ -1,3 +1,6 @@
+//! This main library module provides the functionality to provide and handle the Tcp server
+//! and register all the routes for the `websurfx` meta search engine website.
+
 pub mod engines;
 pub mod server;
 pub mod search_results_handler;
@@ -23,12 +26,12 @@ use handlebars::Handlebars;
 ///
 /// # Example
 /// 
-/// ```
+/// ```rust
 /// use std::net::TcpListener;
-/// use web_server::Server;
+/// use websurfx::run;
 ///
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
-/// let server = Server::run(listener).expect("Failed to start server");
+/// let server = run(listener).expect("Failed to start server");
 /// ```
 pub fn run(listener: TcpListener) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
