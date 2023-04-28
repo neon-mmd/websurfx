@@ -1,6 +1,6 @@
 * Websurfx
 
-A lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.)
+Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]] (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It provides a fast and secure search experience while respecting user privacy.
 
 * Preview
 
@@ -18,66 +18,66 @@ A lightening fast, privacy respecting, secure [[https://en.wikipedia.org/wiki/Me
 
 * Installation and Testing
 
-To start installing, testing and playing around with search engine. Clone the repo and then *cargo run* as shown below:
+To get started with Websurfx, clone the repository and run it using the following commands:
 
 #+begin_src shell
-  git clone https://gitlab.com/NEON-MMD/websurfx.git
+  git clone https://github.com/neon-mmd/websurfx.git
   cd websurfx
   cargo build
   ./target/debug/websurfx --port 8080
 #+end_src
 
-If you want to be on the rolling/edge branch then do the following steps:
+If you want to use the rolling/edge branch, run the following commands instead:
 
 #+begin_src shell
-  git clone https://gitlab.com/NEON-MMD/websurfx.git
+  git clone https://github.com/neon-mmd/websurfx.git
   cd websurfx
   git checkout rolling
   cargo build
   ./target/debug/websurfx --port 8080
 #+end_src
 
-and then open your browser of choice and visit [[http://127.0.0.1:8080]] and then you can start playing with it right away.
+Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080 to start using Websurfx.
 
-*Important Note:* Do not over refresh your page or put too many requests or start hosting on production server as there are no behaviours right now in the code to prevent ip blocking (it is still work under process) and you can potential can get your ip blocked/banned and also the project is still under testing phase and far from being complete and ready to be hosted on production machines.
+*Important Note:* Please be aware that the project is still in the testing phase and is not ready for production use. Do not refresh the page excessively or make too many requests, as this could result in IP blocking.
 
 * More Contributers Wanted
 
-I am looking for more willing contributors for this project so that it helps grow this project. For more information on what you can contribute this project check out the [[file:goals.org][goals.org]] and also check out the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] for guidelines and rules for making the contribution. 
+We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[file:goals.org][goals.org]] file and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
 
 * FAQ (Frequently Asked Questions)
 
 ** Why Websurfx?
 
-The main goal of the project is to provide a fast, secure and privacy focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. Though there are many meta search engine out there but they don't provide gaurantee security of the their search engine which is essential because sometimes privacy is related to security like for example some memory vulnerabilities can leak private or sensitive information which is never good so the project being written in rust gaurantees memory safety and thus eliminating such problems and also many meta search engines lack many features like advanced image search *(which is required by may graphics designers, content creators, etc), proper nsfw blocking (many links are still visible even on strict safe search), etc which *websurfx* aims to provide.
+The main goal of the Websurfx project is to provide a fast, secure, and privacy-focused [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]]. While there are many meta search engines available, they do not always guarantee the security of their search engine, which is essential for ensuring privacy. For example, memory vulnerabilities can leak private or sensitive information, which is never good. Websurfx is written in Rust, which guarantees memory safety and eliminates such problems. Many meta search engines also lack key features such as advanced image search, which is required by many graphic designers, content creators, and others. Websurfx aims to provide these features and others, such as proper NSFW blocking, to improve the user experience.
 
 ** Why AGPLv3?
 
-The reason why I am releasing my meta search engine under *AGPLv3* is because my main motive of this meta search is to provide privacy, speed and security to the user and *GPL licensing or closed sourcing or any other licensing* makes it loose for the user/server admin to not release the source code which is shady because you never know what he is putting in the source code lets say he is adding telemetry, spyware stuff, logging and what not which gets shady and is against privacy.
+Websurfx is released under the *AGPLv3* license to ensure that the source code remains open and transparent. This helps to prevent the inclusion of spyware, telemetry, or other malicious code in the project. *AGPLv3* is a strong copyleft license that ensures the source code of the software remains open and available to everyone, including any modifications or improvements made to the code.
 
 ** Why Rust?
 
-Rust provides memory safe code which eliminates issues relating memory based vulnerabilites which makes the project more secure and less vulnerable to memory based bugs and issues and also rust being a faster programming language than c++ provides a much faster, smooth and secure meta search engine :).
+Rust was chosen as the programming language for Websurfx due to its memory safety features, which can help prevent vulnerabilities and make the codebase more secure. Rust is also faster than C++, which helps to make Websurfx fast and responsive. In addition, Rust's ownership and borrowing system allows for safe concurrency and thread safety in the codebase.
 
 * Contributing
 
-Contributions are welcome. It does not matter who you are you can still contribute to the project in your way :).
+Contributions are welcome from anyone. It doesn't matter who you are; you can still contribute to the project in your way.
 
-** Not a developer but still want to contribute
+** Not a developer but still want to contribute?
 
-Here is [[https://youtu.be/FccdqCucVSI][video]] by Mr. Nick on how to contribute and credit to him as well
+Check out this [[https://youtu.be/FccdqCucVSI][video]] by Mr. Nick on how to contribute.
 
 ** Developer
 
-If you are developer, have a look at the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] document for more information.
+If you are a developer, have a look at the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] document for more information.
 
 * License
 
-The project is available under the [[file:LICENSE][GPLv3]] license.
+Websurfx is available under the [[file:LICENSE][AGPLv3]] license.
 
 * Credits
 
-Thanks to this wonderful people for *contributing* and *supporting* this project:
+We would like to thank the following people for their contributions and support:
 
-- [[https://gitlab.com/XFFXFF][zhou fan]]
+- [[https://github.com/XFFXFF][zhou fan]]
 - [[https://gitlab.com/johannesrexx][johannes rex]]
