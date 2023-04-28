@@ -12,7 +12,7 @@ env:
 jobs:
   build:
     runs-on: self-hosted
-    # runs-on: ubuntu-latest
+    #  runs-on: ubuntu-latest
     strategy:
       matrix:
         toolchain:
