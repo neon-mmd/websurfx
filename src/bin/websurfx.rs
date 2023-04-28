@@ -3,15 +3,11 @@
 //! This module contains the main function which handles the logging of the application to the
 //! stdout and handles the command line arguments provided and launches the `websurfx` server.
 
-use std::ops::RangeInclusive;
+use std::{ops::RangeInclusive, net::TcpListener};
 
-use websurfx::server::routes;
-
-use actix_files as fs;
-use actix_web::{middleware::Logger, web, App, HttpServer};
 use clap::{command, Parser};
 use env_logger::Env;
-use handlebars::Handlebars;
+use websurfx::run;
 
 /// A commandline arguments struct.
 #[derive(Parser, Debug, Default)]
@@ -67,30 +63,7 @@ async fn main() -> std::io::Result<()> {
 
     log::info!("started server on port {}", args.port);
 
-    let mut handlebars: Handlebars = Handlebars::new();
+    let listener = TcpListener::bind(("127.0.0.1", args.port))?;
 
-    handlebars
-        .register_templates_directory(".html", "./public/templates")
-        .unwrap();
-
-    let handlebars_ref: web::Data<Handlebars> = web::Data::new(handlebars);
-
-    HttpServer::new(move || {
-        App::new()
-            .app_data(handlebars_ref.clone())
-            .wrap(Logger::default()) // added logging middleware for logging.
-            // Serve images and static files (css and js files).
-            .service(fs::Files::new("/static", "./public/static").show_files_listing())
-            .service(fs::Files::new("/images", "./public/images").show_files_listing())
-            .service(routes::robots_data) // robots.txt
-            .service(routes::index) // index page
-            .service(routes::search) // search page
-            .service(routes::about) // about page
-            .service(routes::settings) // settings page
-            .default_service(web::route().to(routes::not_found)) // error page
-    })
-    // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
-    .bind(("127.0.0.1", args.port))?
-    .run()
-    .await
+    run(listener)?.await
 }

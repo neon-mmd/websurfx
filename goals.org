@@ -2,12 +2,10 @@
 
 - [ ] Add unit tests, integration test, doc tests in the project source code.
 
-- [ ] Write .gitlab-ci.yml for automating testing of the project.
-
 - [ ] Add code to remove nsfw content from search results using a blocklist.
 
 - [ ] Add code to disallow user to search sensitive content (similar functionality to swisscows search engine) if strict safe search is turned on.
-  
+
 - [ ] Add better error handling code to handle scraping error, reqwest error, etc.
   
 - [ ] Add ability to change colorschemes with the theme style of the page.
@@ -23,6 +21,8 @@
 - [ ] Add settings page to configure search engine on the fly by the user and save his preferences using cookies.
   
 - [ ] Add search engine logo to index page and to the navbar (on the right hand side).
+  
+- [X] Write rust.yml for automating testing of the project.
 
 - [X] Add better documentation to source code.
    
