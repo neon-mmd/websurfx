@@ -2,9 +2,11 @@ name: Rust
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - "**"
   pull_request:
-    branches: [ master ]
+    branches:
+      - "rolling" 
 
 env:
   CARGO_TERM_COLOR: always
