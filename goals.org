@@ -8,19 +8,15 @@
 
 - [ ] Improve error handling to handle scraping errors, reqwest errors, and other issues.
   
-- [ ] Add the ability for users to change the colorscheme of the page.
-
-  =For example:=
-
-  If a simple theme is used, then there should be the option of 9 different colorschemes to choose from, such as Catppuccino-Mocha, Solarized Dark, Nord, etc.
-  
 - [ ] Implement random delays and behaviors to emulate human behavior to evade IP blocking.
-  
-- [ ] Add Python/Lua configuration options to give more control to the user (server maintainer/administrator).
   
 - [ ] Create a settings page to allow users to configure the search engine and save their preferences using cookies.
   
 - [ ] Add a search engine logo to the index page and the navbar.
+  
+- [X] Add Python/Lua configuration options to give more control to the user (server maintainer/administrator).
+  
+- [X] Add the ability for users to change the colorscheme of the page. =For example:== If a simple theme is used, then there should be the option of 9 different colorschemes to choose from, such as Catppuccino-Mocha, Solarized Dark, Nord, etc.
   
 - [X] Write a rust.yml file for automated testing of the project.
 

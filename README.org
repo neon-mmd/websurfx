@@ -18,13 +18,13 @@ Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.
 
 * Installation and Testing
 
-To get started with Websurfx, clone the repository and run it using the following commands:
+To get started with Websurfx, clone the repository, edit the config file which is located in the =websurfx= directory and run it using the following commands:
 
 #+begin_src shell
   git clone https://github.com/neon-mmd/websurfx.git
   cd websurfx
   cargo build
-  ./target/debug/websurfx --port 8080
+  ./target/debug/websurfx
 #+end_src
 
 If you want to use the rolling/edge branch, run the following commands instead:
@@ -34,7 +34,7 @@ If you want to use the rolling/edge branch, run the following commands instead:
   cd websurfx
   git checkout rolling
   cargo build
-  ./target/debug/websurfx --port 8080
+  ./target/debug/websurfx
 #+end_src
 
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080 to start using Websurfx.
