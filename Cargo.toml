@@ -9,12 +9,12 @@ edition = "2021"
 reqwest = {version="*",features=["json"]}
 tokio = {version="*",features=["full"]}
 serde = {version="*",features=["derive"]}
-handlebars = { version = "4.2.1", features = ["dir_source"] }
+handlebars = { version = "4.3.6", features = ["dir_source"] }
 scraper = {version="*"}
-actix-web = {version="4"}
+actix-web = {version="4.3.1"}
 actix-files = {version="0.6.2"}
 serde_json = {version="*"}
 fake-useragent = {version="*"}
-clap = {version="*", features = ["derive"] }
 env_logger = "0.10.0"
 log = "0.4.17"
+rlua = {version="*"}

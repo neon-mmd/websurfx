@@ -3,6 +3,8 @@
 
 use serde::Serialize;
 
+use crate::config_parser::parser::Style;
+
 /// A named struct to store and serialize the individual search result from all the scraped
 /// and aggregated search results from the upstream search engines.
 ///
@@ -117,11 +119,12 @@ impl RawSearchResult {
 /// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
 /// `SearchResult` structs.
 /// * `page_query` - Stores the current pages search query `q` provided in the search url.
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub results: Vec<SearchResult>,
     pub page_query: String,
+    pub style: Style,
 }
 
 impl SearchResults {
@@ -137,6 +140,11 @@ impl SearchResults {
         SearchResults {
             results,
             page_query,
+            style: Style::new("".to_string(), "".to_string()),
         }
+    }
+
+    pub fn add_style(&mut self, style: Style) {
+        self.style = style;
     }
 }

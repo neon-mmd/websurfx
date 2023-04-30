@@ -4,7 +4,7 @@
 
 use std::fs::read_to_string;
 
-use crate::search_results_handler::aggregator::aggregate;
+use crate::{config_parser::parser::Config, search_results_handler::aggregator::aggregate};
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use serde::Deserialize;
@@ -27,8 +27,9 @@ struct SearchParams {
 #[get("/")]
 pub async fn index(
     hbs: web::Data<Handlebars<'_>>,
+    config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("index", &"").unwrap();
+    let page_content: String = hbs.render("index", &config.style).unwrap();
     Ok(HttpResponse::Ok().body(page_content))
 }
 
@@ -36,8 +37,9 @@ pub async fn index(
 /// website essentially the 404 error page.
 pub async fn not_found(
     hbs: web::Data<Handlebars<'_>>,
+    config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("404", &"")?;
+    let page_content: String = hbs.render("404", &config.style)?;
 
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
@@ -52,7 +54,7 @@ pub async fn not_found(
 /// ```bash
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
 /// ```
-/// 
+///
 /// Or
 ///
 /// ```bash
@@ -62,6 +64,7 @@ pub async fn not_found(
 pub async fn search(
     hbs: web::Data<Handlebars<'_>>,
     req: HttpRequest,
+    config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
     match &params.q {
@@ -71,8 +74,9 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish())
             } else {
-                let results_json: crate::search_results_handler::aggregation_models::SearchResults =
+                let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
                     aggregate(query, params.page).await?;
+                results_json.add_style(config.style.clone());
                 let page_content: String = hbs.render("search", &results_json)?;
                 Ok(HttpResponse::Ok().body(page_content))
             }
@@ -96,8 +100,9 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
 #[get("/about")]
 pub async fn about(
     hbs: web::Data<Handlebars<'_>>,
+    config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("about", &"")?;
+    let page_content: String = hbs.render("about", &config.style)?;
     Ok(HttpResponse::Ok().body(page_content))
 }
 
@@ -105,8 +110,9 @@ pub async fn about(
 #[get("/settings")]
 pub async fn settings(
     hbs: web::Data<Handlebars<'_>>,
+    config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("settings", &"")?;
+    let page_content: String = hbs.render("settings", &config.style)?;
     Ok(HttpResponse::Ok().body(page_content))
 }
 
