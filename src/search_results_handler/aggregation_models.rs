@@ -106,6 +106,11 @@ impl RawSearchResult {
         self.engine.push(engine)
     }
 
+    /// A function which returns the engine name stored from the struct as a string.
+    ///
+    /// # Returns
+    ///
+    /// An engine name stored as a string from the struct.
     pub fn engine(self) -> String {
         self.engine.get(0).unwrap().to_string()
     }

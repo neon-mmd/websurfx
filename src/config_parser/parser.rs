@@ -1,21 +1,9 @@
 //! This module provides the functionality to parse the lua config and convert the config options
 //! into rust readable form.
 
+use super::parser_models::Style;
 use rlua::Lua;
-use serde::Serialize;
 use std::fs;
-
-#[derive(Serialize, Clone)]
-pub struct Style {
-    pub theme: String,
-    pub colorscheme: String,
-}
-
-impl Style {
-    pub fn new(theme: String, colorscheme: String) -> Self {
-        Style { theme, colorscheme }
-    }
-}
 
 /// A named struct which stores the parsed config file options.
 ///

@@ -32,7 +32,7 @@ use handlebars::Handlebars;
 /// use websurfx::run;
 ///
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
-/// let server = run(listener).expect("Failed to start server");
+/// let server = run(listener,config).expect("Failed to start server");
 /// ```
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
