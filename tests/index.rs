@@ -1,15 +1,15 @@
 use std::net::TcpListener;
 
 use handlebars::Handlebars;
-use websurfx::run;
-
+use websurfx::{config_parser::parser::Config, run};
 
 // Starts a new instance of the HTTP server, bound to a random available port
 fn spawn_app() -> String {
     // Binding to port 0 will trigger the OS to assign a port for us.
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
-    let server = run(listener).expect("Failed to bind address");
+    let config = Config::parse().unwrap();
+    let server = run(listener, config).expect("Failed to bind address");
 
     tokio::spawn(server);
     format!("http://127.0.0.1:{}/", port)
@@ -27,7 +27,6 @@ fn handlebars() -> Handlebars<'static> {
     handlebars
 }
 
-
 #[tokio::test]
 async fn test_index() {
     let address = spawn_app();
@@ -35,8 +34,10 @@ async fn test_index() {
     let client = reqwest::Client::new();
     let res = client.get(address).send().await.unwrap();
     assert_eq!(res.status(), 200);
-    
+
     let handlebars = handlebars();
-    let template = handlebars.render("index", &()).unwrap();
+    let config = Config::parse().unwrap();
+    let template = handlebars.render("index", &config.style).unwrap();
     assert_eq!(res.text().await.unwrap(), template);
 }
+
