@@ -18,12 +18,13 @@ Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.
 
 * Installation and Testing
 
-To get started with Websurfx, clone the repository, edit the config file which is located in the =websurfx= directory and run it using the following commands:
+To get started with Websurfx, clone the repository, edit the config file which is located in the =websurfx= directory and install redis server by following the instructions located [[https://redis.io/docs/getting-started/][here]] and then run the websurfx server and redis server using the following commands:
 
 #+begin_src shell
   git clone https://github.com/neon-mmd/websurfx.git
   cd websurfx
   cargo build
+  redis-server -p 8082 &
   ./target/debug/websurfx
 #+end_src
 
@@ -34,16 +35,21 @@ If you want to use the rolling/edge branch, run the following commands instead:
   cd websurfx
   git checkout rolling
   cargo build
+  redis-server -p 8082 &
   ./target/debug/websurfx
 #+end_src
 
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080 to start using Websurfx.
 
-*Important Note:* Please be aware that the project is still in the testing phase and is not ready for production use. Do not refresh the page excessively or make too many requests, as this could result in IP blocking.
+*Important Note:* Please be aware that the project is still in the testing phase and is not ready for production use.
 
 * More Contributers Wanted
 
-We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[file:goals.org][goals.org]] file and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
+We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[file:goals.orhttps://github.com/neon-mmd/websurfx/projects?query=is%3Aopen][project board]] and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
+
+* Testers Wanted
+
+We are looking for willing testers to test whether the code to evade IP blocking works and is resillient enough to prevent IP blocks and banning by the upstream servers. 
 
 * FAQ (Frequently Asked Questions)
 
