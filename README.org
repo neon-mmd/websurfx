@@ -45,7 +45,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 * More Contributers Wanted
 
-We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[file:goals.orhttps://github.com/neon-mmd/websurfx/projects?query=is%3Aopen][project board]] and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
+We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen][project board]] and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
 
 * Testers Wanted
 
