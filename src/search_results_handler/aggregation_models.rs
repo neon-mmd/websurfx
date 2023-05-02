@@ -1,12 +1,12 @@
 //! This module provides public models for handling, storing and serializing of search results
 //! data scraped from the upstream search engines.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config_parser::parser_models::Style;
 
-/// A named struct to store and serialize the individual search result from all the scraped
-/// and aggregated search results from the upstream search engines.
+/// A named struct to store, serialize and deserializes the individual search result from all the
+/// scraped and aggregated search results from the upstream search engines.
 ///
 /// # Fields
 ///
@@ -16,7 +16,7 @@ use crate::config_parser::parser_models::Style;
 /// * `url` - The url to be displayed below the search result title in html.
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub title: String,
@@ -116,15 +116,15 @@ impl RawSearchResult {
     }
 }
 
-/// A named struct to store and serialize the all the search results scraped and aggregated
-/// from the upstream search engines.
+/// A named struct to store, serialize, deserialize the all the search results scraped and 
+/// aggregated from the upstream search engines.
 ///
 /// # Fields
 ///
 /// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
 /// `SearchResult` structs.
 /// * `page_query` - Stores the current pages search query `q` provided in the search url.
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub results: Vec<SearchResult>,

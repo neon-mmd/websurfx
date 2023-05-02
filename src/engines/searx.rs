@@ -2,10 +2,10 @@
 //! by querying the upstream searx search engine instance with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
-use reqwest::header::USER_AGENT;
+use rand::Rng;
+use reqwest::header::{HeaderMap, CONTENT_TYPE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
+use std::{collections::HashMap, time::Duration};
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
 
@@ -17,7 +17,7 @@ use crate::search_results_handler::aggregation_models::RawSearchResult;
 /// # Arguments
 ///
 /// * `query` - Takes the user provided query to query to the upstream search engine with.
-/// * `page` - Takes an Option<u32> as argument which can be either None or a valid page number.
+/// * `page` - Takes an u32 as an argument.
 /// * `user_agent` - Takes a random user agent string as an argument.
 ///
 /// # Errors
@@ -27,27 +27,29 @@ use crate::search_results_handler::aggregation_models::RawSearchResult;
 /// selector fails to initialize"
 pub async fn results(
     query: &str,
-    page: Option<u32>,
+    page: u32,
     user_agent: &str,
 ) -> Result<HashMap<String, RawSearchResult>, Box<dyn std::error::Error>> {
     // Page number can be missing or empty string and so appropriate handling is required
     // so that upstream server recieves valid page number.
-    let url: String = match page {
-        Some(page_number) => {
-            if page_number <= 1 {
-                format!("https://searx.work/search?q={query}")
-            } else {
-                format!("https://searx.work/search?q={query}&pageno={page_number}",)
-            }
-        }
-        None => format!("https://searx.work/search?q={query}"),
-    };
+    let url: String = format!("https://searx.work/search?q={query}&pageno={page}");
+
+    // Add random delay before making the request.
+    let mut rng = rand::thread_rng();
+    let delay_secs = rng.gen_range(1, 10);
+    std::thread::sleep(Duration::from_secs(delay_secs));
+
+    // initializing headers and adding appropriate headers.
+    let mut header_map = HeaderMap::new();
+    header_map.insert(USER_AGENT, user_agent.parse()?);
+    header_map.insert(REFERER, "https://google.com/".parse()?);
+    header_map.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
 
     // fetch the html from upstream searx instance engine
     // TODO: Write better error handling code to handle no results case.
     let results: String = reqwest::Client::new()
         .get(url)
-        .header(USER_AGENT, user_agent)
+        .headers(header_map) // add spoofed headers to emulate human behaviours.
         .send()
         .await?
         .text()

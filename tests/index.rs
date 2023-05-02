@@ -41,3 +41,5 @@ async fn test_index() {
     assert_eq!(res.text().await.unwrap(), template);
 }
 
+// TODO: Write tests for tesing parameters for search function that if provided with something
+// other than u32 like alphabets and special characters than it should panic

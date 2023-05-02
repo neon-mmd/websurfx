@@ -4,7 +4,11 @@
 
 use std::fs::read_to_string;
 
-use crate::{config_parser::parser::Config, search_results_handler::aggregator::aggregate};
+use crate::{
+    cache::cacher::RedisCache,
+    config_parser::parser::Config,
+    search_results_handler::{aggregation_models::SearchResults, aggregator::aggregate},
+};
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use serde::Deserialize;
@@ -67,6 +71,9 @@ pub async fn search(
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
+
+    //Initialize redis cache connection struct
+    let redis_cache = RedisCache::new(config.redis_connection_url.clone());
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
@@ -74,11 +81,63 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish())
             } else {
-                let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                    aggregate(query, params.page).await?;
-                results_json.add_style(config.style.clone());
-                let page_content: String = hbs.render("search", &results_json)?;
-                Ok(HttpResponse::Ok().body(page_content))
+                // Initialize the page url as an empty string
+                let mut page_url = String::new();
+
+                // Find whether the page is valid page number if not then return
+                // the first page number and also construct the page_url accordingly
+                let page = match params.page {
+                    Some(page_number) => {
+                        if page_number <= 1 {
+                            page_url = format!(
+                                "http://{}:{}/search?q={}&page={}",
+                                config.binding_ip_addr, config.port, query, 1
+                            );
+                            1
+                        } else {
+                            page_url = format!(
+                                "http://{}:{}/search?q={}&page={}",
+                                config.binding_ip_addr, config.port, query, page_number
+                            );
+
+                            page_number
+                        }
+                    }
+                    None => {
+                        page_url = format!(
+                            "http://{}:{}{}&page={}",
+                            config.binding_ip_addr,
+                            config.port,
+                            req.uri(),
+                            1
+                        );
+
+                        1
+                    }
+                };
+
+                // fetch the cached results json.
+                let cached_results_json = redis_cache.clone().cached_results_json(page_url.clone());
+                // check if fetched results was indeed fetched or it was an error and if so
+                // handle the data accordingly.
+                match cached_results_json {
+                    Ok(results_json) => {
+                        let new_results_json: SearchResults = serde_json::from_str(&results_json)?;
+                        let page_content: String = hbs.render("search", &new_results_json)?;
+                        Ok(HttpResponse::Ok().body(page_content))
+                    }
+                    Err(_) => {
+                        let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
+                    aggregate(query, page).await?;
+                        results_json.add_style(config.style.clone());
+                        redis_cache.clone().cache_results(
+                            serde_json::to_string(&results_json)?,
+                            page_url.clone(),
+                        )?;
+                        let page_content: String = hbs.render("search", &results_json)?;
+                        Ok(HttpResponse::Ok().body(page_content))
+                    }
+                }
             }
         }
         None => Ok(HttpResponse::Found()
@@ -115,6 +174,3 @@ pub async fn settings(
     let page_content: String = hbs.render("settings", &config.style)?;
     Ok(HttpResponse::Ok().body(page_content))
 }
-
-// TODO: Write tests for tesing parameters for search function that if provided with something
-// other than u32 like alphabets and special characters than it should panic

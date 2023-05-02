@@ -25,7 +25,7 @@ use crate::engines::{duckduckgo, searx};
 /// # Arguments
 ///
 /// * `query` - Accepts a string to query with the above upstream search engines.
-/// * `page` - Accepts an Option<u32> which could either be a None or a valid page number.
+/// * `page` - Accepts an u32 page number.
 ///
 /// # Error
 ///
@@ -34,7 +34,7 @@ use crate::engines::{duckduckgo, searx};
 /// containing appropriate values.
 pub async fn aggregate(
     query: &str,
-    page: Option<u32>,
+    page: u32,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
     let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();

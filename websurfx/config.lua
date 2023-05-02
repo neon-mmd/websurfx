@@ -16,3 +16,6 @@ binding_ip_addr = "127.0.0.1" --ip address on the which server should be launche
 -- }}
 colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
 theme = "simple" -- the theme name which should be used for the website
+
+-- Caching
+redis_connection_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.

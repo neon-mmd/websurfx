@@ -15,6 +15,9 @@ actix-web = {version="4.3.1"}
 actix-files = {version="0.6.2"}
 serde_json = {version="*"}
 fake-useragent = {version="*"}
-env_logger = "0.10.0"
-log = "0.4.17"
+env_logger = {version="0.10.0"}
+log = {version="0.4.17"}
 rlua = {version="*"}
+redis = {version="*"}
+md5 = {version="*"}
+rand={version="*"}

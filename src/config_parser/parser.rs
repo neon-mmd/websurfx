@@ -11,11 +11,15 @@ use std::fs;
 //
 /// * `port` - It stores the parsed port number option on which the server should launch.
 /// * `binding_ip_addr` - It stores the parsed ip address option on which the server should launch
+/// * `style` - It stores the theming options for the website.
+/// * `redis_connection_url` - It stores the redis connection url address on which the redis
+/// client should connect.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
     pub binding_ip_addr: String,
     pub style: Style,
+    pub redis_connection_url: String,
 }
 
 impl Config {
@@ -44,6 +48,7 @@ impl Config {
                     globals.get::<_, String>("theme")?,
                     globals.get::<_, String>("colorscheme")?,
                 ),
+                redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
             })
         })
     }

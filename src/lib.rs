@@ -1,6 +1,7 @@
 //! This main library module provides the functionality to provide and handle the Tcp server
 //! and register all the routes for the `websurfx` meta search engine website.
 
+pub mod cache;
 pub mod config_parser;
 pub mod engines;
 pub mod search_results_handler;
