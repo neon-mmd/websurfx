@@ -1,20 +1,25 @@
 {{>header this.style}}
 <main class="results">
-    {{>search_bar}}
-    <div class="results_aggregated">
-        {{#each results}}
-        <div class="result">
-            <h1><a href="{{this.visitingUrl}}">{{{this.title}}}</a></h1>
-            <small>{{this.url}}</small>
-            <p>{{{this.description}}}</p>
-            <div class="upstream_engines">
-                {{#each engine}}
-                <span>{{this}}</span>
-                {{/each}}
-            </div>
-        </div>
+  {{>search_bar}}
+  <div class="results_aggregated">
+    {{#each results}}
+    <div class="result">
+      <h1><a href="{{this.visitingUrl}}">{{{this.title}}}</a></h1>
+      <small>{{this.url}}</small>
+      <p>{{{this.description}}}</p>
+      <div class="upstream_engines">
+        {{#each engine}}
+        <span>{{this}}</span>
         {{/each}}
+      </div>
     </div>
+    {{/each}}
+  </div>
+  <div class="page_navigation">
+    <button type="button" onclick="navigate_backward()">&#8592; previous</button>
+    <button type="button" onclick="navigate_forward()">next &#8594;</button>
+  </div>
 </main>
 <script src="static/index.js"></script>
+<script src="static/pagination.js"></script>
 {{>footer}}
