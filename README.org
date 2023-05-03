@@ -2,6 +2,27 @@
 
 Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]] (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It provides a fast and secure search experience while respecting user privacy.
 
+* Table of Contents
+
+- [[#websurfx][Websurfx]]
+- [[#table-of-contents][Table of Contents]] 
+- [[#preview][Preview]]
+  - [[#main-page][Main Page]]
+  - [[#search-page][Search Page]]
+  - [[#404-error-page][404 Error Page]]
+- [[#installation-and-testing][Installation and Testing]]
+- [[#more-contributers-wanted][More Contributers Wanted]]
+- [[#testers-wanted][Testers Wanted]]
+- [[#faq-frequently-asked-questions][FAQ - (Frequently Asked Questions)]]
+  - [[#why-websurfx][Why Websurfx?]]
+  - [[#why-agplv3][Why AGPLv3?]]
+  - [[#why-rust][Why Rust?]]
+- [[#contributing][Contributing]]
+  - [[#not-a-developer-but-still-want-to-contribute][Not a developer but still want to contribute]]
+  - [[#developer][Developer]]
+- [[#license][License]]
+- [[#credits][Credits]]
+
 * Preview
 
 ** Main Page
