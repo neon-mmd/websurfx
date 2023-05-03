@@ -85,6 +85,6 @@ Websurfx is available under the [[file:LICENSE][AGPLv3]] license.
 
 We would like to thank the following people for their contributions and support:
 
-- [[https://github.com/XFFXFF][zhou fan]]
-- [[https://gitlab.com/johannesrexx][johannes rex]]
-- [[https://github.com/alamin655][alamin655]]
+#+html: <a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
+#+html:   <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
+#+html: </a>
