@@ -240,3 +240,23 @@ footer {
 .error_content p a:hover {
   color: var(--5);
 }
+
+.page_navigation {
+  padding: 0 0 2rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page_navigation button {
+  background: var(--bg);
+  color: var(--fg);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+}
+
+.page_navigation button:active {
+  filter: brightness(1.2);
+}
