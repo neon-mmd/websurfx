@@ -12,7 +12,6 @@ Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.
   - [[#404-error-page][404 Error Page]]
 - [[#installation-and-testing][Installation and Testing]]
 - [[#more-contributers-wanted][More Contributers Wanted]]
-- [[#testers-wanted][Testers Wanted]]
 - [[#faq-frequently-asked-questions][FAQ - (Frequently Asked Questions)]]
   - [[#why-websurfx][Why Websurfx?]]
   - [[#why-agplv3][Why AGPLv3?]]
@@ -67,10 +66,6 @@ Once you have started the server, open your preferred web browser and navigate t
 * More Contributers Wanted
 
 We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [[https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen][project board]] and the [[file:CONTRIBUTING.org][CONTRIBUTING.org]] file for guidelines and rules for making contributions.
-
-* Testers Wanted
-
-We are looking for willing testers to test whether the code to evade IP blocking works and is resillient enough to prevent IP blocks and banning by the upstream servers. 
 
 * FAQ (Frequently Asked Questions)
 
