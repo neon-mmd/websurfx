@@ -1,11 +1,16 @@
-* Websurfx
-
-Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.org/wiki/Metasearch_engine][meta search engine]] (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It provides a fast and secure search experience while respecting user privacy.
+#+html: <h1 align="center">Websurfx</h1> 
+#+html: <p align="center">
+#+html: <i> A lightning-fast, privacy-respecting, secure <a href="https://en.wikipedia.org/wiki/Metasearch_engine">meta search engine</a> (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It provides a fast and secure search experience while respecting user privacy.</i>
+#+html: <br/>
+#+html: <br/>
+#+html: <b align="center"><a href="README.org">Readme</a></b> | <b><a href="https://discord.gg/k4GH2TnZ">Discord</a></b> | <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b>
+#+html: <br/><br/>
+#+html: <!---add status badges here----> 
+#+html: </p>
 
 * Table of Contents
 
-- [[#websurfx][Websurfx]]
-- [[#table-of-contents][Table of Contents]] 
+- [[#features][Features]]
 - [[#preview][Preview]]
   - [[#main-page][Main Page]]
   - [[#search-page][Search Page]]
@@ -22,19 +27,28 @@ Websurfx is a lightning-fast, privacy-respecting, secure [[https://en.wikipedia.
 - [[#license][License]]
 - [[#credits][Credits]]
 
+* Features
+
+- Proper NSFW blocking
+- High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
+- Advanced image search
+- Fast, private and secure
+- 100% free and open source
+- and lots more...
+
 * Preview
 
 ** Main Page
 
-[[file:images/main_page.png]]
+#+html: <img align="center" src="./images/main_page.png" />
 
 ** Search Page
 
-[[file:images/search_page.png]]
+#+html: <img align="center" src="./images/search_page.png" />
 
 ** 404 Error Page
 
-[[file:images/404_error_page.png]]
+#+html: <img align="center" src="./images/404_error_page.png" />
 
 * Installation and Testing
 
@@ -62,6 +76,14 @@ If you want to use the rolling/edge branch, run the following commands instead:
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080 to start using Websurfx.
 
 *Important Note:* Please be aware that the project is still in the testing phase and is not ready for production use.
+
+* Configuration
+
+Websurfx is configured throught the config.lua file, located at =websurfx/config.lua=.
+
+* Theming
+
+Websurfx comes with several themes and colorschemes by default which you can apply and edit through the config file. Support for custom themes and colorschemes using css and develop your own unique-looking website.
 
 * More Contributers Wanted
 
@@ -104,3 +126,11 @@ We would like to thank the following people for their contributions and support:
 #+html: <a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
 #+html:   <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
 #+html: </a>
+
+#+html: <p align="center">
+#+html: <a href="https://github.com/neon-mmd/websurfx">
+#+html: <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
+#+html: </a>
+#+html: <br><br>
+#+html: <i>Thank you for Visiting</i>
+#+html: </p>
