@@ -79,7 +79,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 * Configuration
 
-Websurfx is configured throught the config.lua file, located at =websurfx/config.lua=.
+Websurfx is configured through the config.lua file, located at =websurfx/config.lua=.
 
 * Theming
 
@@ -127,6 +127,7 @@ We would like to thank the following people for their contributions and support:
 #+html:   <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
 #+html: </a>
 
+#+html: <br/>
 #+html: <p align="center">
 #+html: <a href="https://github.com/neon-mmd/websurfx">
 #+html: <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
