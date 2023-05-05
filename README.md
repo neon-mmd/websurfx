@@ -1,7 +1,7 @@
 <h1 align="center">Websurfx</h1>
 <p align="center">
   <i>
-    A lightning-fast, privacy-respecting, secure
+    A modern-looking, lightning-fast, privacy-respecting, secure
     <a href="https://en.wikipedia.org/wiki/Metasearch_engine"
       >meta search engine</a
     >
@@ -10,7 +10,7 @@
     privacy.</i
   >
   <br />
-  <img align="center" width="100px" src="./images/intro.png" />
+  <img align="center" width="300px" src="./images/intro.png" />
   <br />
   <b align="center"><a href="README.org">Readme</a></b> |
   <b><a href="https://discord.gg/k4GH2TnZ">Discord</a></b> |
