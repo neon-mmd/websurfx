@@ -15,7 +15,7 @@
   <br />
   <br />
   <b align="center"><a href="README.org">Readme</a></b> |
-  <b><a href="https://discord.gg/k4GH2TnZ">Discord</a></b> |
+  <b><a href="https://discord.gg/P5tctXVGs2">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx/wiki">Documentation</a></b>
   <br /><br />
@@ -118,24 +118,13 @@
 
 # Installation and Testing 🛠️ 
 
-> For full setup instructions, see: [**Installation**]()
+> For full setup instructions, see: [**Installation**](https://github.com/neon-mmd/websurfx/wiki/installation)
 
 To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx`{.verbatim} directory and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
 ``` shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-cargo build
-redis-server -p 8082 &
-./target/debug/websurfx
-```
-
-If you want to use the rolling/edge branch, run the following commands instead:
-
-``` shell
-git clone https://github.com/neon-mmd/websurfx.git
-cd websurfx
-git checkout rolling
 cargo build
 redis-server -p 8082 &
 ./target/debug/websurfx
@@ -150,7 +139,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 # Configuration 🔧 
 
-> For full configuration instructions, see: [**Configuration**]()
+> For full configuration instructions, see: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
 
 Websurfx is configured through the config.lua file, located at `websurfx/config.lua`.
 
@@ -158,7 +147,7 @@ Websurfx is configured through the config.lua file, located at `websurfx/config.
 
 # Theming 🎨 
 
-> For full theming and customization instructions, see: [**Theming**]()
+> For full theming and customization instructions, see: [**Theming**](https://github.com/neon-mmd/websurfx/wiki/theming)
 
 Websurfx comes with several themes and colorschemes by default which you can apply and edit through the config file. Support for custom themes and colorschemes using css and develop your own unique-looking website.
 
