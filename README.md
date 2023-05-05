@@ -173,7 +173,7 @@ Websurfx comes with several themes and colorschemes by default which you can app
 
 # System Requirements 📊
 
-At present, we only support all x86_64 architectures system but will love to have contributions to extend to other architectures as well.
+At present, we only support x86_64 architecture systems but will love to have contributions to extend to other architectures as well.
 
 **[⬆️ Back to Top](#websurfx)**
 
@@ -252,18 +252,22 @@ Websurfx is available under the [AGPLv3](LICENSE) license.
 
 We would like to thank the following people for their contributions and support:
 
-<a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
-</a>
+<p>
+  <br />
+  <a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
+  </a>
+  <br />
+</p>
 
 **[⬆️ Back to Top](#websurfx)**
 
 ---
 
 <p align="center">
-<a href="https://github.com/neon-mmd/websurfx">
-<img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
-</a>
-<br><br>
-<i>Thank you for Visiting</i>
+  <a href="https://github.com/neon-mmd/websurfx">
+    <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" />
+  </a>
+  <br /><br />
+  <i>Thank you for Visiting</i>
 </p>
