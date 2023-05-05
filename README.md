@@ -68,23 +68,23 @@
   <p>
 
 - **Getting Started**
--   [🌈 Features](#features-)
--   [🔭 Preview](#preview-)
--   [🛠️ Installation and Testing](#installation-and-testing-)
--   [🔧 Configuration](#configuration-)
+    - [🌈 Features](#features-)
+    - [🔭 Preview](#preview-)
+    - [🛠️ Installation and Testing](#installation-and-testing-)
+    - [🔧 Configuration](#configuration-)
 - **Feature Overview**
--   [🎨 Theming](#theming-)
--   [🌍 Multi-Language Support](#multi-language-support-)
+    - [🎨 Theming](#theming-)
+    - [🌍 Multi-Language Support](#multi-language-support-)
 - **Community**
--   [📊 System Requirements](#system-requirements-)
--   [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
--   [📣 More Contributers Wanted](#more-contributers-wanted-)
--   [💖 Supporting Websurfx](#supporting-websurfx-)
--   [📘 Documentation](#documentation-)
--   [🛣️ Roadmap](#roadmap-)
--   [🙋 Contributing](#contributing-)
--   [📜 License](#license-)
--   [🤝 Credits](#credits-)
+    - [📊 System Requirements](#system-requirements-)
+    - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
+    - [📣 More Contributers Wanted](#more-contributers-wanted-)
+    - [💖 Supporting Websurfx](#supporting-websurfx-)
+    - [📘 Documentation](#documentation-)
+    - [🛣️ Roadmap](#roadmap-)
+    - [🙋 Contributing](#contributing-)
+    - [📜 License](#license-)
+    - [🤝 Credits](#credits-)
 
   </p>
 </details>
