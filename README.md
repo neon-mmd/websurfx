@@ -10,7 +10,9 @@
     privacy.</i
   >
   <br />
-  <img align="center" width="300px" src="./images/intro.png" />
+  <br />
+  <img align="center" width="500px" src="./images/intro.png" />
+  <br />
   <br />
   <b align="center"><a href="README.org">Readme</a></b> |
   <b><a href="https://discord.gg/k4GH2TnZ">Discord</a></b> |
