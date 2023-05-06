@@ -70,7 +70,7 @@ If you experience or witness unacceptable behaviorâ€”or have any other concernsâ
 include them as well. Your account of what occurred, and if you believe the incident is ongoing. If there is a publicly available record (e.g. a mailing list archive or a public IRC logger), please include a link.
 - Any additional information that may be helpful.
 
-Anyone asked to stop unacceptable behavior is expected to comply immediately. If an individual engages in unacceptable behavior, We will act according to the [violations rules](#violation) as stated.
+Anyone asked to stop unacceptable behavior is expected to comply immediately. If an individual engages in unacceptable behavior, We will act according to the [violations rules](#violation) as stated above.
 
 ## Attribution
 
