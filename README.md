@@ -61,6 +61,24 @@
       src="https://img.shields.io/github/actions/workflow/status/neon-mmd/websurfx/rust.yml?style=flat-square"
     />
   </a>
+  <a href="">
+    <img
+      alt="GitHub release (latest by date including pre-releases)"
+      src="https://img.shields.io/github/v/release/neon-mmd/websurfx?include_prereleases"
+    />
+  </a>
+  <a href=""
+    ><img
+      alt="Maintenance"
+      src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
+    />
+  </a>
+  <a href="">
+    <img
+      alt="GitHub contributors"
+      src="https://img.shields.io/github/contributors-anon/neon-mmd/websurfx?style=flat-square"
+    />
+  </a>
 </p>
 
 <details>
