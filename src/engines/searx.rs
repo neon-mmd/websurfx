@@ -2,10 +2,9 @@
 //! by querying the upstream searx search engine instance with user provided query and with a page
 //! number if provided.
 
-use rand::Rng;
 use reqwest::header::{HeaderMap, CONTENT_TYPE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
 
@@ -33,11 +32,6 @@ pub async fn results(
     // Page number can be missing or empty string and so appropriate handling is required
     // so that upstream server recieves valid page number.
     let url: String = format!("https://searx.work/search?q={query}&pageno={page}");
-
-    // Add random delay before making the request.
-    let mut rng = rand::thread_rng();
-    let delay_secs = rng.gen_range(1, 10);
-    std::thread::sleep(Duration::from_secs(delay_secs));
 
     // initializing headers and adding appropriate headers.
     let mut header_map = HeaderMap::new();
