@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use reqwest::header::{HeaderMap, CONTENT_TYPE, REFERER, USER_AGENT};
+use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
@@ -50,7 +50,8 @@ pub async fn results(
     let mut header_map = HeaderMap::new();
     header_map.insert(USER_AGENT, user_agent.parse()?);
     header_map.insert(REFERER, "https://google.com/".parse()?);
-    header_map.insert(CONTENT_TYPE, "text/html; charset=UTF-8".parse()?);
+    header_map.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
+    header_map.insert(COOKIE, "kl=wt-wt".parse()?);
 
     // fetch the html from upstream duckduckgo engine
     // TODO: Write better error handling code to handle no results case.
