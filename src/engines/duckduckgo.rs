@@ -2,9 +2,8 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
-use rand::Rng;
 use reqwest::header::{HeaderMap, CONTENT_TYPE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
@@ -46,11 +45,6 @@ pub async fn results(
             )
         }
     };
-
-    // Add a random delay before making the request.
-    let mut rng = rand::thread_rng();
-    let delay_secs = rng.gen_range(1, 10);
-    std::thread::sleep(Duration::from_secs(delay_secs));
 
     // initializing HeaderMap and adding appropriate headers.
     let mut header_map = HeaderMap::new();
