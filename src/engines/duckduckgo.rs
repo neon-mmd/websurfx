@@ -2,10 +2,9 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
-use rand::Rng;
-use reqwest::header::{HeaderMap, CONTENT_TYPE, REFERER, USER_AGENT};
+use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
@@ -47,16 +46,12 @@ pub async fn results(
         }
     };
 
-    // Add a random delay before making the request.
-    let mut rng = rand::thread_rng();
-    let delay_secs = rng.gen_range(1, 10);
-    std::thread::sleep(Duration::from_secs(delay_secs));
-
     // initializing HeaderMap and adding appropriate headers.
     let mut header_map = HeaderMap::new();
     header_map.insert(USER_AGENT, user_agent.parse()?);
     header_map.insert(REFERER, "https://google.com/".parse()?);
-    header_map.insert(CONTENT_TYPE, "text/html; charset=UTF-8".parse()?);
+    header_map.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
+    header_map.insert(COOKIE, "kl=wt-wt".parse()?);
 
     // fetch the html from upstream duckduckgo engine
     // TODO: Write better error handling code to handle no results case.
