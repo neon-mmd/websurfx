@@ -44,7 +44,7 @@ pub async fn aggregate(
 
     // Add a random delay before making the request.
     let mut rng = rand::thread_rng();
-    let delay_secs = rng.gen_range(1, 10);
+    let delay_secs = rng.gen_range(1..10);
     std::thread::sleep(Duration::from_secs(delay_secs));
 
     // fetch results from upstream search engines simultaneously/concurrently.
