@@ -20,7 +20,7 @@ RUN cargo install --path .
 
 # We do not need the Rust toolchain to run the binary!
 FROM gcr.io/distroless/cc-debian11
-COPY ./public/ ./public/
-COPY ./websurfx/ ./websurfx/
+COPY --from=builder ./public/ ./public/
+COPY --from=builder ./websurfx/ ./websurfx/
 COPY --from=builder /usr/local/cargo/bin/* /usr/local/bin/
 CMD ["websurfx"]
