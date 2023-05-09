@@ -1,0 +1,9 @@
+target/
+.git/
+.github/
+.dockerignore
+Dockerfile
+docker-compose.yml
+images
+*.md
+LICENSE
