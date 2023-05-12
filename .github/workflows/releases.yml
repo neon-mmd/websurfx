@@ -5,11 +5,11 @@ on:
       - rolling
 
 concurrency:
-  group: "main-branch"
+  group: "rolling-branch"
 
 jobs:
   changelog:
-    if: github.repository == 'neon-mmd/websurfx '
+    if: github.repository == 'neon-mmd/websurfx'
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version-file: "./package.json,./package-lock.json,./config/app.json"
+          version-file: "./Cargo.toml"
           git-branch: "release-from-${{ github.sha }}"
           skip-on-empty: false
           skip-git-pull: true
@@ -51,7 +51,7 @@ jobs:
       # create PR using GitHub CLI
       - name: create PR with release info
         id: create-pr
-        run: gh pr create --base main --head release-from-${{ github.sha }} --title 'Merge new release into main' --body 'Created by Github action'
+        run: gh pr create --base main --head release-from-${{ github.sha }} --title 'Merge new release into rolling' --body 'Created by Github action'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
