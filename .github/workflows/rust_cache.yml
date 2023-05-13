@@ -1,0 +1,8 @@
+- name: Cache Rust compilation
+  uses: metalbear-co/sccache-action@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    # Optional, default is `sccache-`
+    cache-from: sccache-${{ runner.os }}-
+    # Optional, default is `sccache-latest`
+    cache-to: sccache-${{ runner.os }}-${{ github.sha }}

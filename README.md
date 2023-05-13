@@ -126,9 +126,6 @@
 - 🔐 Fast, private and secure
 - 🆓 100% free and open source
 - 🧹 Ad free and clean results
-- 🧠 AI integration (coming soon)
-- ⛔ Proper NSFW blocking (coming soon)
-- 🔍 Advanced image search (coming soon)
 - 🌈 and lots more...
 
 **[⬆️ Back to Top](#websurfx)**
@@ -209,7 +206,7 @@ We are looking for more willing contributors to help grow this project.For more 
 
 > For full details and other ways you can help out, see: [**Contributing**]()
 
-If you're using Dashy and would like to help support its development, then that would be awesome! Contributions of any type, any size, are always very much appreciated, and we will appropriately credit you for your effort.
+If you're using Websurfx and would like to help support its development, then that would be awesome! Contributions of any type, any size, are always very much appreciated, and we will appropriately credit you for your effort.
 
 Several areas that we need a bit of help with at the moment are:
 - **Better and more colorchemes** - Help fix colorchemes and add other famous colorchemes.
