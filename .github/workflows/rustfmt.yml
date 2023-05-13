@@ -8,7 +8,7 @@ on:
       - "rolling" 
 
 jobs:
-  formatting:
+   formatting:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
