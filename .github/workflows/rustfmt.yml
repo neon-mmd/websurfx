@@ -9,10 +9,19 @@ on:
 
 jobs:
   format:
+    name: rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: mbrobbel/rustfmt-check@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        - uses: actions/checkout@v2
+        - uses: actions-rs/toolchain@v1
+          with:
+              toolchain: nightly
+              components: rustfmt
+              override: true
+        - uses: LoliGothick/rustfmt-check@master
+          with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              flags: --all
+              options: --manifest-path=Cargo.toml
+              args: --config-path=rustfmt.toml
+              working-directory: my_crate

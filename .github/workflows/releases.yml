@@ -2,7 +2,7 @@ name: Releases
 on:
   push:
     branches:
-      - rolling
+      - "rolling"
 
 concurrency:
   group: "rolling-branch"

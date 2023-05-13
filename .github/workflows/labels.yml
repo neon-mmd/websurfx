@@ -3,7 +3,7 @@ name: Import open source standard labels
 on:
   push:
     branches:  
-      - main 
+      - master 
 
 jobs:
   labels:
