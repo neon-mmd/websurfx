@@ -4,8 +4,7 @@ name: Merge Gatekeeper
 on:
   pull_request:
     branches:
-      - main
-      - master
+      - rolling
 
 jobs:
   merge-gatekeeper:
