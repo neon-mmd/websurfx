@@ -1,7 +1,7 @@
 <h1 align="center">Websurfx</h1>
 <p align="center">
   <b align="center"><a href="README.org">Readme</a></b> |
-  <b><a href="https://discord.gg/P5tctXVGs2">Discord</a></b> |
+  <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx/wiki">Documentation</a></b>
   <br /><br />
