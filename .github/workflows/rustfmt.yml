@@ -8,20 +8,16 @@ on:
       - "rolling" 
 
 jobs:
-  format:
-    name: rustfmt
+  formatting:
+    name: cargo fmt
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v2
-        - uses: actions-rs/toolchain@v1
-          with:
-              toolchain: nightly
-              components: rustfmt
-              override: true
-        - uses: LoliGothick/rustfmt-check@master
-          with:
-              token: ${{ secrets.GITHUB_TOKEN }}
-              flags: --all
-              options: --manifest-path=Cargo.toml
-              args: --config-path=rustfmt.toml
-              working-directory: my_crate
+      - uses: actions/checkout@v3
+      # Ensure rustfmt is installed and setup problem matcher
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+      - name: Rustfmt Check
+        uses: Syndelis/rustfmt-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
