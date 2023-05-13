@@ -1,19 +1,5 @@
 <h1 align="center">Websurfx</h1>
 <p align="center">
-  <i>
-    A modern-looking, lightning-fast, privacy-respecting, secure
-    <a href="https://en.wikipedia.org/wiki/Metasearch_engine"
-      >meta search engine</a
-    >
-    (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It
-    provides a fast and secure search experience while respecting user
-    privacy.</i
-  >
-  <br />
-  <br />
-  <img align="center" width="500px" src="./images/intro.png" />
-  <br />
-  <br />
   <b align="center"><a href="README.org">Readme</a></b> |
   <b><a href="https://discord.gg/P5tctXVGs2">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
@@ -79,6 +65,17 @@
       src="https://img.shields.io/github/contributors-anon/neon-mmd/websurfx?style=flat-square"
     />
   </a>
+  <br />
+  <br />
+  <i>
+    A modern-looking, lightning-fast, privacy-respecting, secure
+    <a href="https://en.wikipedia.org/wiki/Metasearch_engine"
+      >meta search engine</a
+    >
+    (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It
+    provides a fast and secure search experience while respecting user
+    privacy.</i
+  >
 </p>
 
 <details>
@@ -86,8 +83,8 @@
   <p>
 
 - **Getting Started**
-    - [🌈 Features](#features-)
     - [🔭 Preview](#preview-)
+    - [🌈 Features](#features-)
     - [🛠️ Installation and Testing](#installation-and-testing-)
     - [🔧 Configuration](#configuration-)
 - **Feature Overview**
@@ -107,17 +104,6 @@
   </p>
 </details>
 
-# Features 🌈 
-
-- ⛔ Proper NSFW blocking
-- 🎨 High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
-- 🔍 Advanced image search
-- 🔐 Fast, private and secure
-- 🆓 100% free and open source
-- 🌈 and lots more...
-
-**[⬆️ Back to Top](#websurfx)**
-
 # Preview 🔭 
 
 ## Main Page
@@ -131,6 +117,19 @@
 ## 404 Error Page
 
 <img align="center" src="./images/404_error_page.png" />
+
+**[⬆️ Back to Top](#websurfx)**
+
+# Features 🌈 
+
+- 🎨 High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
+- 🔐 Fast, private and secure
+- 🆓 100% free and open source
+- 🧹 Ad free and clean results
+- 🧠 AI integration (coming soon)
+- ⛔ Proper NSFW blocking (coming soon)
+- 🔍 Advanced image search (coming soon)
+- 🌈 and lots more...
 
 **[⬆️ Back to Top](#websurfx)**
 
