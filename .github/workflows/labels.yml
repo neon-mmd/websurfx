@@ -19,4 +19,4 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         owner-name: ${{ github.repository_owner }}
         repository-name: ${{ github.event.repository.name }}
-        # force: true # optional to clear existing labels, default to true
+        force: true # optional to clear existing labels, default to true
