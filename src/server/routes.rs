@@ -73,7 +73,7 @@ pub async fn search(
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
 
     //Initialize redis cache connection struct
-    let redis_cache = RedisCache::new(config.redis_connection_url.clone());
+    let mut redis_cache = RedisCache::new(config.redis_connection_url.clone())?;
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
@@ -117,7 +117,7 @@ pub async fn search(
                 };
 
                 // fetch the cached results json.
-                let cached_results_json = redis_cache.clone().cached_results_json(page_url.clone());
+                let cached_results_json = redis_cache.cached_results_json(&page_url);
                 // check if fetched results was indeed fetched or it was an error and if so
                 // handle the data accordingly.
                 match cached_results_json {
@@ -128,12 +128,10 @@ pub async fn search(
                     }
                     Err(_) => {
                         let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                    aggregate(query, page).await?;
+                            aggregate(query, page).await?;
                         results_json.add_style(config.style.clone());
-                        redis_cache.clone().cache_results(
-                            serde_json::to_string(&results_json)?,
-                            page_url.clone(),
-                        )?;
+                        redis_cache
+                            .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
                         let page_content: String = hbs.render("search", &results_json)?;
                         Ok(HttpResponse::Ok().body(page_content))
                     }
