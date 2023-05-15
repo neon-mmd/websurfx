@@ -1,21 +1,7 @@
 <h1 align="center">Websurfx</h1>
 <p align="center">
-  <i>
-    A modern-looking, lightning-fast, privacy-respecting, secure
-    <a href="https://en.wikipedia.org/wiki/Metasearch_engine"
-      >meta search engine</a
-    >
-    (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It
-    provides a fast and secure search experience while respecting user
-    privacy.</i
-  >
-  <br />
-  <br />
-  <img align="center" width="500px" src="./images/intro.png" />
-  <br />
-  <br />
   <b align="center"><a href="README.org">Readme</a></b> |
-  <b><a href="https://discord.gg/k4GH2TnZ">Discord</a></b> |
+  <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx/wiki">Documentation</a></b>
   <br /><br />
@@ -61,6 +47,35 @@
       src="https://img.shields.io/github/actions/workflow/status/neon-mmd/websurfx/rust.yml?style=flat-square"
     />
   </a>
+  <a href="">
+    <img
+      alt="GitHub release (latest by date including pre-releases)"
+      src="https://img.shields.io/github/v/release/neon-mmd/websurfx?include_prereleases"
+    />
+  </a>
+  <a href=""
+    ><img
+      alt="Maintenance"
+      src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
+    />
+  </a>
+  <a href="">
+    <img
+      alt="GitHub contributors"
+      src="https://img.shields.io/github/contributors-anon/neon-mmd/websurfx?style=flat-square"
+    />
+  </a>
+  <br />
+  <br />
+  <i>
+    A modern-looking, lightning-fast, privacy-respecting, secure
+    <a href="https://en.wikipedia.org/wiki/Metasearch_engine"
+      >meta search engine</a
+    >
+    (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It
+    provides a fast and secure search experience while respecting user
+    privacy.</i
+  >
 </p>
 
 <details>
@@ -68,8 +83,8 @@
   <p>
 
 - **Getting Started**
-    - [🌈 Features](#features-)
     - [🔭 Preview](#preview-)
+    - [🌈 Features](#features-)
     - [🛠️ Installation and Testing](#installation-and-testing-)
     - [🔧 Configuration](#configuration-)
 - **Feature Overview**
@@ -89,17 +104,6 @@
   </p>
 </details>
 
-# Features 🌈 
-
-- ⛔ Proper NSFW blocking
-- 🎨 High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
-- 🔍 Advanced image search
-- 🔐 Fast, private and secure
-- 🆓 100% free and open source
-- 🌈 and lots more...
-
-**[⬆️ Back to Top](#websurfx)**
-
 # Preview 🔭 
 
 ## Main Page
@@ -116,26 +120,25 @@
 
 **[⬆️ Back to Top](#websurfx)**
 
+# Features 🌈 
+
+- 🎨 High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
+- 🔐 Fast, private and secure
+- 🆓 100% free and open source
+- 🧹 Ad free and clean results
+- 🌈 and lots more...
+
+**[⬆️ Back to Top](#websurfx)**
+
 # Installation and Testing 🛠️ 
 
-> For full setup instructions, see: [**Installation**]()
+> For full setup instructions, see: [**Installation**](https://github.com/neon-mmd/websurfx/wiki/installation)
 
 To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx`{.verbatim} directory and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
 ``` shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-cargo build
-redis-server -p 8082 &
-./target/debug/websurfx
-```
-
-If you want to use the rolling/edge branch, run the following commands instead:
-
-``` shell
-git clone https://github.com/neon-mmd/websurfx.git
-cd websurfx
-git checkout rolling
 cargo build
 redis-server -p 8082 &
 ./target/debug/websurfx
@@ -150,7 +153,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 # Configuration 🔧 
 
-> For full configuration instructions, see: [**Configuration**]()
+> For full configuration instructions, see: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
 
 Websurfx is configured through the config.lua file, located at `websurfx/config.lua`.
 
@@ -158,7 +161,7 @@ Websurfx is configured through the config.lua file, located at `websurfx/config.
 
 # Theming 🎨 
 
-> For full theming and customization instructions, see: [**Theming**]()
+> For full theming and customization instructions, see: [**Theming**](https://github.com/neon-mmd/websurfx/wiki/theming)
 
 Websurfx comes with several themes and colorschemes by default which you can apply and edit through the config file. Support for custom themes and colorschemes using css and develop your own unique-looking website.
 
@@ -203,7 +206,7 @@ We are looking for more willing contributors to help grow this project.For more 
 
 > For full details and other ways you can help out, see: [**Contributing**]()
 
-If you're using Dashy and would like to help support its development, then that would be awesome! Contributions of any type, any size, are always very much appreciated, and we will appropriately credit you for your effort.
+If you're using Websurfx and would like to help support its development, then that would be awesome! Contributions of any type, any size, are always very much appreciated, and we will appropriately credit you for your effort.
 
 Several areas that we need a bit of help with at the moment are:
 - **Better and more colorchemes** - Help fix colorchemes and add other famous colorchemes.
