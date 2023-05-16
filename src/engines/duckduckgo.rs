@@ -2,7 +2,7 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
@@ -57,6 +57,7 @@ pub async fn results(
     // TODO: Write better error handling code to handle no results case.
     let results: String = reqwest::Client::new()
         .get(url)
+        .timeout(Duration::from_secs(30))
         .headers(header_map) // add spoofed headers to emulate human behaviour
         .send()
         .await?
