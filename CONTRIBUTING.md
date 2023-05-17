@@ -56,4 +56,15 @@ The _rolling branch_ is where we intend all source code contributions should go.
 
 The _master branch_ is where we intend all source code contributions should go.
 
+# How To Fork
+
+![image](./images/fork_button.png)
+
+![image](./images/fork_options_page.png)
+
+Please make sure to leave the `Copy the master branch only` option ticked off. 
+
+![image](./images/create_fork_button.png)
+
+
 We appreciate any contributions whether be of any size or topic and suggestions to help improve the Websurfx project. Please keep in mind the above requirements and guidelines before submitting a pull request and also if you have any doubts/concerns/questions about the project, its source code or anything related to the project than feel free to ask by opening an [issue](https://github.com/neon-mmd/websurfx/issues) or by asking us on our [Discord](https://discord.gg/SWnda7Mw5u) channel.
