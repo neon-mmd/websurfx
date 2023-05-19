@@ -65,6 +65,12 @@
       src="https://img.shields.io/github/contributors-anon/neon-mmd/websurfx?style=flat-square"
     />
   </a>
+  <a href="https://gitpod.io/#https://github.com/neon-mmd/websurfx">
+    <img
+      alt="Gitpod"
+      src="https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod"
+    />
+  </a>
   <br />
   <br />
   <i>
