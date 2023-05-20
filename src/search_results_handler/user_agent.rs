@@ -1,15 +1,10 @@
 //! This module provides the functionality to generate random user agent string.
 
-use fake_useragent::{Browsers, UserAgentsBuilder};
+use fake_useragent::{Browsers, UserAgents, UserAgentsBuilder};
 
-/// A function to generate random user agent to improve privacy of the user.
-///
-/// # Returns
-///
-/// A randomly generated user agent string.
-pub fn random_user_agent() -> String {
+static USER_AGENTS: once_cell::sync::Lazy<UserAgents> = once_cell::sync::Lazy::new(|| {
     UserAgentsBuilder::new()
-        .cache(false)
+        .cache(true)
         .dir("/tmp")
         .thread(1)
         .set_browsers(
@@ -21,6 +16,13 @@ pub fn random_user_agent() -> String {
                 .set_mozilla(),
         )
         .build()
-        .random()
-        .to_string()
+});
+
+/// A function to generate random user agent to improve privacy of the user.
+///
+/// # Returns
+///
+/// A randomly generated user agent string.
+pub fn random_user_agent() -> String {
+    USER_AGENTS.random().to_string()
 }
