@@ -114,9 +114,7 @@ pub async fn search(
                         1
                     }
                 };
-                
-                // Use the page_url variable as needed
-                                
+                                              
                 // fetch the cached results json.
                 let cached_results_json = redis_cache.cached_results_json(&page_url);
                 // check if fetched results was indeed fetched or it was an error and if so
