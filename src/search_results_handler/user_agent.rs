@@ -4,7 +4,7 @@ use fake_useragent::{Browsers, UserAgents, UserAgentsBuilder};
 
 static USER_AGENTS: once_cell::sync::Lazy<UserAgents> = once_cell::sync::Lazy::new(|| {
     UserAgentsBuilder::new()
-        .cache(true)
+        .cache(false)
         .dir("/tmp")
         .thread(1)
         .set_browsers(
