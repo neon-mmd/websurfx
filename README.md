@@ -1,4 +1,6 @@
-<h1 align="center">Websurfx</h1>
+<h1 align="center">
+  <img src="./images/websurfx_logo.png" alt="websurfx logo" align="center" />
+</h1>
 <p align="center">
   <i>
     A modern-looking, lightning-fast, privacy-respecting, secure
@@ -68,28 +70,19 @@
   <p>
 
 - **Getting Started**
-    - [🌈 Features](#features-)
-    - [🔭 Preview](#preview-)
-    - [🛠️ Installation and Testing](#installation-and-testing-)
-    - [🔧 Configuration](#configuration-)
+  - [🌈 Features](#features-)
+  - [🔭 Preview](#preview-)
+  - [🛠️ Installation and Testing](#installation-and-testing-)
+  - [🔧 Configuration](#configuration-)
 - **Feature Overview**
-    - [🎨 Theming](#theming-)
-    - [🌍 Multi-Language Support](#multi-language-support-)
-- **Community**
-    - [📊 System Requirements](#system-requirements-)
-    - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
-    - [📣 More Contributers Wanted](#more-contributers-wanted-)
-    - [💖 Supporting Websurfx](#supporting-websurfx-)
-    - [📘 Documentation](#documentation-)
-    - [🛣️ Roadmap](#roadmap-)
-    - [🙋 Contributing](#contributing-)
-    - [📜 License](#license-)
-    - [🤝 Credits](#credits-)
+  - [🎨 Theming](#theming-)
+  - [🌍 Multi-Language Support](#multi-language-support-)
+- **Community** - [📊 System Requirements](#system-requirements-) - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-) - [📣 More Contributers Wanted](#more-contributers-wanted-) - [💖 Supporting Websurfx](#supporting-websurfx-) - [📘 Documentation](#documentation-) - [🛣️ Roadmap](#roadmap-) - [🙋 Contributing](#contributing-) - [📜 License](#license-) - [🤝 Credits](#credits-)
 
   </p>
 </details>
 
-# Features 🌈 
+# Features 🌈
 
 - ⛔ Proper NSFW blocking
 - 🎨 High level customizability with 9 colorchemes provided by default with a simple theme, also supporting creation of your custom themes and colorschemes very quickly and easily
@@ -100,7 +93,7 @@
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Preview 🔭 
+# Preview 🔭
 
 ## Main Page
 
@@ -116,13 +109,13 @@
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Installation and Testing 🛠️ 
+# Installation and Testing 🛠️
 
 > For full setup instructions, see: [**Installation**]()
 
 To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx`{.verbatim} directory and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
-``` shell
+```shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
 cargo build
@@ -132,7 +125,7 @@ redis-server -p 8082 &
 
 If you want to use the rolling/edge branch, run the following commands instead:
 
-``` shell
+```shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
 git checkout rolling
@@ -148,7 +141,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Configuration 🔧 
+# Configuration 🔧
 
 > For full configuration instructions, see: [**Configuration**]()
 
@@ -156,7 +149,7 @@ Websurfx is configured through the config.lua file, located at `websurfx/config.
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Theming 🎨 
+# Theming 🎨
 
 > For full theming and customization instructions, see: [**Theming**]()
 
@@ -167,7 +160,7 @@ Websurfx comes with several themes and colorschemes by default which you can app
 # Multi-Language Support 🌍
 
 > **Note**
-> Currently, we do not support other languages but in future we would start accepting contributions regarding language support because we believe that language should not be a barrier for entry.  
+> Currently, we do not support other languages but in future we would start accepting contributions regarding language support because we believe that language should not be a barrier for entry.
 
 **[⬆️ Back to Top](#websurfx)**
 
@@ -193,7 +186,7 @@ Rust was chosen as the programming language for Websurfx due to its memory safet
 
 **[⬆️ Back to Top](#websurfx)**
 
-# More Contributers Wanted 📣 
+# More Contributers Wanted 📣
 
 We are looking for more willing contributors to help grow this project.For more information on how you can contribute, check out the [project board](https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen) and the [CONTRIBUTING.org](CONTRIBUTING.org) file for guidelines and rules for making contributions.
 
@@ -206,6 +199,7 @@ We are looking for more willing contributors to help grow this project.For more 
 If you're using Dashy and would like to help support its development, then that would be awesome! Contributions of any type, any size, are always very much appreciated, and we will appropriately credit you for your effort.
 
 Several areas that we need a bit of help with at the moment are:
+
 - **Better and more colorchemes** - Help fix colorchemes and add other famous colorchemes.
 - **Improve evasion code for bot detection** - Help improve code related to evade ip blocking and emulate human behaviours located in everyone engine file.
 - **Logo** - Help create a logo for the project and website.
@@ -218,7 +212,7 @@ Several areas that we need a bit of help with at the moment are:
 # Documentation 📘
 
 > **Note**
-> We are willing to have any contribution regarding [documentation](https://github.com/neon-mmd/websurfx/wiki) as this helps everyone using this project. 
+> We are willing to have any contribution regarding [documentation](https://github.com/neon-mmd/websurfx/wiki) as this helps everyone using this project.
 
 **[⬆️ Back to Top](#websurfx)**
 
@@ -228,7 +222,7 @@ Several areas that we need a bit of help with at the moment are:
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Contributing 🙋 
+# Contributing 🙋
 
 Contributions are welcome from anyone. It doesn\'t matter who you are; you can still contribute to the project in your way.
 
@@ -242,13 +236,13 @@ If you are a developer, have a look at the [CONTRIBUTING.org](CONTRIBUTING.org) 
 
 **[⬆️ Back to Top](#websurfx)**
 
-# License 📜 
+# License 📜
 
 Websurfx is available under the [AGPLv3](LICENSE) license.
 
 **[⬆️ Back to Top](#websurfx)**
 
-# Credits 🤝 
+# Credits 🤝
 
 We would like to thank the following people for their contributions and support:
 
