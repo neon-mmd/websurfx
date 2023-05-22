@@ -1,4 +1,6 @@
-<h1 align="center">Websurfx</h1>
+<h1 align="center">
+  <img src="./images/websurfx_logo.png" alt="websurfx logo" align="center" />
+</h1>
 <p align="center">
   <b align="center"><a href="README.md">Readme</a></b> |
   <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
