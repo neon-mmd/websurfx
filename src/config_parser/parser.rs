@@ -20,6 +20,14 @@ pub struct Config {
     pub binding_ip_addr: String,
     pub style: Style,
     pub redis_connection_url: String,
+    pub aggregator: AggreatorConfig,
+}
+
+/// Configuration options for the aggregator.
+#[derive(Clone)]
+pub struct AggreatorConfig {
+    /// Whether to introduce a random delay before sending the request to the search engine.
+    pub random_delay: bool,
 }
 
 impl Config {
@@ -41,6 +49,8 @@ impl Config {
                 .load(&fs::read_to_string("./websurfx/config.lua")?)
                 .exec()?;
 
+            let aggregator_config = globals.get::<_, rlua::Table>("aggregator")?;
+
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
                 binding_ip_addr: globals.get::<_, String>("binding_ip_addr")?,
@@ -49,6 +59,9 @@ impl Config {
                     globals.get::<_, String>("colorscheme")?,
                 ),
                 redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
+                aggregator: AggreatorConfig {
+                    random_delay: aggregator_config.get::<_, bool>("random_delay")?,
+                },
             })
         })
     }

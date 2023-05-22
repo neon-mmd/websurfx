@@ -127,7 +127,7 @@ pub async fn search(
                     }
                     Err(_) => {
                         let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                            aggregate(query, page).await?;
+                            aggregate(query, page, config.aggregator.random_delay).await?;
                         results_json.add_style(config.style.clone());
                         redis_cache
                             .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
