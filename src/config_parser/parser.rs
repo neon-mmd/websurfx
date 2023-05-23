@@ -49,7 +49,16 @@ impl Config {
                 .load(&fs::read_to_string("./websurfx/config.lua")?)
                 .exec()?;
 
-            let aggregator_config = globals.get::<_, rlua::Table>("aggregator")?;
+            let production_use = globals.get::<_, bool>("production_use")?;
+            let aggregator_config = if production_use {
+                AggreatorConfig {
+                    random_delay: true,
+                }
+            } else {
+                AggreatorConfig {
+                    random_delay: false,
+                }
+            };
 
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
@@ -59,9 +68,7 @@ impl Config {
                     globals.get::<_, String>("colorscheme")?,
                 ),
                 redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
-                aggregator: AggreatorConfig {
-                    random_delay: aggregator_config.get::<_, bool>("random_delay")?,
-                },
+                aggregator: aggregator_config
             })
         })
     }
