@@ -51,9 +51,7 @@ impl Config {
 
             let production_use = globals.get::<_, bool>("production_use")?;
             let aggregator_config = if production_use {
-                AggreatorConfig {
-                    random_delay: true,
-                }
+                AggreatorConfig { random_delay: true }
             } else {
                 AggreatorConfig {
                     random_delay: false,
@@ -68,7 +66,7 @@ impl Config {
                     globals.get::<_, String>("colorscheme")?,
                 ),
                 redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
-                aggregator: aggregator_config
+                aggregator: aggregator_config,
             })
         })
     }
