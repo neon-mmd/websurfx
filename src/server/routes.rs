@@ -81,10 +81,10 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish())
             } else {
-                let page_url: String;  // Declare the page_url variable without initializing it
+                let page_url: String; // Declare the page_url variable without initializing it
 
                 // ...
-                
+
                 let page = match params.page {
                     Some(page_number) => {
                         if page_number <= 1 {
@@ -98,7 +98,7 @@ pub async fn search(
                                 "http://{}:{}/search?q={}&page={}",
                                 config.binding_ip_addr, config.port, query, page_number
                             );
-                
+
                             page_number
                         }
                     }
@@ -110,11 +110,11 @@ pub async fn search(
                             req.uri(),
                             1
                         );
-                
+
                         1
                     }
                 };
-                                              
+
                 // fetch the cached results json.
                 let cached_results_json = redis_cache.cached_results_json(&page_url);
                 // check if fetched results was indeed fetched or it was an error and if so
