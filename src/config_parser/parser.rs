@@ -24,6 +24,14 @@ pub struct Config {
     pub binding_ip_addr: String,
     pub style: Style,
     pub redis_connection_url: String,
+    pub aggregator: AggreatorConfig,
+}
+
+/// Configuration options for the aggregator.
+#[derive(Clone)]
+pub struct AggreatorConfig {
+    /// Whether to introduce a random delay before sending the request to the search engine.
+    pub random_delay: bool,
 }
 
 impl Config {
@@ -45,6 +53,15 @@ impl Config {
                 )?)
                 .exec()?;
 
+            let production_use = globals.get::<_, bool>("production_use")?;
+            let aggregator_config = if production_use {
+                AggreatorConfig { random_delay: true }
+            } else {
+                AggreatorConfig {
+                    random_delay: false,
+                }
+            };
+
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
                 binding_ip_addr: globals.get::<_, String>("binding_ip_addr")?,
@@ -53,6 +70,7 @@ impl Config {
                     globals.get::<_, String>("colorscheme")?,
                 ),
                 redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
+                aggregator: aggregator_config,
             })
         })
     }
