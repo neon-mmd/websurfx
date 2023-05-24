@@ -5,6 +5,10 @@ use super::parser_models::Style;
 use rlua::Lua;
 use std::{format, fs, path::Path};
 
+// ------- Constants --------
+static COMMON_DIRECTORY_NAME: &str = "websurfx";
+static CONFIG_FILE_NAME: &str = "config.lua";
+
 /// A named struct which stores the parsed config file options.
 ///
 /// # Fields
@@ -67,20 +71,29 @@ impl Config {
     fn handle_different_config_file_path() -> Result<String, Box<dyn std::error::Error>> {
         if Path::new(
             format!(
-                "{}/.config/websurfx/config.lua",
-                std::env::var("HOME").unwrap()
+                "{}/.config/{}/config.lua",
+                std::env::var("HOME").unwrap(),
+                COMMON_DIRECTORY_NAME
             )
             .as_str(),
         )
         .exists()
         {
             Ok(format!(
-                "{}/.config/websurfx/config.lua",
-                std::env::var("HOME").unwrap()
+                "{}/.config/{}/{}",
+                std::env::var("HOME").unwrap(),
+                COMMON_DIRECTORY_NAME,
+                CONFIG_FILE_NAME
             ))
-        } else if Path::new("/etc/xdg/websurfx/config.lua").exists() {
+        } else if Path::new(
+            format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str(),
+        )
+        .exists()
+        {
             Ok("/etc/xdg/websurfx/config.lua".to_string())
-        } else if Path::new("./websurfx/config.lua").exists() {
+        } else if Path::new(format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str())
+            .exists()
+        {
             Ok("./websurfx/config.lua".to_string())
         } else {
             Err(format!("Config file not found!!").into())
