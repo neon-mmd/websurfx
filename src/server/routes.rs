@@ -7,8 +7,8 @@ use std::fs::read_to_string;
 use crate::{
     cache::cacher::RedisCache,
     config_parser::parser::Config,
+    handler::public_path_handler::handle_different_public_path,
     search_results_handler::{aggregation_models::SearchResults, aggregator::aggregate},
-    theme_handler::theme_path_handler::handle_different_theme_path,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
@@ -148,7 +148,7 @@ pub async fn search(
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let page_content: String =
-        read_to_string(format!("{}/robots.txt", handle_different_theme_path()?))?;
+        read_to_string(format!("{}/robots.txt", handle_different_public_path()?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))

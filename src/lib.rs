@@ -4,9 +4,9 @@
 pub mod cache;
 pub mod config_parser;
 pub mod engines;
+pub mod handler;
 pub mod search_results_handler;
 pub mod server;
-pub mod theme_handler;
 
 use std::net::TcpListener;
 
@@ -16,7 +16,7 @@ use actix_files as fs;
 use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
 use config_parser::parser::Config;
 use handlebars::Handlebars;
-use theme_handler::theme_path_handler::handle_different_theme_path;
+use handler::public_path_handler::handle_different_public_path;
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -41,10 +41,10 @@ use theme_handler::theme_path_handler::handle_different_theme_path;
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
 
-    let theme_folder_path: String = handle_different_theme_path()?;
+    let public_folder_path: String = handle_different_public_path()?;
 
     handlebars
-        .register_templates_directory(".html", format!("{}/templates", theme_folder_path))
+        .register_templates_directory(".html", format!("{}/templates", public_folder_path))
         .unwrap();
 
     let handlebars_ref: web::Data<Handlebars> = web::Data::new(handlebars);
@@ -56,11 +56,11 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             .wrap(Logger::default()) // added logging middleware for logging.
             // Serve images and static files (css and js files).
             .service(
-                fs::Files::new("/static", format!("{}/static", theme_folder_path))
+                fs::Files::new("/static", format!("{}/static", public_folder_path))
                     .show_files_listing(),
             )
             .service(
-                fs::Files::new("/images", format!("{}/images", theme_folder_path))
+                fs::Files::new("/images", format!("{}/images", public_folder_path))
                     .show_files_listing(),
             )
             .service(routes::robots_data) // robots.txt
