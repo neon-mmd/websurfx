@@ -4,6 +4,7 @@
 pub mod cache;
 pub mod config_parser;
 pub mod engines;
+pub mod handler;
 pub mod search_results_handler;
 pub mod server;
 
@@ -15,6 +16,7 @@ use actix_files as fs;
 use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
 use config_parser::parser::Config;
 use handlebars::Handlebars;
+use handler::public_path_handler::handle_different_public_path;
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -39,8 +41,10 @@ use handlebars::Handlebars;
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
 
+    let public_folder_path: String = handle_different_public_path()?;
+
     handlebars
-        .register_templates_directory(".html", "./public/templates")
+        .register_templates_directory(".html", format!("{}/templates", public_folder_path))
         .unwrap();
 
     let handlebars_ref: web::Data<Handlebars> = web::Data::new(handlebars);
@@ -51,8 +55,14 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             .app_data(web::Data::new(config.clone()))
             .wrap(Logger::default()) // added logging middleware for logging.
             // Serve images and static files (css and js files).
-            .service(fs::Files::new("/static", "./public/static").show_files_listing())
-            .service(fs::Files::new("/images", "./public/images").show_files_listing())
+            .service(
+                fs::Files::new("/static", format!("{}/static", public_folder_path))
+                    .show_files_listing(),
+            )
+            .service(
+                fs::Files::new("/images", format!("{}/images", public_folder_path))
+                    .show_files_listing(),
+            )
             .service(routes::robots_data) // robots.txt
             .service(routes::index) // index page
             .service(routes::search) // search page
