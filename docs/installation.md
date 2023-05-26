@@ -25,6 +25,8 @@ The package is currently not available on other Linux distros. With contribution
 
 # Install From Source
 
+Before you can start building `websurfx`, you will need to have `Cargo` installed on your system. You can find the installation instructions [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
 ## Stable
 
 To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx` directory and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then build and run the websurfx server by running the following commands:
