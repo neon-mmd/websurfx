@@ -100,12 +100,14 @@
 
 > For full setup instructions, see: [**Installation**](./docs/installation.md)
 
-To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx`{.verbatim} directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
+Before you can start building `websurfx`, you will need to have `Cargo` installed on your system. You can find the installation instructions [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
+To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx/` directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
 ``` shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-cargo build
+cargo build -r
 redis-server --port 8082 &
 ./target/debug/websurfx
 ```
