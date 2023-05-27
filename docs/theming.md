@@ -321,4 +321,45 @@ footer {
 }
 ```
 
-[⬅️  Go back to Home](https://github.com/neon-mmd/websurfx/wiki).
+### Styles for the about page
+
+This part is only available right now in the **rolling/edge/unstable** version
+
+```css
+.about-container article{
+    font-size: 1.5rem;
+    color:var(--fg);
+    padding-bottom: 10px;
+  }
+
+.about-container article h1{
+    color: var(--2);
+    font-size: 2.8rem;
+  }
+
+.about-container article div{
+    padding-bottom: 15px;
+  }
+
+.about-container a{
+  color:var(--3);
+}
+
+.about-container article h2{
+  color: var(--3);
+  font-size: 1.8rem;
+  padding-bottom: 10px;
+}
+
+.about-container p{
+  color:var(--fg);
+  font-size:  1.6rem;
+  padding-bottom: 10px;
+}
+
+.about-container h3{
+  font-size: 1.5rem;
+}
+```
+
+[⬅️  Go back to Home](./README.md)
