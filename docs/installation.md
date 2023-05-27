@@ -34,6 +34,7 @@ To get started with Websurfx, clone the repository, edit the config file which i
 ```shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
+git checkout stable
 cargo build -r
 redis-server --port 8082 &
 ./target/release/websurfx
@@ -50,7 +51,6 @@ If you want to use the rolling/edge branch, run the following commands instead:
 ```shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-git checkout rolling
 cargo build -r
 redis-server --port 8082 &
 ./target/release/websurfx
@@ -64,7 +64,7 @@ If you want to change the port or the ip or any other configuration setting chec
 
 Before you start, you will need [Docker](https://docs.docker.com/get-docker/) installed on your system first.
 
-## Stable
+## Unstable/Edge/Rolling
 
 First clone the the repository by running the following command:
 
@@ -111,14 +111,14 @@ docker compose up -d --build
 
 This will take around 5-10 mins for first deployment, afterwards the docker build stages will be cached so it will be faster to be build from next time onwards. After the above step finishes launch your preferred browser and then navigate to `http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>`.
 
-## Unstable/Edge/Rolling
+## Stable
 
-For the unstable/rolling/edge version, follow the same steps as above (as mentioned for the stable version) with an addition of one command which has to be performed after cloning and changing directory into the repository which makes the cloning step as follows:
+For the stable version, follow the same steps as above (as mentioned for the unstable/rolling/edge version) with an addition of one command which has to be performed after cloning and changing directory into the repository which makes the cloning step as follows:
 
 ```bash
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-git checkout rolling
+git checkout stable
 ```
 
 [⬅️  Go back to Home](./README.md)
