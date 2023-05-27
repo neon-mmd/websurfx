@@ -1,3 +1,6 @@
+-- ### General ###
+logging = true -- an option to enable or disable logs.
+
 -- ### Server ###
 port = "8080" -- port on which server should be launched
 binding_ip_addr = "127.0.0.1" --ip address on the which server should be launched.

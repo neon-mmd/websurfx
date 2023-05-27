@@ -5,7 +5,6 @@
 
 use std::net::TcpListener;
 
-use env_logger::Env;
 use websurfx::{config_parser::parser::Config, run};
 
 /// The function that launches the main server and registers all the routes of the website.
@@ -20,7 +19,10 @@ async fn main() -> std::io::Result<()> {
     let config = Config::parse().unwrap();
 
     // Initializing logging middleware with level set to default or info.
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    if config.logging {
+        use env_logger::Env;
+        env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    }
 
     log::info!("started server on port {}", config.port);
 
