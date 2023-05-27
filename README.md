@@ -107,6 +107,7 @@ To get started with Websurfx, clone the repository, edit the config file, which 
 ``` shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
+git checkout stable
 cargo build -r
 redis-server --port 8082 &
 ./target/release/websurfx
