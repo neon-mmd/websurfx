@@ -53,7 +53,7 @@ cd websurfx
 git checkout rolling
 cargo build -r
 redis-server --port 8082 &
-./target/debug/websurfx
+./target/release/websurfx
 ```
 
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
