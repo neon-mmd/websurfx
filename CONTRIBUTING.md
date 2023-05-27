@@ -2,7 +2,7 @@
 
 ## Documentation/Wiki
 
-Found a typo, or something that isn't as clear as it could be? Maybe I've missed something off altogether, or you hit a roadblock that took you a while to figure out. Edit the [wiki](https://github.com/neon-mmd/websurfx/wiki) to add to or improve the documentation. This will help future users get Websurfx up and running more easily.
+Found a typo, or something that isn't as clear as it could be? Maybe I've missed something off altogether, or you hit a roadblock that took you a while to figure out. Edit the [docs](./docs/) to add to or improve the documentation. This will help future users get Websurfx up and running more easily.
 
 ## Readme
 
