@@ -260,3 +260,7 @@ footer {
 .page_navigation button:active {
   filter: brightness(1.2);
 }
+
+.about-container {
+  width: 80%;
+}
