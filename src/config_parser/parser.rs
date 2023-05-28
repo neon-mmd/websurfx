@@ -25,6 +25,7 @@ pub struct Config {
     pub style: Style,
     pub redis_connection_url: String,
     pub aggregator: AggreatorConfig,
+    pub logging: bool,
 }
 
 /// Configuration options for the aggregator.
@@ -71,6 +72,7 @@ impl Config {
                 ),
                 redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
                 aggregator: aggregator_config,
+                logging: globals.get::<_, bool>("logging")?,
             })
         })
     }
