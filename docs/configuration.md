@@ -13,9 +13,14 @@ If you have installed `websurfx` using the package manager of your Linux distro 
 
 Some of the configuration options provided in the file are stated below. These are subdivided into three categories:
 
+- General
 - Server
 - Website
 - Cache
+
+# General
+
+- **logging:** An option to enable or disable logs.
 
 ## Server
 
