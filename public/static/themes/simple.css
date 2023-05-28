@@ -297,3 +297,7 @@ footer {
   .about-container h3{
     font-size: 1.5rem;
   }
+
+  .about-container {
+    width: 80%;
+  }
