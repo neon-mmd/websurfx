@@ -11,7 +11,7 @@ If you have built `websurfx` from source then the configuration file will be loc
 
 If you have installed `websurfx` using the package manager of your Linux distro then the default configuration file will be located at `/etc/xdg/websurfx/`. You can copy the default config to `~/.config/websurfx/` and make the changes there and rerun the websurfx server.
 
-Some of the configuration options provided in the file are stated below. These are subdivided into three categories:
+Some of the configuration options provided in the file are stated below. These are subdivided into the following categories:
 
 - General
 - Server
