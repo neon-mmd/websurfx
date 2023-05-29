@@ -19,7 +19,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::parse().unwrap();
 
     // Initializing logging middleware with level set to default or info.
-    if config.logging || config.debug{
+    if config.logging || config.debug {
         use env_logger::Env;
         env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     }
