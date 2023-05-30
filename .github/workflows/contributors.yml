@@ -13,4 +13,4 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           round: true
-          svgPath: ../../images/contributors_list.svg
+          svgPath: images/contributors_list.svg
