@@ -40,12 +40,13 @@ pub async fn aggregate(
     query: &str,
     page: u32,
     random_delay: bool,
+    debug: bool,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
     let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
 
     // Add a random delay before making the request.
-    if random_delay {
+    if random_delay || !debug {
         let mut rng = rand::thread_rng();
         let delay_secs = rng.gen_range(1..10);
         std::thread::sleep(Duration::from_secs(delay_secs));

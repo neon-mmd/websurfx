@@ -1,5 +1,6 @@
 -- ### General ###
 logging = true -- an option to enable or disable logs.
+debug = false -- an option to enable or disable debug mode.
 
 -- ### Server ###
 port = "8080" -- port on which server should be launched
