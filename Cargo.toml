@@ -21,3 +21,4 @@ rlua = {version="*"}
 redis = {version="*"}
 md5 = {version="*"}
 rand={version="*"}
+once_cell = {version="*"}

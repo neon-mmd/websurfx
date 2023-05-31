@@ -1,5 +1,60 @@
-/* @import url('./catppuccin-mocha.css'); */
+# Colorschemes
 
+## Built-in
+
+By default `websurfx` comes with 9 colorschemes to choose from which can be easily chosen using the config file. To how to change colorschemes please view the [Configuration](https://github.com/neon-mmd/websurfx/wiki/configuration) section of the wiki.
+
+## Custom
+
+Creating coloschemes is as easy as it gets it requires the user to have a theme file name with the colorscheme in which every space should be replaced with a `-` (dash) and it should end with a `.css` file extension. After creating the file you need to add the following code with the `colors` you want:
+
+``` css
+:root{
+  --bg: <background color>;
+  --fg: <foreground color (text color)>;
+  --1: <color 1>;
+  --2: <color 2>;
+  --3: <color 3>;
+  --4: <color 4>;
+  --5: <color 5>;
+  --6: <color 6>;
+  --7: <color 7>;
+}
+```
+
+> **Note**
+> Please infer the theme file located under `public/static/themes` to better understand where each color is being used.
+
+**Example of `catppuccin-mocha` colorscheme:**
+
+``` css
+:root {
+  --bg: #1e1e2e;
+  --fg: #cdd6f4;
+  --1: #45475a;
+  --2: #f38ba8;
+  --3: #a6e3a1;
+  --4: #f9e2af;
+  --5: #89b4fa;
+  --6: #f5c2e7;
+  --7: #ffffff;
+}
+```
+
+# Themes
+
+## Built-in
+
+By default `websurfx` comes with 1 theme to choose from which can be easily chosen using the config file. To how to change themes please view the [Configuration](https://github.com/neon-mmd/websurfx/wiki/configuration) section of the wiki.
+
+## Custom 
+
+To write custom color scheme, it requires the user to have some knowledge of `css stylesheets`. 
+
+**Here is an example of `simple theme` (which we provide by default with the app) which will give the user a better idea on how to create a custom theme using it as a template:**
+
+### General
+``` css
 * {
   padding: 0;
   margin: 0;
@@ -18,9 +73,9 @@ body {
   height: 100vh;
   background: var(--1);
 }
-
-/* styles for the index page */
-
+```
+### Styles for the index page
+``` css
 .search-container {
   display: flex;
   flex-direction: column;
@@ -32,9 +87,9 @@ body {
 .search-container div {
   display: flex;
 }
-
-/* styles for the search box and search button */
-
+```
+### Styles for the search box and search button
+``` css
 .search_bar {
   display: flex;
 }
@@ -69,9 +124,9 @@ body {
 .search_bar button:hover {
   filter: brightness(1.2);
 }
-
-/* styles for the footer and header */
-
+```
+### Styles for the footer and header
+``` css
 header {
   background: var(--bg);
   width: 100%;
@@ -129,9 +184,9 @@ footer {
   justify-content: center;
   align-items: center;
 }
-
-/* Styles for the search page */
-
+```
+### Styles for the search page
+``` css
 .results {
   width: 90%;
   display: flex;
@@ -192,9 +247,11 @@ footer {
   padding: 1rem;
   color: var(--5);
 }
+```
 
-/* Styles for the 404 page  */
+### Styles for the 404 page 
 
+``` css
 .error_container {
   display: flex;
   justify-content: center;
@@ -240,7 +297,9 @@ footer {
 .error_content p a:hover {
   color: var(--5);
 }
-
+```
+### Styles for the previous and next button on the search page
+``` css
 .page_navigation {
   padding: 0 0 2rem 0;
   display: flex;
@@ -260,44 +319,47 @@ footer {
 .page_navigation button:active {
   filter: brightness(1.2);
 }
+```
 
-/* Styles for the about page */
+### Styles for the about page
 
-  .about-container article{
-      font-size: 1.5rem;
-      color:var(--fg);
-      padding-bottom: 10px;
-    }
+This part is only available right now in the **rolling/edge/unstable** version
 
-  .about-container article h1{
-      color: var(--2);
-      font-size: 2.8rem;
-    }
-
-  .about-container article div{
-      padding-bottom: 15px;
-    }
-
-  .about-container a{
-    color:var(--3);
-  }
-
-  .about-container article h2{
-    color: var(--3);
-    font-size: 1.8rem;
-    padding-bottom: 10px;
-  }
-
-  .about-container p{
-    color:var(--fg);
-    font-size:  1.6rem;
-    padding-bottom: 10px;
-  }
-
-  .about-container h3{
+```css
+.about-container article{
     font-size: 1.5rem;
+    color:var(--fg);
+    padding-bottom: 10px;
   }
 
-  .about-container {
-    width: 80%;
+.about-container article h1{
+    color: var(--2);
+    font-size: 2.8rem;
   }
+
+.about-container article div{
+    padding-bottom: 15px;
+  }
+
+.about-container a{
+  color:var(--3);
+}
+
+.about-container article h2{
+  color: var(--3);
+  font-size: 1.8rem;
+  padding-bottom: 10px;
+}
+
+.about-container p{
+  color:var(--fg);
+  font-size:  1.6rem;
+  padding-bottom: 10px;
+}
+
+.about-container h3{
+  font-size: 1.5rem;
+}
+```
+
+[⬅️  Go back to Home](./README.md)

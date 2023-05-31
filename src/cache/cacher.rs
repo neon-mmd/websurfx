@@ -10,9 +10,8 @@ use redis::{Client, Commands, Connection};
 /// # Fields
 ///
 /// * `redis_connection_url` - It stores the redis Connection url address.
-#[derive(Clone)]
 pub struct RedisCache {
-    redis_connection_url: String,
+    connection: Connection,
 }
 
 impl RedisCache {
@@ -21,10 +20,11 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `redis_connection_url` - It stores the redis Connection url address.
-    pub fn new(redis_connection_url: String) -> Self {
-        RedisCache {
-            redis_connection_url,
-        }
+    pub fn new(redis_connection_url: String) -> Result<Self, Box<dyn std::error::Error>> {
+        let client = Client::open(redis_connection_url)?;
+        let connection = client.get_connection()?;
+        let redis_cache = RedisCache { connection };
+        Ok(redis_cache)
     }
 
     /// A helper function which computes the hash of the url and formats and returns it as string.
@@ -32,7 +32,7 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as string.
-    fn compute_url_hash(self, url: &str) -> String {
+    fn compute_url_hash(url: &str) -> String {
         format!("{:?}", compute(url))
     }
 
@@ -41,11 +41,9 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as a string.
-    pub fn cached_results_json(self, url: String) -> Result<String, Box<dyn std::error::Error>> {
-        let hashed_url_string = self.clone().compute_url_hash(&url);
-        let mut redis_connection: Connection =
-            Client::open(self.redis_connection_url)?.get_connection()?;
-        Ok(redis_connection.get(hashed_url_string)?)
+    pub fn cached_results_json(&mut self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let hashed_url_string = Self::compute_url_hash(url);
+        Ok(self.connection.get(hashed_url_string)?)
     }
 
     /// A function which caches the results by using the hashed `url` as the key and
@@ -57,20 +55,18 @@ impl RedisCache {
     /// * `json_results` - It takes the json results string as an argument.
     /// * `url` - It takes the url as a String.
     pub fn cache_results(
-        self,
+        &mut self,
         json_results: String,
-        url: String,
+        url: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let hashed_url_string = self.clone().compute_url_hash(&url);
-        let mut redis_connection: Connection =
-            Client::open(self.redis_connection_url)?.get_connection()?;
+        let hashed_url_string = Self::compute_url_hash(url);
 
         // put results_json into cache
-        redis_connection.set(hashed_url_string.clone(), json_results)?;
+        self.connection.set(&hashed_url_string, json_results)?;
 
         // Set the TTL for the key to 60 seconds
-        redis_connection
-            .expire::<String, u32>(hashed_url_string.clone(), 60)
+        self.connection
+            .expire::<String, u32>(hashed_url_string, 60)
             .unwrap();
 
         Ok(())

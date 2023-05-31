@@ -1,0 +1,18 @@
+name: Welcome first time contributors 
+
+on:
+  pull_request_target:
+    types:
+      - opened
+ 
+jobs:
+  welcome:
+    name: Welcome
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |-
+            Congrats on making your first Pull Request and thanks for taking the time to improve Websurfx! ❤️!
+            Say hello by joining the conversation in our [Discord](https://discord.gg/SWnda7Mw5u)

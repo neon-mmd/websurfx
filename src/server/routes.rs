@@ -7,6 +7,7 @@ use std::fs::read_to_string;
 use crate::{
     cache::cacher::RedisCache,
     config_parser::parser::Config,
+    handler::public_path_handler::handle_different_public_path,
     search_results_handler::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
@@ -73,7 +74,7 @@ pub async fn search(
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
 
     //Initialize redis cache connection struct
-    let redis_cache = RedisCache::new(config.redis_connection_url.clone());
+    let mut redis_cache = RedisCache::new(config.redis_connection_url.clone())?;
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
@@ -81,11 +82,10 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish())
             } else {
-                // Initialize the page url as an empty string
-                let mut page_url = String::new();
+                let page_url: String; // Declare the page_url variable without initializing it
 
-                // Find whether the page is valid page number if not then return
-                // the first page number and also construct the page_url accordingly
+                // ...
+
                 let page = match params.page {
                     Some(page_number) => {
                         if page_number <= 1 {
@@ -117,7 +117,7 @@ pub async fn search(
                 };
 
                 // fetch the cached results json.
-                let cached_results_json = redis_cache.clone().cached_results_json(page_url.clone());
+                let cached_results_json = redis_cache.cached_results_json(&page_url);
                 // check if fetched results was indeed fetched or it was an error and if so
                 // handle the data accordingly.
                 match cached_results_json {
@@ -128,12 +128,10 @@ pub async fn search(
                     }
                     Err(_) => {
                         let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                    aggregate(query, page).await?;
+                            aggregate(query, page, config.aggregator.random_delay, config.debug).await?;
                         results_json.add_style(config.style.clone());
-                        redis_cache.clone().cache_results(
-                            serde_json::to_string(&results_json)?,
-                            page_url.clone(),
-                        )?;
+                        redis_cache
+                            .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
                         let page_content: String = hbs.render("search", &results_json)?;
                         Ok(HttpResponse::Ok().body(page_content))
                     }
@@ -149,7 +147,8 @@ pub async fn search(
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = read_to_string("./public/robots.txt")?;
+    let page_content: String =
+        read_to_string(format!("{}/robots.txt", handle_different_public_path()?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))

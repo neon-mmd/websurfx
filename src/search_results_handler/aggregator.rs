@@ -29,6 +29,7 @@ use crate::engines::{duckduckgo, searx};
 ///
 /// * `query` - Accepts a string to query with the above upstream search engines.
 /// * `page` - Accepts an u32 page number.
+/// * `random_delay` - Accepts a boolean value to add a random delay before making the request.
 ///
 /// # Error
 ///
@@ -38,14 +39,18 @@ use crate::engines::{duckduckgo, searx};
 pub async fn aggregate(
     query: &str,
     page: u32,
+    random_delay: bool,
+    debug: bool,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
     let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
 
     // Add a random delay before making the request.
-    let mut rng = rand::thread_rng();
-    let delay_secs = rng.gen_range(1..10);
-    std::thread::sleep(Duration::from_secs(delay_secs));
+    if random_delay || !debug {
+        let mut rng = rand::thread_rng();
+        let delay_secs = rng.gen_range(1..10);
+        std::thread::sleep(Duration::from_secs(delay_secs));
+    }
 
     // fetch results from upstream search engines simultaneously/concurrently.
     let (ddg_map_results, searx_map_results) = join!(
