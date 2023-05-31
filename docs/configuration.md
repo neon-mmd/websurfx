@@ -21,6 +21,7 @@ Some of the configuration options provided in the file are stated below. These a
 # General
 
 - **logging:** An option to enable or disable logs.
+- **debug:** An option to enable or disable debug mode.
 
 ## Server
 

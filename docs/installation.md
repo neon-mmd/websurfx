@@ -78,6 +78,7 @@ After that edit the config.lua file located under `websurfx` directory. In the c
 ```lua
 -- ### General ###
 logging = true -- an option to enable or disable logs.
+debug = false -- an option to enable or disable debug mode.
 
 -- ### Server ###
 port = "8080" -- port on which server should be launched
