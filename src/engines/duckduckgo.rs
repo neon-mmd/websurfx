@@ -9,6 +9,8 @@ use scraper::{Html, Selector};
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
 
+use super::engine_models::EngineErrorKind;
+
 /// This function scrapes results from the upstream engine duckduckgo and puts all the scraped
 /// results like title, visiting_url (href in html),engine (from which engine it was fetched from)
 /// and description in a RawSearchResult and then adds that to HashMap whose keys are url and
@@ -22,14 +24,15 @@ use crate::search_results_handler::aggregation_models::RawSearchResult;
 ///
 /// # Errors
 ///
-/// Returns a reqwest error if the user is not connected to the internet or if their is failure to
-/// reach the above `upstream search engine` page and also returns error if the scraping
-/// selector fails to initialize"
+/// Returns an `EngineErrorKind` if the user is not connected to the internet or if their is failure to
+/// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
+/// provide results for the requested search query and also returns error if the scraping selector
+/// or HeaderMap fails to initialize.
 pub async fn results(
     query: &str,
     page: u32,
     user_agent: &str,
-) -> Result<HashMap<String, RawSearchResult>, Box<dyn std::error::Error>> {
+) -> Result<HashMap<String, RawSearchResult>, EngineErrorKind> {
     // Page number can be missing or empty string and so appropriate handling is required
     // so that upstream server recieves valid page number.
     let url: String = match page {
@@ -54,7 +57,6 @@ pub async fn results(
     header_map.insert(COOKIE, "kl=wt-wt".parse()?);
 
     // fetch the html from upstream duckduckgo engine
-    // TODO: Write better error handling code to handle no results case.
     let results: String = reqwest::Client::new()
         .get(url)
         .timeout(Duration::from_secs(30))
@@ -65,6 +67,13 @@ pub async fn results(
         .await?;
 
     let document: Html = Html::parse_document(&results);
+
+    let no_result: Selector = Selector::parse(".no-results")?;
+
+    if let Some(_) = document.select(&no_result).next() {
+        return Err(EngineErrorKind::EmptyResultSet);
+    }
+
     let results: Selector = Selector::parse(".result")?;
     let result_title: Selector = Selector::parse(".result__a")?;
     let result_url: Selector = Selector::parse(".result__url")?;
