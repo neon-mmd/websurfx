@@ -263,41 +263,212 @@ footer {
 
 /* Styles for the about page */
 
-  .about-container article{
-      font-size: 1.5rem;
-      color:var(--fg);
-      padding-bottom: 10px;
-    }
+.about-container article{
+  font-size: 1.5rem;
+  color:var(--fg);
+  padding-bottom: 10px;
+}
 
-  .about-container article h1{
-      color: var(--2);
-      font-size: 2.8rem;
-    }
+.about-container article h1{
+  color: var(--2);
+  font-size: 2.8rem;
+}
 
-  .about-container article div{
-      padding-bottom: 15px;
-    }
+.about-container article div{
+  padding-bottom: 15px;
+}
 
-  .about-container a{
-    color:var(--3);
-  }
+.about-container a{
+  color:var(--3);
+}
 
-  .about-container article h2{
-    color: var(--3);
-    font-size: 1.8rem;
-    padding-bottom: 10px;
-  }
+.about-container article h2{
+  color: var(--3);
+  font-size: 1.8rem;
+  padding-bottom: 10px;
+}
 
-  .about-container p{
-    color:var(--fg);
-    font-size:  1.6rem;
-    padding-bottom: 10px;
-  }
+.about-container p{
+  color:var(--fg);
+  font-size:  1.6rem;
+  padding-bottom: 10px;
+}
 
-  .about-container h3{
-    font-size: 1.5rem;
-  }
+.about-container h3{
+  font-size: 1.5rem;
+}
 
-  .about-container {
-    width: 80%;
-  }
+.about-container {
+  width: 80%;
+}
+
+.settings {
+  margin: 2rem;
+  width: 80%;
+  height: 100%;
+  color: var(--fg);
+}
+
+.settings h1 {
+  color: var(--2);
+  font-size: 2.5rem;
+}
+
+
+.settings hr {
+  border-color: var(--3);
+  margin: .3rem 0 1rem 0;
+}
+
+.settings-view {
+  display: flex; 
+  flex: 1 0 auto;
+}
+
+.settings-sidebar {
+  width: 25%;
+  height: 100%;
+}
+
+.settings-sidebar .set-name {
+  cursor: pointer;
+  font-size: 2rem;
+  display: block;
+  margin-right: .5rem;
+  margin-left: -.7rem;
+  padding: .7rem;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.settings-sidebar .set-name:hover, .settings-sidebar .set-name.active {
+  background-color: var(--1_1);
+}
+
+.settings-detail {
+  border-left: 1.5px solid var(--3);
+  padding-left: 3rem;
+  margin-top: .7rem;
+}
+
+.settings-detail .set-item {
+  margin: 2rem 0;
+  margin-top: 0;
+}
+
+.settings-detail .set-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--4)
+}
+
+.settings-detail .set-desc {
+  font-size: 1.5rem;
+  margin-bottom: .5rem;
+}
+
+.custom-select, .options {
+  font-size: 1.5rem;
+  background-color: var(--bg);
+  width: 250px;
+  padding: 1rem 1.7rem;
+  border-radius: 7px;
+}
+
+.custom-select {
+  position: relative;
+  vertical-align: middle;
+  margin: .7rem 0;
+}
+
+.custom-select.invalid {
+  border: 1px solid red;
+}
+
+.custom-select svg {
+  float: right;
+}
+
+.options {
+  display: none;
+  position: absolute;
+  left: 0;
+  margin-top: 1.3rem;
+  width: 100%;
+  padding: .7rem 1rem;
+  cursor: pointer;
+  z-index: 3;
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.options span {
+  display: block;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 5px;
+  vertical-align: middle;
+}
+
+.options span:hover {
+  background-color: var(--1_1);
+}
+
+.selected-multiple-option {
+  padding: .8rem;
+  border-radius: 5px;
+  background-color: var(--bg);
+  margin: .5rem .3rem;
+}
+
+.selected-multiple-option svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  vertical-align: middle;
+  margin-bottom: .5rem;
+  cursor: pointer;
+}
+
+.select-multiple-show {
+  margin: 1rem 0;
+  font-size: 1.5rem;  
+}
+
+.underlined-text {
+  font-size: 1.7rem;
+  cursor: pointer;
+  margin-bottom: .5rem;
+  display: block;
+}
+
+.settings .submit-btn {
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background: var(--3);
+  color: var(--bg);
+  border-radius: .5rem;
+  border: 1px solid transparent;
+  font-weight: bold;
+  transition: background .5s ease-in;
+  cursor: pointer;
+}
+
+.settings .submit-btn:hover {
+  border: 1px solid var(--bg);
+  background: var(--3_1);
+  box-shadow: 0px 0px 2px 2px var(--fg);
+}
+
+.settings .submit-btn:active {
+  outline: none;
+  border: 2px solid var(--bg);
+}
+
+.errTxt {
+  color: white;
+  background: red;
+  padding: .5rem;
+  border-radius: 5px;
+  font-size: 1.3rem;
+  width: max-content;
+}
