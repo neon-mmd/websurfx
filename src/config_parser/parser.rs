@@ -118,7 +118,7 @@ impl Config {
         {
             Ok("./websurfx/config.lua".to_string())
         } else {
-            Err(format!("Config file not found!!").into())
+            Err("Config file not found!!".to_string().into())
         }
     }
 }

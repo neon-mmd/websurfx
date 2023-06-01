@@ -70,7 +70,7 @@ pub async fn results(
 
     let no_result: Selector = Selector::parse(".no-results")?;
 
-    if let Some(_) = document.select(&no_result).next() {
+    if document.select(&no_result).next().is_some() {
         return Err(EngineErrorKind::EmptyResultSet);
     }
 

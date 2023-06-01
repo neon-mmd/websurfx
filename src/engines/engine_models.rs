@@ -41,26 +41,20 @@ impl std::error::Error for EngineErrorKind {}
 /// Implementing `From` trait to map the `SelectorErrorKind` to `UnexpectedError` variant.
 impl<'a> From<SelectorErrorKind<'a>> for EngineErrorKind {
     fn from(err: SelectorErrorKind<'a>) -> Self {
-        match err {
-            _ => Self::UnexpectedError(err.to_string()),
-        }
+        Self::UnexpectedError(err.to_string())
     }
 }
 
 /// Implementing `From` trait to map the `InvalidHeaderValue` to `UnexpectedError` variant.
-impl<'a> From<InvalidHeaderValue> for EngineErrorKind {
+impl From<InvalidHeaderValue> for EngineErrorKind {
     fn from(err: InvalidHeaderValue) -> Self {
-        match err {
-            _ => Self::UnexpectedError(err.to_string()),
-        }
+        Self::UnexpectedError(err.to_string())
     }
 }
 
 /// Implementing `From` trait to map all `reqwest::Error` to `UnexpectedError` variant.
-impl<'a> From<reqwest::Error> for EngineErrorKind {
+impl From<reqwest::Error> for EngineErrorKind {
     fn from(err: reqwest::Error) -> Self {
-        match err {
-            _ => Self::RequestError(err),
-        }
+        Self::RequestError(err)
     }
 }
