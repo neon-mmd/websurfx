@@ -1,0 +1,5 @@
+[hooks]
+pre-commit = "cargo test && cargo fmt -- --check && cargo clippy && stylelint ./public/static/themes/*.css ./public/static/colorschemes/*.css ./public/static/*.js" 
+
+[logging]
+verbose = true
