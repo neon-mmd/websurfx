@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 0
-          ref: ${{ github.event.repository.default_branch }}
+          ref: rolling
           
       - name: Generate contributors list
         run: |
@@ -28,42 +28,18 @@ jobs:
           echo '</a>' >> contributors_list.html
         shell: bash
       
-      - name: Create .github/assets directory
-        run: mkdir -p .github/assets
-        
-      - name: Commit changes
-        uses: actions/github-script@v5
+      - name: Commit & PR
+        uses: peter-evans/create-pull-request@v4.2.4
         with:
-          script: |
-            const fs = require('fs');
-            const filePath = '.github/assets/contributors_list.html';
-            const content = fs.readFileSync(filePath, 'utf8');
-            
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const branch = 'workflow/update-contributors-list';
-            
-            const existingFile = await octokit.rest.repos.getContent({
-              owner,
-              repo,
-              path: filePath,
-              ref: branch,
-            });
-            
-            const sha = existingFile.data.sha;
-            
-            await octokit.rest.repos.createOrUpdateFileContents({
-              owner,
-              repo,
-              path: filePath,
-              message: 'chore: update contributors-list',
-              content: Buffer.from(content).toString('base64'),
-              branch,
-              sha,
-            });
-      
-      - name: Push changes
-        run: git push origin workflow/update-contributors-list
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: contributors_list.html
+          commit-message: 'chore: update contributors-list'
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
+          branch: workflow/update-contributors-list
+          base: rolling
+          delete-branch: true
+          title: 'chore: update contributors-list'
+          body: |
+            Automated update to `contributors_list.html`
