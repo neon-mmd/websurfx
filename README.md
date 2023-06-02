@@ -268,15 +268,15 @@ We would like to thank the following people for their contributions and support:
             <br />
             <sub><b>sam-sunder</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/gotoworq">
             <img src="https://avatars.githubusercontent.com/u/110043355?v=4" width="80;" alt="gotoworq"/>
             <br />
             <sub><b>gotoworq</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/sathiyaIbe">
             <img src="https://avatars.githubusercontent.com/u/121601349?v=4" width="80;" alt="sathiyaIbe"/>
