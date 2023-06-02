@@ -224,10 +224,8 @@ Websurfx is licensed under the [AGPLv3](LICENSE) license.
 
 We would like to thank the following people for their contributions and support:
 
-<p>
-  <br />
-  <br />
-</p>
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
 
 **[⬆️ Back to Top](#--)**
 
