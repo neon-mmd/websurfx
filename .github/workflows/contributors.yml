@@ -9,9 +9,9 @@ jobs:
     name: A job to automate contrib in readme
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Contribute List
-        uses: akhilmhdh/contributors-readme-action@v2.3.6
+        uses: akhilmhdh/contributors-readme-action@master
         with:
           use_username: true
           image_size: 80
