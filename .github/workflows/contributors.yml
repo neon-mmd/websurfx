@@ -1,16 +1,20 @@
+name: Contributors List
+
 on:
-    push:
-        branches:
-            - rolling
+  push:
+    branches:
+      - rolling
+  schedule:
+    - cron: "0 1 * * *"
 
 jobs:
-    contrib-readme-job:
-        runs-on: ubuntu-latest
-        name: A job to automate contrib in readme
-        steps:
-            - name: Contribute List
-              uses: akhilmhdh/contributors-readme-action@v2.3.6
-              with:
-                  use_username: true
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  contrib-readme-job:
+    runs-on: ubuntu-latest
+    name: A job to automate contrib in readme
+    steps:
+      - name: Contribute List
+        uses: akhilmhdh/contributors-readme-action@v2.3.6
+        with:
+          use_username: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
