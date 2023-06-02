@@ -1,19 +1,17 @@
 name: Contributors List
 
 on:
-  push:
-    branches:
-      - rolling
-  schedule:
-    - cron: "0 1 * * *"
+  workflow_dispatch:
 
 jobs:
   contrib-readme-job:
     runs-on: ubuntu-latest
     name: A job to automate contrib in readme
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Contribute List
-        uses: akhilmhdh/contributors-readme-action@master
+        uses: akhilmhdh/contributors-readme-action@v2.3.6
         with:
           use_username: true
           image_size: 80
