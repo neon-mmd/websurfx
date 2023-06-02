@@ -229,57 +229,57 @@ We would like to thank the following people for their contributions and support:
 <tr>
     <td align="center">
         <a href="https://github.com/neon-mmd">
-            <img src="https://avatars.githubusercontent.com/u/132049916?v=4" width="100;" alt="neon-mmd"/>
+            <img src="https://avatars.githubusercontent.com/u/132049916?v=4" width="80;" alt="neon-mmd"/>
             <br />
             <sub><b>neon-mmd</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/XFFXFF">
-            <img src="https://avatars.githubusercontent.com/u/30254428?v=4" width="100;" alt="XFFXFF"/>
+            <img src="https://avatars.githubusercontent.com/u/30254428?v=4" width="80;" alt="XFFXFF"/>
             <br />
             <sub><b>XFFXFF</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/alamin655">
-            <img src="https://avatars.githubusercontent.com/u/129589283?v=4" width="100;" alt="alamin655"/>
+            <img src="https://avatars.githubusercontent.com/u/129589283?v=4" width="80;" alt="alamin655"/>
             <br />
             <sub><b>alamin655</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/Coollaitar">
-            <img src="https://avatars.githubusercontent.com/u/94162491?v=4" width="100;" alt="Coollaitar"/>
+            <img src="https://avatars.githubusercontent.com/u/94162491?v=4" width="80;" alt="Coollaitar"/>
             <br />
             <sub><b>Coollaitar</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/bcsamrudh">
-            <img src="https://avatars.githubusercontent.com/u/114090255?v=4" width="100;" alt="bcsamrudh"/>
+            <img src="https://avatars.githubusercontent.com/u/114090255?v=4" width="80;" alt="bcsamrudh"/>
             <br />
             <sub><b>bcsamrudh</b></sub>
         </a>
     </td>
     <td align="center">
         <a href="https://github.com/sam-sunder">
-            <img src="https://avatars.githubusercontent.com/u/89068308?v=4" width="100;" alt="sam-sunder"/>
+            <img src="https://avatars.githubusercontent.com/u/89068308?v=4" width="80;" alt="sam-sunder"/>
             <br />
             <sub><b>sam-sunder</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/gotoworq">
+            <img src="https://avatars.githubusercontent.com/u/110043355?v=4" width="80;" alt="gotoworq"/>
+            <br />
+            <sub><b>gotoworq</b></sub>
         </a>
     </td></tr>
 <tr>
     <td align="center">
-        <a href="https://github.com/gotoworq">
-            <img src="https://avatars.githubusercontent.com/u/110043355?v=4" width="100;" alt="gotoworq"/>
-            <br />
-            <sub><b>gotoworq</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/sathiyaIbe">
-            <img src="https://avatars.githubusercontent.com/u/121601349?v=4" width="100;" alt="sathiyaIbe"/>
+            <img src="https://avatars.githubusercontent.com/u/121601349?v=4" width="80;" alt="sathiyaIbe"/>
             <br />
             <sub><b>sathiyaIbe</b></sub>
         </a>
