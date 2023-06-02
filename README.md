@@ -226,9 +226,6 @@ We would like to thank the following people for their contributions and support:
 
 <p>
   <br />
-  <a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
-  </a>
   <br />
 </p>
 
