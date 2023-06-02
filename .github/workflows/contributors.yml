@@ -2,6 +2,9 @@ name: Contributors List
 
 on:
   workflow_dispatch:
+  
+  schedule:
+    - cron: "0 1 * * *"
 
 jobs:
   contrib-readme-job:
