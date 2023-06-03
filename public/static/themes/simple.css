@@ -580,5 +580,3 @@ input[type="checkbox"]:checked ~ div label::after{
   font-size: 1.5rem;
   margin: 1rem 0;
 }
-
-.settings-sidebar .set-name[data-detailId="theme"]
