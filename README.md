@@ -5,42 +5,12 @@
   <b align="center"><a href="README.md">Readme</a></b> |
   <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
-  <b><a href="https://github.com/neon-mmd/websurfx/wiki">Documentation</a></b>
+  <b><a href="./docs/README.md">Documentation</a></b>
   <br /><br />
-  <a href="./LICENSE">
-    <img
-      alt="GitHub"
-      src="https://img.shields.io/github/license/neon-mmd/websurfx?style=flat-square"
-    />
-  </a>
-  <a href="https://github.com/neon-mmd/websurfx/stargazers">
-    <img
-      alt="GitHub Repo stars"
-      src="https://img.shields.io/github/stars/neon-mmd/websurfx?style=flat-square"
-    />
-  </a>
-  <a href="https://github.com/neon-mmd/websurfx/forks">
-    <img
-      alt="GitHub forks"
-      src="https://img.shields.io/github/forks/neon-mmd/websurfx?style=flat-square"
-    />
-  </a>
   <a href="#">
     <img
       alt="GitHub code size in bytes"
       src="https://img.shields.io/github/languages/code-size/neon-mmd/websurfx?style=flat-square"
-    />
-  </a>
-  <a href="https://github.com/neon-mmd/websurfx/issues">
-    <img
-      alt="GitHub issues"
-      src="https://img.shields.io/github/issues/neon-mmd/websurfx?style=flat-square"
-    />
-  </a>
-  <a href="https://github.com/neon-mmd/websurfx/pulls">
-    <img
-      alt="GitHub pull requests"
-      src="https://img.shields.io/github/issues-pr/neon-mmd/websurfx?style=flat-square"
     />
   </a>
   <a href="https://github.com/neon-mmd/websurfx/actions">
@@ -49,22 +19,10 @@
       src="https://img.shields.io/github/actions/workflow/status/neon-mmd/websurfx/rust.yml?style=flat-square"
     />
   </a>
-  <a href="">
-    <img
-      alt="GitHub release (latest by date including pre-releases)"
-      src="https://img.shields.io/github/v/release/neon-mmd/websurfx?include_prereleases"
-    />
-  </a>
   <a href=""
     ><img
       alt="Maintenance"
       src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
-    />
-  </a>
-  <a href="">
-    <img
-      alt="GitHub contributors"
-      src="https://img.shields.io/github/contributors-anon/neon-mmd/websurfx?style=flat-square"
     />
   </a>
   <a href="https://gitpod.io/#https://github.com/neon-mmd/websurfx">
@@ -126,7 +84,7 @@
 
 <img align="center" src="./images/404_error_page.png" />
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Features 🚀 
 
@@ -136,20 +94,23 @@
 - 💨 Ad-free and clean results
 - 🌟 and lots more...
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Installation and Testing 🛠️ 
 
-> For full setup instructions, see: [**Installation**](https://github.com/neon-mmd/websurfx/wiki/installation)
+> For full setup instructions, see: [**Installation**](./docs/installation.md)
 
-To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx`{.verbatim} directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
+Before you can start building `websurfx`, you will need to have `Cargo` installed on your system. You can find the installation instructions [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
+To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx/` directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
 ``` shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
-cargo build
+git checkout stable
+cargo build -r
 redis-server --port 8082 &
-./target/debug/websurfx
+./target/release/websurfx
 ```
 
 Once you have started the server, open your preferred web browser and navigate to <http://127.0.0.1:8080> to start using Websurfx.
@@ -157,42 +118,42 @@ Once you have started the server, open your preferred web browser and navigate t
 > **Warning**
 > Please be aware that the project is still in the testing phase and is not ready for production use.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Configuration 🔧 
 
-> For full configuration instructions, see: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
+> For full configuration instructions, see: [**Configuration**](./docs/configuration.md)
 
 Websurfx is configured through the config.lua file, located at `websurfx/config.lua`.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Theming 🎨 
 
-> For full theming and customization instructions, see: [**Theming**](https://github.com/neon-mmd/websurfx/wiki/theming)
+> For full theming and customization instructions, see: [**Theming**](./docs/theming.md)
 
 Websurfx comes with several themes and color schemes by default, which you can apply and edit through the config file. Supports custom themes and color schemes using CSS, allowing you to develop your own unique-looking website.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Multi-Language Support 🌍
 
 > **Note**
 > Currently, we do not support other languages, but in the future, we will start accepting contributions regarding language support because we believe that language should not be a barrier to entry.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # System Requirements 📊
 
 At present, we only support x86_64 architecture systems, but we would love to have contributions that extend to other architectures as well.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # FAQ (Frequently Asked Questions) 🗨️
 
 ## Why Websurfx?
 
-The primary purpose of the Websurfx project is to create a fast, secure, and privacy-focused [meta-search engine](https://en.wikipedia.org/wiki/Metasearch_engine). While there are numerous meta-search engines available, not all of them guarantee the security of their search engine, which is critical for maintaining privacy. Memory flaws, for example, can expose private or sensitive information, which is never a good thing. Also, there is the added problem of Spam, ads, and unorganic results which most engines don't have the full-proof answer to it till now but with Websurfx I finally put a full stop to this problem, also, Rust is used to write Websurfx, which ensures memory safety and removes such issues. Many meta-search engines also lack important features like advanced picture search, which is required by many graphic designers, content providers, and others. Websurfx attempts to improve the user experience by providing these and other features, such as proper NSFW blocking and Micro-apps or Quick results (like providing a calculator, currency exchanges, etc in the search results).
+The primary purpose of the Websurfx project is to create a fast, secure, and privacy-focused meta-search engine. While there are numerous meta-search engines available, not all of them guarantee the security of their search engine, which is critical for maintaining privacy. Memory flaws, for example, can expose private or sensitive information, which is never a good thing. Also, there is the added problem of Spam, ads, and unorganic results which most engines don't have the full-proof answer to it till now but with Websurfx I finally put a full stop to this problem, also, Rust is used to write Websurfx, which ensures memory safety and removes such issues. Many meta-search engines also lack important features like advanced picture search, which is required by many graphic designers, content providers, and others. Websurfx attempts to improve the user experience by providing these and other features, such as proper NSFW blocking and Micro-apps or Quick results (like providing a calculator, currency exchanges, etc in the search results).
 
 ## Why AGPLv3?
 
@@ -202,13 +163,13 @@ Websurfx is distributed under the **AGPLv3** license to keep the source code ope
 
 Rust was chosen as the programming language for Websurfx because of its memory safety features, which can help prevent vulnerabilities and make the codebase more secure. Rust is also faster than C++, which contributes to Websurfx's speed and responsiveness. Furthermore, the Rust ownership and borrowing system enables secure concurrency and thread safety in the program.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # More Contributers Wanted 📣 
 
 We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [project board](https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen) and the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and rules for making contributions.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Supporting Websurfx 💖
 
@@ -224,20 +185,20 @@ Several areas that we need a bit of help with at the moment are:
 - Submit a PR to add a new feature, fix a bug, update the docs, add a theme, widget, or something else.
 - Star Websurfx on GitHub.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Documentation 📘
 
 > **Note**
-> We welcome any contributions to the [documentation](https://github.com/neon-mmd/websurfx/wiki) as this will benefit everyone who uses this project. 
+> We welcome any contributions to the [documentation](./docs/) as this will benefit everyone who uses this project. 
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Roadmap 🛣️
 
 > Coming soon!! 🙂.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Contributing 🙋 
 
@@ -251,13 +212,13 @@ Check out this [video](https://youtu.be/FccdqCucVSI) by Mr. Nick on how to contr
 
 If you are a developer, have a look at the [CONTRIBUTING.org](CONTRIBUTING.md) document for more information.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # License 📜 
 
 Websurfx is licensed under the [AGPLv3](LICENSE) license.
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 # Credits 🤝 
 
@@ -271,7 +232,7 @@ We would like to thank the following people for their contributions and support:
   <br />
 </p>
 
-**[⬆️ Back to Top](#websurfx)**
+**[⬆️ Back to Top](#--)**
 
 ---
 

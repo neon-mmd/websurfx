@@ -10,4 +10,4 @@ Most meta search engines tend to be slow, lack high level of customization and m
 
 Websurfx is a project which seeks to provide privacy, security, speed and all the features which the user wants.    
 
-[⬅️  Go back to Home](https://github.com/neon-mmd/websurfx/wiki).
+[⬅️  Go back to Home](./README.md)

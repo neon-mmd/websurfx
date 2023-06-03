@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "0.6.0"
+version = "0.12.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -21,3 +21,7 @@ rlua = {version="*"}
 redis = {version="*"}
 md5 = {version="*"}
 rand={version="*"}
+once_cell = {version="*"}
+
+[dev-dependencies]
+rusty-hook = "^0.11.2"

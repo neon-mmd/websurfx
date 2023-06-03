@@ -116,7 +116,7 @@ impl RawSearchResult {
     }
 }
 
-/// A named struct to store, serialize, deserialize the all the search results scraped and 
+/// A named struct to store, serialize, deserialize the all the search results scraped and
 /// aggregated from the upstream search engines.
 ///
 /// # Fields

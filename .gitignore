@@ -1,1 +1,5 @@
 /target
+package.json
+package-lock.json
+dump.rdb
+.vscode

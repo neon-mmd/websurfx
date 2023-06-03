@@ -2,7 +2,7 @@
 
 ## Documentation/Wiki
 
-Found a typo, or something that isn't as clear as it could be? Maybe I've missed something off altogether, or you hit a roadblock that took you a while to figure out. Edit the [wiki](https://github.com/neon-mmd/websurfx/wiki) to add to or improve the documentation. This will help future users get Websurfx up and running more easily.
+Found a typo, or something that isn't as clear as it could be? Maybe I've missed something off altogether, or you hit a roadblock that took you a while to figure out. Edit the [docs](./docs/) to add to or improve the documentation. This will help future users get Websurfx up and running more easily.
 
 ## Readme
 
@@ -48,23 +48,7 @@ We have a [Discord](https://discord.gg/SWnda7Mw5u) channel, feel free to join an
 
 # Where To Contribute?
 
-## For Source Code Contributions
-
-The _rolling branch_ is where we intend all source code contributions should go.
-
-## For Readme Contributions
-
-The _master branch_ is where we intend all source code contributions should go.
-
-# How To Fork
-
-![image](./images/fork_button.png)
-
-![image](./images/fork_options_page.png)
-
-Please make sure to leave the `Copy the master branch only` option ticked off. 
-
-![image](./images/create_fork_button.png)
+The _rolling branch_ is where we intend all contributions should go.
 
 
 We appreciate any contributions whether be of any size or topic and suggestions to help improve the Websurfx project. Please keep in mind the above requirements and guidelines before submitting a pull request and also if you have any doubts/concerns/questions about the project, its source code or anything related to the project than feel free to ask by opening an [issue](https://github.com/neon-mmd/websurfx/issues) or by asking us on our [Discord](https://discord.gg/SWnda7Mw5u) channel.
