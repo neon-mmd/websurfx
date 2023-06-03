@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - rolling
+      - TEST
 jobs:
   contributors:
     runs-on: ubuntu-latest
