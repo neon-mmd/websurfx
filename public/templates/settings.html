@@ -9,25 +9,37 @@
 			<span class="set-name" data-detailId="theme">Theme</span>
 		</div>
 		<div class="settings-detail">
-			<form  method="post" name="settings" onsubmit="return submitSettings();">
+			<form name="settings" onsubmit="submitSettings(); return false;">
 				<!-- Search engine settings -->
 				<div class="set-item" data-id="searchEng">
 					<h3 class="set-name">Select search engines</h3>
 					<p class="set-desc">Select the search engines from the list of engines that you want results from</p>
-					<!-- Select element -->
-					<input name="search-engine" disabled style="display: none;" required></input>
-					<div id="engines-selected" class="select-multiple-show">
-						<span>Selected Engines: </span>
-					</div>
-					<div class="custom-select" tabindex="0" data-multiple="1" data-showDivId="engines-selected" data-input="search-engine" data-placeholder="Select" takeInput>
-						<svg viewBox="0 0 24 24" width="2rem" height="2rem" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-							<path d="M6.1018 8C5.02785 8 4.45387 9.2649 5.16108 10.0731L10.6829 16.3838C11.3801 17.1806 12.6197 17.1806 13.3169 16.3838L18.8388 10.0731C19.5459 9.2649 18.972 8 17.898 8H6.1018Z"></path></svg>
-						<div class="options">
-							<span data-value="ddg">Duck duck go</span>
-							<span data-value="searx">Searx</span>
+					<!-- toggle element -->
+					<input type="hidden" name="searchEng" required value="ddg,searx,">
+					<div class="searchEng" takeInput>
+						<div class="searchEng-elem">
+							<input type="checkbox" id="selectAll-eng" onclick="return selectAllHandler(this);"/>
+							<div data-isCheckbox data-input="searchEng" data-value="all">
+								<label for="selectAll-eng"></label>
+							</div>
+							<span>Select all</span>
+						</div>
+						<hr>
+						<div class="searchEng-elem">
+							<input type="checkbox" id="toggle" checked/>
+							<div data-isCheckbox data-input="searchEng" data-value="ddg">
+								<label for="toggle"></label>
+							</div>
+							<span>Duck duck go</span>
+						</div>
+						<div class="searchEng-elem">
+							<input type="checkbox" id="toggle1" checked/>
+							<div data-isCheckbox data-input="searchEng" data-value="searx">
+								<label for="toggle1"></label>
+							</div>
+							<span>Searx</span>
 						</div>
 					</div>
-					<u class="underlined-text" onclick="selectAllHandler(this)">select all</u>
 					<!-- End search select -->
 				</div>
 				<!-- End search engine setting -->
@@ -37,13 +49,16 @@
 					<h3 class="set-name">Select theme</h3>
 					<p class="set-desc">Select the theme from the available themes to be used in user interface</p>
 					<!-- Select element -->
-					<input name="theme" disabled style="display: none;" required></input>
-					<div class="custom-select" tabindex="0" data-input="theme" data-default="Select" takeInput>
+					<input type="hidden" name="theme" style="display: none;" required value="simple"></input>
+					<div class="custom-select" tabindex="0" data-input="theme" data-default="simple" takeInput
+					  data-defaultIfNone="Select">
 						<svg viewBox="0 0 24 24" width="2rem" height="2rem" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-							<path d="M6.1018 8C5.02785 8 4.45387 9.2649 5.16108 10.0731L10.6829 16.3838C11.3801 17.1806 12.6197 17.1806 13.3169 16.3838L18.8388 10.0731C19.5459 9.2649 18.972 8 17.898 8H6.1018Z"></path>
+							<path d="M6.1018 8C5.02785 8 4.45387 9.2649 5.16108 10.0731L10.6829 16.3838C11.3801 17.1806 12.6197 17.1806 
+							  13.3169 16.3838L18.8388 10.0731C19.5459 9.2649 18.972 8 17.898 8H6.1018Z">
+							</path>
 						</svg>
 						<div class="options">
-							<span data-value="simple">Simple</span>
+							<span data-value="simple" selected>simple</span>
 						</div>
 					</div>
 					<!-- End select element -->
@@ -55,13 +70,16 @@
 					<h3 class="set-name">Select Color Scheme</h3>
 					<p class="set-desc">Select the color scheme for your theme to be used in user interface</p>
 					<!-- Select element -->
-					<input name="color-sch" disabled style="display: none;" required></input>
-					<div class="custom-select" tabindex="0" data-input="color-sch" data-default="Select" takeInput>
+					<input type="hidden" name="color-sch" style="display: none;" required value="catppuccin-mocha"></input>
+					<div class="custom-select" tabindex="0" data-input="color-sch" data-default="catppuccin-mocha" takeInput
+					  data-defaultIfNone="Select">
 						<svg viewBox="0 0 24 24" width="2rem" height="2rem" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-							<path d="M6.1018 8C5.02785 8 4.45387 9.2649 5.16108 10.0731L10.6829 16.3838C11.3801 17.1806 12.6197 17.1806 13.3169 16.3838L18.8388 10.0731C19.5459 9.2649 18.972 8 17.898 8H6.1018Z"></path>
+							<path d="M6.1018 8C5.02785 8 4.45387 9.2649 5.16108 10.0731L10.6829 16.3838C11.3801 17.1806 12.6197 17.1806 
+							  13.3169 16.3838L18.8388 10.0731C19.5459 9.2649 18.972 8 17.898 8H6.1018Z">
+							</path>
 						</svg>
 						<div class="options">
-							<span data-value="catppuccin-mocha">catppuccin-mocha</span>
+							<span data-value="catppuccin-mocha" selected>catppuccin-mocha</span>
 							<span data-value="dracula">dracula</span>
 							<span data-value="monokai">monokai</span>
 							<span data-value="nord">nord</span>
@@ -84,5 +102,6 @@
 		</div>
 	</div>
 </main>
+<script src="static/ui_plugins.js"></script>
 <script src="static/settings.js"></script>
 {{>footer}}
