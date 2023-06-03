@@ -9,4 +9,3 @@ search_box.addEventListener('keyup', (e) => {
     search_web();
   }
 });
-
