@@ -1,24 +1,15 @@
-name: Contributors List
-
+name: Contributors
 on:
-  workflow_dispatch:
-  
   schedule:
-    - cron: "0 1 * * *"
-
+    - cron: '0 1 * * *'
+  push:
+    branches:
+      - rolling
 jobs:
-  contrib-readme-job:
+  contributors:
     runs-on: ubuntu-latest
-    name: A job to automate contrib in readme
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Contribute List
-        uses: akhilmhdh/contributors-readme-action@master
+      - uses: wow-actions/contributors-list@v1
         with:
-          use_username: true
-          image_size: 80
-          readme_path: README.md
-          columns_per_row: 6
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          round: true
