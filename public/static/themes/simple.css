@@ -263,41 +263,320 @@ footer {
 
 /* Styles for the about page */
 
-  .about-container article{
-      font-size: 1.5rem;
-      color:var(--fg);
-      padding-bottom: 10px;
-    }
+.about-container article{
+  font-size: 1.5rem;
+  color:var(--fg);
+  padding-bottom: 10px;
+}
 
-  .about-container article h1{
-      color: var(--2);
-      font-size: 2.8rem;
-    }
+.about-container article h1{
+  color: var(--2);
+  font-size: 2.8rem;
+}
 
-  .about-container article div{
-      padding-bottom: 15px;
-    }
+.about-container article div{
+  padding-bottom: 15px;
+}
 
-  .about-container a{
-    color:var(--3);
-  }
+.about-container a{
+  color:var(--3);
+}
 
-  .about-container article h2{
-    color: var(--3);
-    font-size: 1.8rem;
-    padding-bottom: 10px;
-  }
+.about-container article h2{
+  color: var(--3);
+  font-size: 1.8rem;
+  padding-bottom: 10px;
+}
 
-  .about-container p{
-    color:var(--fg);
-    font-size:  1.6rem;
-    padding-bottom: 10px;
-  }
+.about-container p{
+  color:var(--fg);
+  font-size:  1.6rem;
+  padding-bottom: 10px;
+}
 
-  .about-container h3{
-    font-size: 1.5rem;
-  }
+.about-container h3{
+  font-size: 1.5rem;
+}
 
-  .about-container {
-    width: 80%;
-  }
+.about-container {
+  width: 80%;
+}
+
+/* css for settings page t */
+.settings {
+  margin: 2rem;
+  width: 80%;
+  height: 100%;
+  color: var(--fg);
+}
+
+.settings h1 {
+  color: var(--2);
+  font-size: 2.5rem;
+}
+
+
+.settings hr {
+  border-color: var(--3);
+  margin: .3rem 0 1rem 0;
+}
+
+.settings-view {
+  display: flex; 
+  flex: 1 0 auto;
+  margin: 1.5rem 0;
+}
+
+.settings-sidebar {
+  width: 25%;
+  height: 100%;
+}
+
+.settings-sidebar .set-name {
+  cursor: pointer;
+  font-size: 2rem;
+  display: block;
+  margin-right: .5rem;
+  margin-left: -.7rem;
+  padding: .7rem;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-bottom: .5rem;
+}
+
+.settings-sidebar .set-name:hover, .settings-sidebar .set-name.active {
+  background-color: rgba(255, 255, 255, 0.15);
+
+}
+
+.settings-detail {
+  border-left: 1.5px solid var(--3);
+  padding-left: 3rem;
+}
+
+.settings-detail .set-item {
+  margin: 2rem 0;
+  margin-top: 0;
+}
+
+.settings-detail .set-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--4)
+}
+
+.settings-detail .set-desc {
+  font-size: 1.5rem;
+  margin-bottom: .5rem;
+}
+
+/* css for custom select */
+.custom-select, .options {
+  font-size: 1.5rem;
+  background-color: var(--bg);
+  width: 250px;
+  padding: 1rem 1.7rem;
+  border-radius: 7px;
+}
+
+.custom-select {
+  position: relative;
+  vertical-align: middle;
+  margin: .7rem 0;
+}
+
+.custom-select.invalid {
+  border: 1px solid red;
+}
+
+.custom-select svg {
+  float: right;
+}
+
+.options {
+  display: none;
+  position: absolute;
+  left: 0;
+  margin-top: 1.3rem;
+  width: 100%;
+  padding: .7rem 1rem;
+  cursor: pointer;
+  z-index: 3;
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.options span {
+  display: block;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 5px;
+  vertical-align: middle;
+}
+
+.options span:hover {
+  background-color: var(--1);
+}
+
+.selected-multiple-option {
+  padding: .8rem;
+  border-radius: 5px;
+  background-color: var(--bg);
+  margin: .5rem .3rem;
+}
+
+.selected-multiple-option svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  vertical-align: middle;
+  margin-bottom: .5rem;
+  cursor: pointer;
+}
+
+.select-multiple-show {
+  margin: 1rem 0;
+  font-size: 1.5rem;  
+}
+
+.underlined-text {
+  font-size: 1.7rem;
+  cursor: pointer;
+  margin-bottom: .5rem;
+  display: block;
+}
+
+.settings .submit-btn {
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background: var(--3);
+  color: var(--bg);
+  border-radius: .5rem;
+  border: 2px solid transparent;
+  font-weight: bold;
+  transition: all .1s ease-out;
+  cursor: pointer;
+  box-shadow: 5px 5px;
+}
+
+.settings .submit-btn:active {
+  outline: none;
+  box-shadow: none;
+  translate: 5px 5px;
+}
+
+/* Css for error text */
+
+.errTxt {
+  color: white;
+  background: red;
+  padding: .5rem;
+  border-radius: 5px;
+  font-size: 1.3rem;
+  width: max-content;
+}
+
+/* Css for toggle element */
+
+label,
+label::before,
+label::after {
+  transition: 200ms all ease-in-out 50ms;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+/*Button is :CHECKED*/
+
+input[type="checkbox"]:checked ~ div[data-isCheckbox] {
+  background: rgba(73,168,68,1);
+  box-shadow: 0 0 2px rgba(73,168,68,1);
+}
+
+input[type="checkbox"]:checked ~ div[data-isCheckbox] label {
+  left: 25px;
+  transform: rotate(360deg);
+}
+
+
+/*shared*/
+
+div[data-isCheckbox],
+label {
+  border-radius: 50px;
+}
+
+
+/*'un':checked state*/
+
+div[data-isCheckbox] {
+  height: 25px;
+  width: 50px;
+  background: rgba(43, 43, 43, 1);
+  position: relative;
+  box-shadow: 0 0 2px rgba(43,43,43,1);
+  
+}
+
+label {
+  height: 20px;
+  width: 20px;
+  background: rgba(255, 255, 255, 1);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  cursor: pointer;
+}
+
+label::before {
+  content: '';
+  height: 15px;
+  width: 3px;
+  position: absolute;
+  top: calc(50% - 8px);
+  left: calc(50% - 1.5px);
+  transform: rotate(45deg);
+}
+
+label::after {
+  content: '';
+  height: 3px;
+  width: 15px;
+  position: absolute;
+  top: calc(50% - 2.5px);
+  left: calc(50% - 8px);
+  transform: rotate(45deg);
+}
+
+label::before,
+label::after{
+  background: rgba(43,43,43,1);
+  border-radius: 5px;
+}
+
+/* pesduo class on toggle */
+
+input[type="checkbox"]:checked ~ div label::before{
+  height: 15px;
+  top: calc(55% - 8px);
+  left: calc(60% - 2px);
+  background: rgba(73,168,68,1);
+}
+
+input[type="checkbox"]:checked ~ div label::after{
+  width: 7px;
+  top: calc(95% - 7px);
+  left: calc(22.5% - 2px);
+  background: rgba(73,168,68,1);
+}
+
+.searchEng-elem {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
+  font-size: 1.5rem;
+  margin: 1rem 0;
+}
