@@ -13,12 +13,15 @@ use scraper::error::SelectorErrorKind;
 /// search engines.
 /// * `UnexpectedError` - This variant handles all the errors which are unexpected or occur rarely
 /// and are errors mostly related to failure in initialization of HeaderMap, Selector errors and
-/// all other errors.
+/// all other errors occuring within the code handling the `upstream search engines`.
 #[derive(Debug)]
 pub enum EngineErrorKind {
     RequestError(reqwest::Error),
     EmptyResultSet,
-    UnexpectedError(String),
+    UnexpectedError {
+        message: String,
+        source: Option<Box<dyn std::error::Error>>,
+    },
 }
 
 /// Implementing `Display` trait to make errors writable on the stdout and also providing/passing the
@@ -26,29 +29,53 @@ pub enum EngineErrorKind {
 impl std::fmt::Display for EngineErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EngineErrorKind::RequestError(request_error) => write!(f, "{}", request_error),
+            EngineErrorKind::RequestError(request_error) => {
+                write!(f, "Request error: {}", request_error)
+            }
             EngineErrorKind::EmptyResultSet => {
                 write!(f, "The upstream search engine returned an empty result set")
             }
-            EngineErrorKind::UnexpectedError(unexpected_error) => write!(f, "{}", unexpected_error),
+            EngineErrorKind::UnexpectedError { message, source } => {
+                write!(f, "Unexpected error: {}", message)?;
+                if let Some(source) = source {
+                    write!(f, "\nCaused by: {}", source)?;
+                }
+                Ok(())
+            }
         }
     }
 }
 
-/// Implementing `Error` trait to make the the `EngineErrorKind` enum an error type.
-impl std::error::Error for EngineErrorKind {}
+/// Implementing `Error` trait to make the the `EngineErrorKind` enum an error type and
+/// mapping `ReqwestErrors` to `RequestError` and `UnexpectedError` errors to all other unexpected
+/// errors ocurring within the code handling the upstream search engines.
+impl std::error::Error for EngineErrorKind {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            EngineErrorKind::RequestError(request_error) => Some(request_error),
+            EngineErrorKind::UnexpectedError { source, .. } => source.as_deref().map(|s| s),
+            _ => None,
+        }
+    }
+}
 
 /// Implementing `From` trait to map the `SelectorErrorKind` to `UnexpectedError` variant.
-impl<'a> From<SelectorErrorKind<'a>> for EngineErrorKind {
-    fn from(err: SelectorErrorKind<'a>) -> Self {
-        Self::UnexpectedError(err.to_string())
+impl From<SelectorErrorKind<'_>> for EngineErrorKind {
+    fn from(err: SelectorErrorKind<'_>) -> Self {
+        Self::UnexpectedError {
+            message: err.to_string(),
+            source: None,
+        }
     }
 }
 
 /// Implementing `From` trait to map the `InvalidHeaderValue` to `UnexpectedError` variant.
 impl From<InvalidHeaderValue> for EngineErrorKind {
     fn from(err: InvalidHeaderValue) -> Self {
-        Self::UnexpectedError(err.to_string())
+        Self::UnexpectedError {
+            message: err.to_string(),
+            source: Some(Box::new(err)),
+        }
     }
 }
 
