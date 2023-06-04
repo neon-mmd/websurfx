@@ -24,6 +24,6 @@
 
         head.appendChild(link);
         }
-        addCss('static/themes/'+ (cookies["theme"] || {{theme}}) + '.css');
-        addCss('static/colorschemes/'+ (cookies["color-sch"] || {{colorscheme}}) + '.css');
+        addCss('static/themes/'+ (cookies["theme"] || '{{theme}}') + '.css');
+        addCss('static/colorschemes/'+ (cookies["color-sch"] || '{{colorscheme}}') + '.css');
     </script>
