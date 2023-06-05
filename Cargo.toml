@@ -22,3 +22,6 @@ redis = {version="*"}
 md5 = {version="*"}
 rand={version="*"}
 once_cell = {version="*"}
+
+[dev-dependencies]
+rusty-hook = "^0.11.2"
