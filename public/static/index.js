@@ -1,10 +1,25 @@
-let search_box = document.querySelector('input')
-function search_web() {
-  window.location = `search?q=${search_box.value}`
+/**
+ * Selects the input element for the search box
+ * @type {HTMLInputElement}
+ */
+const searchBox = document.querySelector('input');
+
+/**
+ * Redirects the user to the search results page with the query parameter
+ */
+function searchWeb() {
+  const query = searchBox.value.trim();
+  if (query) {
+    window.location.href = `search?q=${encodeURIComponent(query)}`;
+  }
 }
 
-search_box.addEventListener('keyup', (e) => {
+/**
+ * Listens for the 'Enter' key press event on the search box and calls the searchWeb function
+ * @param {KeyboardEvent} e - The keyboard event object
+ */
+searchBox.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') {
-    search_web()
+    searchWeb();
   }
-})
+});

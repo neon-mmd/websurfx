@@ -1,26 +1,39 @@
+/**
+ * Navigates to the next page by incrementing the current page number in the URL query parameters.
+ * @returns {void}
+ */
 function navigate_forward() {
-    const url = new URL(window.location)
-    const searchParams = url.searchParams
+    const url = new URL(window.location);
+    const searchParams = url.searchParams;
 
-    let q = searchParams.get('q')
-    let page = searchParams.get('page')
+    let q = searchParams.get('q');
+    let page = parseInt(searchParams.get('page'));
 
-    if (page === null) {
-        page = 2
-        window.location = `${url.origin}${url.pathname}?q=${q}&page=${page}`
+    if (isNaN(page)) {
+        page = 1;
     } else {
-        window.location = `${url.origin}${url.pathname}?q=${q}&page=${++page}`
+        page++;
     }
+
+    window.location.href = `${url.origin}${url.pathname}?q=${encodeURIComponent(q)}&page=${page}`;
 }
 
+/**
+ * Navigates to the previous page by decrementing the current page number in the URL query parameters.
+ * @returns {void}
+ */
 function navigate_backward() {
-    const url = new URL(window.location)
-    const searchParams = url.searchParams
+    const url = new URL(window.location);
+    const searchParams = url.searchParams;
 
-    let q = searchParams.get('q')
-    let page = searchParams.get('page')
+    let q = searchParams.get('q');
+    let page = parseInt(searchParams.get('page'));
 
-    if (page !== null && page > 1) {
-        window.location = `${url.origin}${url.pathname}?q=${q}&page=${--page}`
+    if (isNaN(page)) {
+        page = 1;
+    } else if (page > 1) {
+        page--;
     }
+
+    window.location.href = `${url.origin}${url.pathname}?q=${encodeURIComponent(q)}&page=${page}`;
 }
