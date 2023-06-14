@@ -28,9 +28,9 @@ impl fmt::Display for EngineError {
                 write!(f, "The upstream search engine returned an empty result set")
             }
             EngineError::RequestError => {
-                write!(f, "Request error")
+                write!(f, "Error occurred while requesting data from upstream search engine")
             }
-            EngineError::UnexpectedError => write!(f, "Unexpected error"),
+            EngineError::UnexpectedError => write!(f, "An unexpected error occurred while processing the data"),
         }
     }
 }
