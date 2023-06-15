@@ -58,8 +58,19 @@ pub async fn aggregate(
         searx::results(query, page, &user_agent)
     );
 
-    let ddg_map_results: HashMap<String, RawSearchResult> = ddg_map_results?;
-    let searx_map_results: HashMap<String, RawSearchResult> = searx_map_results?;
+    let ddg_map_results = ddg_map_results.unwrap_or_else(|e| {
+        if debug {
+            log::error!("Error fetching results from DuckDuckGo: {:?}", e);
+        }
+        HashMap::new()
+    });
+
+    let searx_map_results = searx_map_results.unwrap_or_else(|e| {
+        if debug {
+            log::error!("Error fetching results from Searx: {:?}", e);
+        }
+        HashMap::new()
+    });
 
     result_map.extend(ddg_map_results);
 
