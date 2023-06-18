@@ -1,29 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <title>Websurfx</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- <link href="static/colorschemes/{{colorscheme}}.css" rel="stylesheet" type="text/css" /> -->
-    <!-- <link href="static/themes/{{theme}}.css" rel="stylesheet" type="text/css" /> -->
-  </head>
+    <link href="static/colorschemes/{{colorscheme}}.css" rel="stylesheet" type="text/css" />
+    <link href="static/themes/{{theme}}.css" rel="stylesheet" type="text/css" />
+</head>
 
-  <body>
+<body onload="getClientSettings()">
     <header>{{>navbar}}</header>
-    <script>
-      const cookies = document.cookie.split(';').map(item => item.split('=')).
-        reduce((acc, [k, v]) => (acc[k.trim().replace('"', '')] = v) && acc, {});
-      // Load colorscheme and theme from cookie
-      function addCss(fileName) {
-        var head = document.head;
-        var link = document.createElement("link");
 
-        link.type = "text/css";
-        link.rel = "stylesheet";
-        link.href = fileName;
-
-        head.appendChild(link);
-        }
-        addCss('static/themes/'+ (cookies["theme"] || '{{theme}}') + '.css');
-        addCss('static/colorschemes/'+ (cookies["color-sch"] || '{{colorscheme}}') + '.css');
-    </script>
