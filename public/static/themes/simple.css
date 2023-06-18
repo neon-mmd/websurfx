@@ -302,6 +302,7 @@ footer {
   width: 80%;
 }
 
+/* Styles for the settings page */
 .settings_container {
   display: flex;
   justify-content: space-around;
@@ -435,6 +436,7 @@ footer {
   margin: 0;
 }
 
+/* Styles for the toggle button */
 /* The switch - the box around the slider */
 .switch {
   position: relative;

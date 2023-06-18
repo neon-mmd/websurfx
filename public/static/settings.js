@@ -1,3 +1,5 @@
+// This function handles the toggling of selections of all upstream search engines 
+// options in the settings page under the tab engines.
 function toggleAllSelection() {
   document
     .querySelectorAll('.engine')
@@ -8,6 +10,8 @@ function toggleAllSelection() {
     )
 }
 
+// This function adds the functionality to sidebar buttons to only show settings 
+// related to that tab.
 function setActiveTab(current_tab) {
   document
     .querySelectorAll('.tab')
@@ -21,6 +25,8 @@ function setActiveTab(current_tab) {
     .classList.add('active')
 }
 
+// This function adds the functionality to save all the user selected preferences
+// to be saved in a cookie on the users machine.
 function setClientSettings() {
   let cookie_dictionary = new Object()
   document.querySelectorAll('select').forEach((select_tag) => {
@@ -51,6 +57,10 @@ function setClientSettings() {
   }, 10000)
 }
 
+// This functions gets the saved cookies if it is present on the user's machine If it 
+// is available then it is parsed and converted to an object which is then used to 
+// retrieve the preferences that the user had selected previously and is then loaded in the 
+// website otherwise the function does nothing and the default server side settings are loaded.
 function getClientSettings() {
   let cookie = decodeURIComponent(document.cookie)
 
