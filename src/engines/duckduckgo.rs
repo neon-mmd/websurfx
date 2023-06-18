@@ -2,12 +2,16 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
 use crate::search_results_handler::aggregation_models::RawSearchResult;
+
+use super::engine_models::EngineError;
+
+use error_stack::{IntoReport, Report, Result, ResultExt};
 
 /// This function scrapes results from the upstream engine duckduckgo and puts all the scraped
 /// results like title, visiting_url (href in html),engine (from which engine it was fetched from)
@@ -22,14 +26,15 @@ use crate::search_results_handler::aggregation_models::RawSearchResult;
 ///
 /// # Errors
 ///
-/// Returns a reqwest error if the user is not connected to the internet or if their is failure to
-/// reach the above `upstream search engine` page and also returns error if the scraping
-/// selector fails to initialize"
+/// Returns an `EngineErrorKind` if the user is not connected to the internet or if their is failure to
+/// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
+/// provide results for the requested search query and also returns error if the scraping selector
+/// or HeaderMap fails to initialize.
 pub async fn results(
     query: &str,
     page: u32,
     user_agent: &str,
-) -> Result<HashMap<String, RawSearchResult>, Box<dyn std::error::Error>> {
+) -> Result<HashMap<String, RawSearchResult>, EngineError> {
     // Page number can be missing or empty string and so appropriate handling is required
     // so that upstream server recieves valid page number.
     let url: String = match page {
@@ -48,26 +53,71 @@ pub async fn results(
 
     // initializing HeaderMap and adding appropriate headers.
     let mut header_map = HeaderMap::new();
-    header_map.insert(USER_AGENT, user_agent.parse()?);
-    header_map.insert(REFERER, "https://google.com/".parse()?);
-    header_map.insert(CONTENT_TYPE, "application/x-www-form-urlencoded".parse()?);
-    header_map.insert(COOKIE, "kl=wt-wt".parse()?);
+    header_map.insert(
+        USER_AGENT,
+        user_agent
+            .parse()
+            .into_report()
+            .change_context(EngineError::UnexpectedError)?,
+    );
+    header_map.insert(
+        REFERER,
+        "https://google.com/"
+            .parse()
+            .into_report()
+            .change_context(EngineError::UnexpectedError)?,
+    );
+    header_map.insert(
+        CONTENT_TYPE,
+        "application/x-www-form-urlencoded"
+            .parse()
+            .into_report()
+            .change_context(EngineError::UnexpectedError)?,
+    );
+    header_map.insert(
+        COOKIE,
+        "kl=wt-wt"
+            .parse()
+            .into_report()
+            .change_context(EngineError::UnexpectedError)?,
+    );
 
     // fetch the html from upstream duckduckgo engine
-    // TODO: Write better error handling code to handle no results case.
     let results: String = reqwest::Client::new()
         .get(url)
+        .timeout(Duration::from_secs(5))
         .headers(header_map) // add spoofed headers to emulate human behaviour
         .send()
-        .await?
+        .await
+        .into_report()
+        .change_context(EngineError::RequestError)?
         .text()
-        .await?;
+        .await
+        .into_report()
+        .change_context(EngineError::RequestError)?;
 
     let document: Html = Html::parse_document(&results);
-    let results: Selector = Selector::parse(".result")?;
-    let result_title: Selector = Selector::parse(".result__a")?;
-    let result_url: Selector = Selector::parse(".result__url")?;
-    let result_desc: Selector = Selector::parse(".result__snippet")?;
+
+    let no_result: Selector = Selector::parse(".no-results")
+        .map_err(|_| Report::new(EngineError::UnexpectedError))
+        .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".no-results"))?;
+
+    if document.select(&no_result).next().is_some() {
+        return Err(Report::new(EngineError::EmptyResultSet));
+    }
+
+    let results: Selector = Selector::parse(".result")
+        .map_err(|_| Report::new(EngineError::UnexpectedError))
+        .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result"))?;
+    let result_title: Selector = Selector::parse(".result__a")
+        .map_err(|_| Report::new(EngineError::UnexpectedError))
+        .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__a"))?;
+    let result_url: Selector = Selector::parse(".result__url")
+        .map_err(|_| Report::new(EngineError::UnexpectedError))
+        .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__url"))?;
+    let result_desc: Selector = Selector::parse(".result__snippet")
+        .map_err(|_| Report::new(EngineError::UnexpectedError))
+        .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__snippet"))?;
 
     // scrape all the results from the html
     Ok(document

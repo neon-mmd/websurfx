@@ -1,4 +1,4 @@
-<h1 align="center">
+﻿<h1 align="center">
   <img src="./images/websurfx_logo.png" alt="websurfx logo" align="center" />
 </h1>
 <p align="center">
@@ -39,7 +39,7 @@
       >meta search engine</a
     >
     (pronounced as websurface or web-surface /wɛbˈsɜːrfəs/.) written in Rust. It
-    provides a quick and secure search experience while maintaining user
+    provides a quick and secure search experience while completely respecting user
     privacy.</i
   >
 </p>
@@ -72,7 +72,7 @@
 
 # Preview 🔭 
 
-## Main Page
+## Home Page
 
 <img align="center" src="./images/main_page.png" />
 
@@ -88,7 +88,7 @@
 
 # Features 🚀 
 
-- 🎨 High level of customizability with nine color schemes provided by default with a simple theme, also supporting the creation of your custom themes and colorschemes very quickly and easily
+- 🎨 Make Websurfx uniquely yours with nine color schemes provided by default. It also supports creation of custom themes and color schemes in a quick and easy way, so unleash your creativity!
 - 🔐 Fast, private, and secure
 - 🆓 100% free and open source
 - 💨 Ad-free and clean results
@@ -116,7 +116,7 @@ redis-server --port 8082 &
 Once you have started the server, open your preferred web browser and navigate to <http://127.0.0.1:8080> to start using Websurfx.
 
 > **Warning**
-> Please be aware that the project is still in the testing phase and is not ready for production use.
+> This project is still in the testing phase and is **not** ready for production use.
 
 **[⬆️ Back to Top](#--)**
 
@@ -132,14 +132,14 @@ Websurfx is configured through the config.lua file, located at `websurfx/config.
 
 > For full theming and customization instructions, see: [**Theming**](./docs/theming.md)
 
-Websurfx comes with several themes and color schemes by default, which you can apply and edit through the config file. Supports custom themes and color schemes using CSS, allowing you to develop your own unique-looking website.
+Websurfx comes loaded with several themes and color schemes, which you can apply and edit through the config file. It also supports custom themes and color schemes using CSS, allowing you to make it truly yours.
 
 **[⬆️ Back to Top](#--)**
 
 # Multi-Language Support 🌍
 
 > **Note**
-> Currently, we do not support other languages, but in the future, we will start accepting contributions regarding language support because we believe that language should not be a barrier to entry.
+> Currently, we do not support other languages but we will start accepting contributions regarding language support in the future. We believe language should never be a barrier to entry.
 
 **[⬆️ Back to Top](#--)**
 
@@ -153,15 +153,15 @@ At present, we only support x86_64 architecture systems, but we would love to ha
 
 ## Why Websurfx?
 
-The primary purpose of the Websurfx project is to create a fast, secure, and privacy-focused meta-search engine. While there are numerous meta-search engines available, not all of them guarantee the security of their search engine, which is critical for maintaining privacy. Memory flaws, for example, can expose private or sensitive information, which is never a good thing. Also, there is the added problem of Spam, ads, and unorganic results which most engines don't have the full-proof answer to it till now but with Websurfx I finally put a full stop to this problem, also, Rust is used to write Websurfx, which ensures memory safety and removes such issues. Many meta-search engines also lack important features like advanced picture search, which is required by many graphic designers, content providers, and others. Websurfx attempts to improve the user experience by providing these and other features, such as proper NSFW blocking and Micro-apps or Quick results (like providing a calculator, currency exchanges, etc in the search results).
+The primary purpose of the Websurfx project is to create a fast, secure, and privacy-focused meta-search engine. There are numerous meta-search engines available, but not all guarantee the security of their search engine, which is critical for maintaining privacy. Memory flaws, for example, can expose private or sensitive information, which is understandably bad. There is also the added problem of spam, ads, and inorganic results which most engines don't have a fool-proof answer to. Until now. With Websurfx I finally put a full stop to this problem. Websurfx is based on Rust, which ensures memory safety and removes such issues. Many meta-search engines also lack important features like advanced picture search, required by graphic designers, content providers, and others. Websurfx improves the user experience by providing these and other features, such as proper NSFW blocking and Micro-apps or Quick Results (providing a calculator, currency exchanges, etc in the search results).
 
 ## Why AGPLv3?
 
-Websurfx is distributed under the **AGPLv3** license to keep the source code open and transparent. This helps to keep malware, telemetry, and other dangerous programs out of the project. **AGPLv3** is a strong copyleft license that ensures the software's source code, including any modifications or improvements made to the code, remains open and available to everyone.
+Websurfx is distributed under the **AGPLv3** license to keep the source code open and transparent. This helps keep malware, telemetry, and other dangers out of the project. **AGPLv3** is a strong copyleft license that ensures the software's source code, including any modifications or improvements made to the code, remains open and available to everyone.
 
 ## Why Rust?
 
-Rust was chosen as the programming language for Websurfx because of its memory safety features, which can help prevent vulnerabilities and make the codebase more secure. Rust is also faster than C++, which contributes to Websurfx's speed and responsiveness. Furthermore, the Rust ownership and borrowing system enables secure concurrency and thread safety in the program.
+Websurfx is based on Rust due to its memory safety features, which prevents vulnerabilities and makes the codebase more secure. Rust is also faster than C++, contributing to Websurfx's speed and responsiveness. Finally, the Rust ownership and borrowing system enables secure concurrency and thread safety in the program.
 
 **[⬆️ Back to Top](#--)**
 
@@ -175,14 +175,14 @@ We are looking for more willing contributors to help grow this project. For more
 
 > For full details and other ways you can help out, see: [**Contributing**]()
 
-If you use Websurfx and would like to contribute to its development, that would be fantastic! Contributions of any size or type are always welcome, and we will properly acknowledge your efforts.
+If you use Websurfx and would like to contribute to its development, we're glad to have you on board! Contributions of any size or type are always welcome, and we will always acknowledge your efforts.
 
 Several areas that we need a bit of help with at the moment are:
 - **Better and more color schemes**: Help fix color schemes and add other famous color schemes.
 - **Improve evasion code for bot detection** - Help improve code related to evading IP blocking and emulating human behaviors located in everyone's engine file.
 - **Logo** - Help create a logo for the project and website.
 - **Docker Support** - Help write a Docker Compose file for the project.
-- Submit a PR to add a new feature, fix a bug, update the docs, add a theme, widget, or something else.
+- Submit a PR to add a new feature, fix a bug, update the docs, add a theme, widget, or anything else.
 - Star Websurfx on GitHub.
 
 **[⬆️ Back to Top](#--)**
@@ -196,13 +196,13 @@ Several areas that we need a bit of help with at the moment are:
 
 # Roadmap 🛣️
 
-> Coming soon!! 🙂.
+> Coming soon! 🙂.
 
 **[⬆️ Back to Top](#--)**
 
 # Contributing 🙋 
 
-Contributions are welcome from anyone. It doesn\'t matter who you are; you can still contribute to the project in your own way.
+Contributions are welcome from anyone. It doesn't matter who you are; you can still contribute to the project in your own way.
 
 ## Not a developer but still want to contribute?
 
