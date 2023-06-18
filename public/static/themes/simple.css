@@ -436,6 +436,10 @@ footer {
   margin: 0;
 }
 
+.settings_container .cookies input {
+  margin: 1rem 0rem;
+}
+
 /* Styles for the toggle button */
 /* The switch - the box around the slider */
 .switch {
