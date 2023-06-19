@@ -10,13 +10,10 @@ ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be 
  - CSS_STYLELINT
  - MARKDOWN_MARKDOWNLINT
  - YAML_YAMLLINT
- - JSON_ESLINT_PLUGIN_JSONC
  - HTML_DJLINT
  - ACTION_ACTIONLINT
  - DOCKERFILE_HADOLINT
  - SPELL_CSPELL
- - COPYPASTE_JSCPD
- - REPOSITORY_TRIVY
 # DISABLE:
   # - COPYPASTE # Uncomment to disable checks of excessive copy-pastes
   # - SPELL # Uncomment to disable checks of spelling mistakes
