@@ -263,41 +263,243 @@ footer {
 
 /* Styles for the about page */
 
-  .about-container article{
-      font-size: 1.5rem;
-      color:var(--fg);
-      padding-bottom: 10px;
-    }
+.about-container article {
+  font-size: 1.5rem;
+  color: var(--fg);
+  padding-bottom: 10px;
+}
 
-  .about-container article h1{
-      color: var(--2);
-      font-size: 2.8rem;
-    }
+.about-container article h1 {
+  color: var(--2);
+  font-size: 2.8rem;
+}
 
-  .about-container article div{
-      padding-bottom: 15px;
-    }
+.about-container article div {
+  padding-bottom: 15px;
+}
 
-  .about-container a{
-    color:var(--3);
-  }
+.about-container a {
+  color: var(--3);
+}
 
-  .about-container article h2{
-    color: var(--3);
-    font-size: 1.8rem;
-    padding-bottom: 10px;
-  }
+.about-container article h2 {
+  color: var(--3);
+  font-size: 1.8rem;
+  padding-bottom: 10px;
+}
 
-  .about-container p{
-    color:var(--fg);
-    font-size:  1.6rem;
-    padding-bottom: 10px;
-  }
+.about-container p {
+  color: var(--fg);
+  font-size: 1.6rem;
+  padding-bottom: 10px;
+}
 
-  .about-container h3{
-    font-size: 1.5rem;
-  }
+.about-container h3 {
+  font-size: 1.5rem;
+}
 
-  .about-container {
-    width: 80%;
-  }
+.about-container {
+  width: 80%;
+}
+
+/* Styles for the settings page */
+.settings_container {
+  display: flex;
+  justify-content: space-around;
+  width: 80dvw;
+}
+
+.settings h1 {
+  color: var(--2);
+  font-size: 2.5rem;
+}
+
+.settings hr {
+  border-color: var(--3);
+  margin: 0.3rem 0 1rem 0;
+}
+
+.settings_container .sidebar {
+  width: 30%;
+  cursor: pointer;
+  font-size: 2rem;
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.5rem;
+  margin-left: -0.7rem;
+  padding: 0.7rem;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: var(--fg);
+  text-transform: capitalize;
+  gap: 1.5rem;
+}
+
+.settings_container .sidebar .btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.settings_container .sidebar .btn.active {
+  background-color: var(--2);
+}
+
+.settings_container .main_container {
+  width: 70%;
+  border-left: 1.5px solid var(--3);
+  padding-left: 3rem;
+}
+
+.settings_container .tab {
+  display: none;
+}
+
+.settings_container .tab.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.settings_container button {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background: var(--3);
+  color: var(--bg);
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  font-weight: bold;
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+  box-shadow: 5px 5px;
+  outline: none;
+}
+
+.settings_container button:active {
+  box-shadow: none;
+  translate: 5px 5px;
+}
+
+.settings_container .main_container .message {
+  font-size: 1.5rem;
+  color: var(--fg);
+}
+
+.settings_container .tab h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--4);
+  margin-top: 1.5rem;
+  text-transform: capitalize;
+}
+
+.settings_container .tab .description {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--fg);
+}
+
+.settings_container .user_interface select {
+  margin: 0.7rem 0;
+  width: 20rem;
+  background-color: var(--bg);
+  color: var(--fg);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  text-transform: capitalize;
+}
+
+.settings_container .user_interface option:hover {
+  background-color: var(--1);
+}
+
+.settings_container .engines .engine_selection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.settings_container .engines .toggle_btn {
+  color: var(--fg);
+  font-size: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.settings_container .engines hr {
+  margin: 0;
+}
+
+.settings_container .cookies input {
+  margin: 1rem 0rem;
+}
+
+/* Styles for the toggle button */
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 6rem;
+  height: 3.4rem;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg);
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 2.6rem;
+  width: 2.6rem;
+  left: 0.4rem;
+  bottom: 0.4rem;
+  background-color: var(--fg);
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: var(--3);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--3);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(2.6rem);
+  -ms-transform: translateX(2.6rem);
+  transform: translateX(2.6rem);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 3.4rem;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
