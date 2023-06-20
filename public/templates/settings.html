@@ -1,5 +1,22 @@
 {{>header this}}
-<main class="settings">
-  <h1>Page is under construction</h1>
+<main class="settings" >
+    <h1>Settings</h1>
+    <hr />
+    <div class="settings_container">
+        <div class="sidebar">
+            <div class="btn active" onclick="setActiveTab(this)">general</div>
+            <div class="btn" onclick="setActiveTab(this)">user interface</div>
+            <div class="btn" onclick="setActiveTab(this)">engines</div>
+            <div class="btn" onclick="setActiveTab(this)">cookies</div>
+        </div>
+        <div class="main_container">
+            {{> general_tab}} {{> user_interface_tab}} {{> engines_tab}} {{>
+            cookies_tab}}
+            <p class="message"></p>
+            <button type="submit" onclick="setClientSettings()">Save</button>
+        </div>
+    </div>
 </main>
+<script src="static/settings.js"></script>
+<script src="static/cookies.js"></script>
 {{>footer}}
