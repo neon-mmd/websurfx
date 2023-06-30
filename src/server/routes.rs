@@ -1,5 +1,5 @@
 //! This module provides the functionality to handle different routes of the `websurfx`
-//! meta search engine website and provide approriate response to each route/page
+//! meta search engine website and provide appropriate response to each route/page
 //! when requested.
 
 use std::fs::read_to_string;
@@ -82,39 +82,15 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish())
             } else {
-                let page_url: String; // Declare the page_url variable without initializing it
-
-                // ...
-
-                let page = match params.page {
-                    Some(page_number) => {
-                        if page_number <= 1 {
-                            page_url = format!(
-                                "http://{}:{}/search?q={}&page={}",
-                                config.binding_ip_addr, config.port, query, 1
-                            );
-                            1
-                        } else {
-                            page_url = format!(
-                                "http://{}:{}/search?q={}&page={}",
-                                config.binding_ip_addr, config.port, query, page_number
-                            );
-
-                            page_number
-                        }
-                    }
-                    None => {
-                        page_url = format!(
-                            "http://{}:{}{}&page={}",
-                            config.binding_ip_addr,
-                            config.port,
-                            req.uri(),
-                            1
-                        );
-
-                        1
-                    }
+                let page = match &params.page {
+                    Some(page) => *page,
+                    None => 0,
                 };
+
+                let page_url = format!(
+                    "http://{}:{}/search?q={}&page={}",
+                    config.binding_ip_addr, config.port, query, page
+                );
 
                 // fetch the cached results json.
                 let cached_results_json = redis_cache.cached_results_json(&page_url);

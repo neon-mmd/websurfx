@@ -59,7 +59,7 @@
 - **Community**
     - [📊 System Requirements](#system-requirements-)
     - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
-    - [📣 More Contributers Wanted](#more-contributers-wanted-)
+    - [📣 More Contributors Wanted](#more-contributors-wanted-)
     - [💖 Supporting Websurfx](#supporting-websurfx-)
     - [📘 Documentation](#documentation-)
     - [🛣️ Roadmap](#roadmap-)
@@ -165,7 +165,7 @@ Websurfx is based on Rust due to its memory safety features, which prevents vuln
 
 **[⬆️ Back to Top](#--)**
 
-# More Contributers Wanted 📣 
+# More Contributors Wanted 📣  
 
 We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [project board](https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen) and the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and rules for making contributions.
 

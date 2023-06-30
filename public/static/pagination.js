@@ -30,8 +30,8 @@ function navigate_backward() {
     let page = parseInt(searchParams.get('page'));
 
     if (isNaN(page)) {
-        page = 1;
-    } else if (page > 1) {
+        page = 0;
+    } else if (page > 0) {
         page--;
     }
 
