@@ -59,7 +59,7 @@
 - **Community**
     - [📊 System Requirements](#system-requirements-)
     - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
-    - [📣 More Contributors Wanted](#more-contributers-wanted-)
+    - [📣 More Contributors Wanted](#more-contributors-wanted-)
     - [💖 Supporting Websurfx](#supporting-websurfx-)
     - [📘 Documentation](#documentation-)
     - [🛣️ Roadmap](#roadmap-)
