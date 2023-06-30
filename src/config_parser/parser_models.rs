@@ -1,5 +1,5 @@
 //! This module provides public models for handling, storing and serializing parsed config file
-//! options from config.lua by grouping them togather.
+//! options from config.lua by grouping them together.
 
 use serde::{Deserialize, Serialize};
 
