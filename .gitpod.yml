@@ -8,10 +8,10 @@ tasks:
     - command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
 # Ports to expose on workspace startup 
 ports: 
-    - port: 8080 
-    - onOpen: open-preview 
     - name: Website 
-    - description: Website Preview
+      description: Website Preview 
+      port: 8080 
+      onOpen: open-browser 
 # vscode IDE setup
 vscode: 
    extensions: 
@@ -36,10 +36,10 @@ vscode:
     - eamodio.gitlens
 github: 
    prebuilds: 
-    - master: true 
-    - branches: true 
-    - pullRequests: true 
-    - pullRequestsFromForks: true 
-    - addCheck: true 
-    - addComment: false 
-    - addBadge: true
+      master: true 
+      branches: true 
+      pullRequests: true 
+      pullRequestsFromForks: true 
+      addCheck: true 
+      addComment: false 
+      addBadge: true
