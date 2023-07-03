@@ -3,15 +3,15 @@ image: gitpod/workspace-base
 # Commands that will run on workspace start 
 tasks: 
     - name: Setup, Install & Build 
-    - before: apt install cargo redis-server nodejs npm && cargo test
-    - init: cargo install cargo-watch 
-    - command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
+      before: apt install cargo redis-server nodejs npm -y && cargo test
+      init: cargo install cargo-watch 
+      command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
 # Ports to expose on workspace startup 
 ports: 
     - name: Website 
       description: Website Preview 
       port: 8080 
-      onOpen: open-browser 
+      onOpen: open-preview
 # vscode IDE setup
 vscode: 
    extensions: 
