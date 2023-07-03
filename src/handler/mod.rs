@@ -1,1 +1,1 @@
-pub mod public_path_handler;
+pub mod public_paths;
