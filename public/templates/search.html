@@ -4,12 +4,12 @@
   <div class="results_aggregated">
     {{#each results}}
     <div class="result">
-      <h1><a href="{{this.visitingUrl}}">{{{this.title}}}</a></h1>
-      <small>{{this.url}}</small>
+      <h1><a href="/{{{this.visitingUrl}}}">{{{this.title}}}</a></h1>
+      <small>{{{this.url}}}</small>
       <p>{{{this.description}}}</p>
       <div class="upstream_engines">
         {{#each engine}}
-        <span>{{this}}</span>
+        <span>{{{this}}}</span>
         {{/each}}
       </div>
     </div>
