@@ -36,7 +36,7 @@ pub async fn results(
     user_agent: &str,
 ) -> Result<HashMap<String, RawSearchResult>, EngineError> {
     // Page number can be missing or empty string and so appropriate handling is required
-    // so that upstream server recieves valid page number.
+    // so that upstream server receives valid page number.
     let url: String = match page {
         1 => {
             format!("https://html.duckduckgo.com/html/?q={query}&s=&dc=&v=1&o=json&api=/d.js")
@@ -86,7 +86,7 @@ pub async fn results(
     let results: String = reqwest::Client::new()
         .get(url)
         .timeout(Duration::from_secs(5))
-        .headers(header_map) // add spoofed headers to emulate human behaviour
+        .headers(header_map) // add spoofed headers to emulate human behavior
         .send()
         .await
         .into_report()

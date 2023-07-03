@@ -17,7 +17,7 @@ use crate::engines::{duckduckgo, searx};
 /// then removes duplicate results and if two results are found to be from two or more engines
 /// then puts their names together to show the results are fetched from these upstream engines
 /// and then removes all data from the HashMap and puts into a struct of all results aggregated
-/// into a vector and also adds the query used into the struct this is neccessory because
+/// into a vector and also adds the query used into the struct this is necessary because
 /// otherwise the search bar in search remains empty if searched from the query url
 ///
 /// # Example:

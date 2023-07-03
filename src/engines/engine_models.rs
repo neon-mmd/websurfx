@@ -13,7 +13,7 @@ use std::fmt;
 /// search engines.
 /// * `UnexpectedError` - This variant handles all the errors which are unexpected or occur rarely
 /// and are errors mostly related to failure in initialization of HeaderMap, Selector errors and
-/// all other errors occuring within the code handling the `upstream search engines`.
+/// all other errors occurring within the code handling the `upstream search engines`.
 #[derive(Debug)]
 pub enum EngineError {
     EmptyResultSet,
