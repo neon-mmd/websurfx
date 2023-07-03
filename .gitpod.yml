@@ -1,5 +1,5 @@
 ---
-image: ubuntu:latest 
+image: gitpod/workspace-base
 # Commands that will run on workspace start 
 tasks: 
     - name: Setup, Install & Build 
