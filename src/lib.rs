@@ -32,7 +32,7 @@ use handler::public_paths::get_public_path;
 ///
 /// ```rust
 /// use std::net::TcpListener;
-/// use websurfx::{config_parser::parser::Config, run};
+/// use websurfx::{config::parser::Config, run};
 ///
 /// let config = Config::parse().unwrap();
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
