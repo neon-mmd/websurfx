@@ -6,9 +6,9 @@ use std::fs::read_to_string;
 
 use crate::{
     cache::cacher::RedisCache,
-    config_parser::parser::Config,
-    handler::public_path_handler::handle_different_public_path,
-    search_results_handler::{aggregation_models::SearchResults, aggregator::aggregate},
+    config::parser::Config,
+    handler::public_paths::get_public_path,
+    results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
@@ -73,46 +73,25 @@ pub async fn search(
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
 
-    //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(config.redis_connection_url.clone())?;
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
-                Ok(HttpResponse::Found()
+                return Ok(HttpResponse::Found()
                     .insert_header(("location", "/"))
-                    .finish())
-            } else {
-                let page = match &params.page {
-                    Some(page) => *page,
-                    None => 0,
-                };
-
-                let page_url = format!(
-                    "http://{}:{}/search?q={}&page={}",
-                    config.binding_ip_addr, config.port, query, page
-                );
-
-                // fetch the cached results json.
-                let cached_results_json = redis_cache.cached_results_json(&page_url);
-                // check if fetched results was indeed fetched or it was an error and if so
-                // handle the data accordingly.
-                match cached_results_json {
-                    Ok(results_json) => {
-                        let new_results_json: SearchResults = serde_json::from_str(&results_json)?;
-                        let page_content: String = hbs.render("search", &new_results_json)?;
-                        Ok(HttpResponse::Ok().body(page_content))
-                    }
-                    Err(_) => {
-                        let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                            aggregate(query, page, config.aggregator.random_delay, config.debug).await?;
-                        results_json.add_style(config.style.clone());
-                        redis_cache
-                            .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
-                        let page_content: String = hbs.render("search", &results_json)?;
-                        Ok(HttpResponse::Ok().body(page_content))
-                    }
-                }
+                    .finish());
             }
+            let page = match &params.page {
+                Some(page) => *page,
+                None => 0,
+            };
+
+            let url = format!(
+                "http://{}:{}/search?q={}&page={}",
+                config.binding_ip, config.port, query, page
+            );
+            let results_json = get_results(url, &config, query, page).await?;
+            let page_content: String = hbs.render("search", &results_json)?;
+            Ok(HttpResponse::Ok().body(page_content))
         }
         None => Ok(HttpResponse::Found()
             .insert_header(("location", "/"))
@@ -120,11 +99,36 @@ pub async fn search(
     }
 }
 
+/// Fetches the results for a query and page.
+/// First checks the redis cache, if that fails it gets proper results
+async fn get_results(
+    url: String,
+    config: &Config,
+    query: &str,
+    page: u32,
+) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    //Initialize redis cache connection struct
+    let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
+    // fetch the cached results json.
+    let cached_results_json = redis_cache.get_cached_json(&url);
+    // check if fetched results was indeed fetched or it was an error and if so
+    // handle the data accordingly.
+    match cached_results_json {
+        Ok(results_json) => Ok(serde_json::from_str::<SearchResults>(&results_json).unwrap()),
+        Err(_) => {
+            let mut results_json: crate::results::aggregation_models::SearchResults =
+                aggregate(query, page, config.aggregator.random_delay, config.debug).await?;
+            results_json.add_style(config.style.clone());
+            redis_cache.cache_results(serde_json::to_string(&results_json)?, &url)?;
+            Ok(results_json)
+        }
+    }
+}
+
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String =
-        read_to_string(format!("{}/robots.txt", handle_different_public_path()?))?;
+    let page_content: String = read_to_string(format!("{}/robots.txt", get_public_path()?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))

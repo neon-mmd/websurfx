@@ -5,7 +5,7 @@
 
 use std::net::TcpListener;
 
-use websurfx::{config_parser::parser::Config, run};
+use websurfx::{config::parser::Config, run};
 
 /// The function that launches the main server and registers all the routes of the website.
 ///
@@ -26,7 +26,7 @@ async fn main() -> std::io::Result<()> {
 
     log::info!("started server on port {}", config.port);
 
-    let listener = TcpListener::bind((config.binding_ip_addr.clone(), config.port))?;
+    let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;
 
     run(listener, config)?.await
 }
