@@ -6,7 +6,7 @@ use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 
-use crate::search_results_handler::aggregation_models::RawSearchResult;
+use crate::results::aggregation_models::RawSearchResult;
 
 use super::engine_models::EngineError;
 use error_stack::{IntoReport, Report, Result, ResultExt};

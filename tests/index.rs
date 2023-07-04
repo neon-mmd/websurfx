@@ -1,7 +1,7 @@
 use std::net::TcpListener;
 
 use handlebars::Handlebars;
-use websurfx::{config_parser::parser::Config, run};
+use websurfx::{config::parser::Config, run};
 
 // Starts a new instance of the HTTP server, bound to a random available port
 fn spawn_app() -> String {
@@ -41,5 +41,5 @@ async fn test_index() {
     assert_eq!(res.text().await.unwrap(), template);
 }
 
-// TODO: Write tests for tesing parameters for search function that if provided with something
+// TODO: Write tests for testing parameters for search function that if provided with something
 // other than u32 like alphabets and special characters than it should panic
