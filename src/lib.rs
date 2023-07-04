@@ -16,7 +16,7 @@ use actix_files as fs;
 use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
 use config::parser::Config;
 use handlebars::Handlebars;
-use handler::public_paths::get_public_path;
+use handler::public_paths::public_path;
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -41,7 +41,7 @@ use handler::public_paths::get_public_path;
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
 
-    let public_folder_path: String = get_public_path()?;
+    let public_folder_path: String = public_path()?;
 
     handlebars
         .register_templates_directory(".html", format!("{}/templates", public_folder_path))
