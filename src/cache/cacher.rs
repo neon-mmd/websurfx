@@ -41,7 +41,7 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as a string.
-    pub fn get_cached_json(&mut self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn cached_json(&mut self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
         let hashed_url_string = Self::hash_url(url);
         Ok(self.connection.get(hashed_url_string)?)
     }

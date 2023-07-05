@@ -7,7 +7,7 @@ use std::fs::read_to_string;
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
-    handler::public_paths::get_public_path,
+    handler::public_paths::public_path,
     results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
@@ -89,7 +89,7 @@ pub async fn search(
                 "http://{}:{}/search?q={}&page={}",
                 config.binding_ip, config.port, query, page
             );
-            let results_json = get_results(url, &config, query, page).await?;
+            let results_json = results(url, &config, query, page).await?;
             let page_content: String = hbs.render("search", &results_json)?;
             Ok(HttpResponse::Ok().body(page_content))
         }
@@ -101,7 +101,7 @@ pub async fn search(
 
 /// Fetches the results for a query and page.
 /// First checks the redis cache, if that fails it gets proper results
-async fn get_results(
+async fn results(
     url: String,
     config: &Config,
     query: &str,
@@ -110,7 +110,7 @@ async fn get_results(
     //Initialize redis cache connection struct
     let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
     // fetch the cached results json.
-    let cached_results_json = redis_cache.get_cached_json(&url);
+    let cached_results_json = redis_cache.cached_json(&url);
     // check if fetched results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
@@ -128,7 +128,7 @@ async fn get_results(
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = read_to_string(format!("{}/robots.txt", get_public_path()?))?;
+    let page_content: String = read_to_string(format!("{}/robots.txt", public_path()?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))
