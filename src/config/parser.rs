@@ -50,7 +50,7 @@ impl Config {
             let globals = context.globals();
 
             context
-                .load(&fs::read_to_string(Config::get_config_path()?)?)
+                .load(&fs::read_to_string(Config::config_path()?)?)
                 .exec()?;
 
             Ok(Config {
@@ -81,7 +81,7 @@ impl Config {
     ///    one (3).
     /// 3. `websurfx/` (under project folder ( or codebase in other words)) if it is not present
     ///    here then it returns an error as mentioned above.
-    fn get_config_path() -> Result<String, Box<dyn std::error::Error>> {
+    fn config_path() -> Result<String, Box<dyn std::error::Error>> {
         // check user config
 
         let path = format!(
