@@ -1,3 +1,4 @@
+---
 name: Rust format and clippy checks
 on:
   push:
