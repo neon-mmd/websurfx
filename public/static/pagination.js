@@ -1,5 +1,5 @@
 /**
- * Navigates to the next page by incrementing the current page number in the URL query parameters.
+ * Navigates to the next page by incrementing the current page number in the URL query string.
  * @returns {void}
  */
 function navigate_forward() {
@@ -19,7 +19,7 @@ function navigate_forward() {
 }
 
 /**
- * Navigates to the previous page by decrementing the current page number in the URL query parameters.
+ * Navigates to the previous page by decrementing the current page number in the URL query string.
  * @returns {void}
  */
 function navigate_backward() {
