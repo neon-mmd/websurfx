@@ -1,22 +1,23 @@
 ---
-image: ubuntu:latest 
+image: gitpod/workspace-base
 # Commands that will run on workspace start 
 tasks: 
     - name: Setup, Install & Build 
-    - before: apt install cargo redis-server nodejs npm && cargo test
-    - init: cargo install cargo-watch 
-    - command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
+      before: apt install cargo redis-server nodejs npm -y && cargo test
+      init: cargo install cargo-watch 
+      command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
 # Ports to expose on workspace startup 
 ports: 
-    - port: 8080 
-    - onOpen: open-preview 
     - name: Website 
-    - description: Website Preview
+      description: Website Preview 
+      port: 8080 
+      onOpen: open-preview
 # vscode IDE setup
 vscode: 
    extensions: 
     - vadimcn.vscode-lldb
-    - rust-lang.rust-analyzer
+    - cschleiden.vscode-github-actions
+    - rust-lang.rust
     - bungcip.better-toml
     - serayuzgur.crates
     - usernamehw.errorlens
@@ -27,19 +28,17 @@ vscode:
     - evgeniypeshkov.syntax-highlighter
     - redhat.vscode-yaml
     - ms-azuretools.vscode-docker
-    - GitHub.vscode-github-actions
     - Catppuccin.catppuccin-vsc
     - PKief.material-icon-theme
-    - tal7aouy.rainbow-bracket
     - oderwat.indent-rainbow
     - formulahendry.auto-rename-tag
     - eamodio.gitlens
 github: 
    prebuilds: 
-    - master: true 
-    - branches: true 
-    - pullRequests: true 
-    - pullRequestsFromForks: true 
-    - addCheck: true 
-    - addComment: false 
-    - addBadge: true
+      master: true 
+      branches: true 
+      pullRequests: true 
+      pullRequestsFromForks: true 
+      addCheck: true 
+      addComment: false 
+      addBadge: true

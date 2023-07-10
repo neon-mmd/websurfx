@@ -16,7 +16,7 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  background: var(--1);
+  background: var(--color-one);
 }
 
 /* styles for the index page */
@@ -46,7 +46,7 @@ body {
   outline: none;
   border: none;
   box-shadow: rgba(0, 0, 0, 1);
-  background: var(--fg);
+  background: var(--foreground-color);
 }
 
 .search_bar button {
@@ -59,8 +59,8 @@ body {
   outline: none;
   border: none;
   gap: 0;
-  background: var(--bg);
-  color: var(--3);
+  background: var(--background-color);
+  color: var(--color-three);
   font-weight: 600;
   letter-spacing: 0.1rem;
 }
@@ -73,7 +73,7 @@ body {
 /* styles for the footer and header */
 
 header {
-  background: var(--bg);
+  background: var(--background-color);
   width: 100%;
   display: flex;
   justify-content: right;
@@ -96,7 +96,7 @@ footer ul li a,
 header ul li a:visited,
 footer ul li a:visited {
   text-decoration: none;
-  color: var(--2);
+  color: var(--color-two);
   text-transform: capitalize;
   letter-spacing: 0.1rem;
 }
@@ -107,12 +107,12 @@ header ul li a {
 
 header ul li a:hover,
 footer ul li a:hover {
-  color: var(--5);
+  color: var(--color-five);
 }
 
 footer div span {
   font-size: 1.5rem;
-  color: var(--4);
+  color: var(--color-four);
 }
 
 footer div {
@@ -121,7 +121,7 @@ footer div {
 }
 
 footer {
-  background: var(--bg);
+  background: var(--background-color);
   width: 100%;
   padding: 1rem;
   display: flex;
@@ -158,28 +158,28 @@ footer {
 
 .results_aggregated .result h1 a {
   font-size: 1.5rem;
-  color: var(--2);
+  color: var(--color-two);
   text-decoration: none;
   letter-spacing: 0.1rem;
 }
 
 .results_aggregated .result h1 a:hover {
-  color: var(--5);
+  color: var(--color-five);
 }
 
 .results_aggregated .result h1 a:visited {
-  color: var(--bg);
+  color: var(--background-color);
 }
 
 .results_aggregated .result small {
-  color: var(--3);
+  color: var(--color-three);
   font-size: 1.1rem;
   word-wrap: break-word;
   line-break: anywhere;
 }
 
 .results_aggregated .result p {
-  color: var(--fg);
+  color: var(--foreground-color);
   font-size: 1.2rem;
   margin-top: 0.3rem;
   word-wrap: break-word;
@@ -190,7 +190,7 @@ footer {
   text-align: right;
   font-size: 1.2rem;
   padding: 1rem;
-  color: var(--5);
+  color: var(--color-five);
 }
 
 /* Styles for the 404 page  */
@@ -233,12 +233,12 @@ footer {
 
 .error_content p a,
 .error_content p a:visited {
-  color: var(--2);
+  color: var(--color-two);
   text-decoration: none;
 }
 
 .error_content p a:hover {
-  color: var(--5);
+  color: var(--color-five);
 }
 
 .page_navigation {
@@ -249,8 +249,8 @@ footer {
 }
 
 .page_navigation button {
-  background: var(--bg);
-  color: var(--fg);
+  background: var(--background-color);
+  color: var(--foreground-color);
   padding: 1rem;
   border-radius: 0.5rem;
   outline: none;
@@ -265,12 +265,12 @@ footer {
 
 .about-container article {
   font-size: 1.5rem;
-  color: var(--fg);
+  color: var(--foreground-color);
   padding-bottom: 10px;
 }
 
 .about-container article h1 {
-  color: var(--2);
+  color: var(--color-two);
   font-size: 2.8rem;
 }
 
@@ -279,17 +279,17 @@ footer {
 }
 
 .about-container a {
-  color: var(--3);
+  color: var(--color-three);
 }
 
 .about-container article h2 {
-  color: var(--3);
+  color: var(--color-three);
   font-size: 1.8rem;
   padding-bottom: 10px;
 }
 
 .about-container p {
-  color: var(--fg);
+  color: var(--foreground-color);
   font-size: 1.6rem;
   padding-bottom: 10px;
 }
@@ -310,12 +310,12 @@ footer {
 }
 
 .settings h1 {
-  color: var(--2);
+  color: var(--color-two);
   font-size: 2.5rem;
 }
 
 .settings hr {
-  border-color: var(--3);
+  border-color: var(--color-three);
   margin: 0.3rem 0 1rem 0;
 }
 
@@ -331,7 +331,7 @@ footer {
   border-radius: 5px;
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: var(--fg);
+  color: var(--foreground-color);
   text-transform: capitalize;
   gap: 1.5rem;
 }
@@ -342,12 +342,12 @@ footer {
 }
 
 .settings_container .sidebar .btn.active {
-  background-color: var(--2);
+  background-color: var(--color-two);
 }
 
 .settings_container .main_container {
   width: 70%;
-  border-left: 1.5px solid var(--3);
+  border-left: 1.5px solid var(--color-three);
   padding-left: 3rem;
 }
 
@@ -365,8 +365,8 @@ footer {
   margin-top: 1rem;
   padding: 1rem 2rem;
   font-size: 1.5rem;
-  background: var(--3);
-  color: var(--bg);
+  background: var(--color-three);
+  color: var(--background-color);
   border-radius: 0.5rem;
   border: 2px solid transparent;
   font-weight: bold;
@@ -383,13 +383,13 @@ footer {
 
 .settings_container .main_container .message {
   font-size: 1.5rem;
-  color: var(--fg);
+  color: var(--foreground-color);
 }
 
 .settings_container .tab h3 {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--4);
+  color: var(--color-four);
   margin-top: 1.5rem;
   text-transform: capitalize;
 }
@@ -397,14 +397,14 @@ footer {
 .settings_container .tab .description {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: var(--fg);
+  color: var(--foreground-color);
 }
 
 .settings_container .user_interface select {
   margin: 0.7rem 0;
   width: 20rem;
-  background-color: var(--bg);
-  color: var(--fg);
+  background-color: var(--background-color);
+  color: var(--foreground-color);
   padding: 1rem 2rem;
   border-radius: 0.5rem;
   outline: none;
@@ -413,7 +413,7 @@ footer {
 }
 
 .settings_container .user_interface option:hover {
-  background-color: var(--1);
+  background-color: var(--color-one);
 }
 
 .settings_container .engines .engine_selection {
@@ -425,7 +425,7 @@ footer {
 }
 
 .settings_container .engines .toggle_btn {
-  color: var(--fg);
+  color: var(--foreground-color);
   font-size: 1.5rem;
   display: flex;
   gap: 0.5rem;
@@ -464,7 +464,7 @@ footer {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--bg);
+  background-color: var(--background-color);
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
@@ -476,17 +476,17 @@ footer {
   width: 2.6rem;
   left: 0.4rem;
   bottom: 0.4rem;
-  background-color: var(--fg);
+  background-color: var(--foreground-color);
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
 
 input:checked + .slider {
-  background-color: var(--3);
+  background-color: var(--color-three);
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px var(--3);
+  box-shadow: 0 0 1px var(--color-three);
 }
 
 input:checked + .slider:before {

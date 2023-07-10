@@ -3,3 +3,4 @@ package.json
 package-lock.json
 dump.rdb
 .vscode
+megalinter-reports/

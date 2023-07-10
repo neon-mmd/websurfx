@@ -7,7 +7,7 @@ use std::{collections::HashMap, time::Duration};
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
-use crate::search_results_handler::aggregation_models::RawSearchResult;
+use crate::results::aggregation_models::RawSearchResult;
 
 use super::engine_models::EngineError;
 

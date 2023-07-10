@@ -32,7 +32,7 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as string.
-    fn compute_url_hash(url: &str) -> String {
+    fn hash_url(url: &str) -> String {
         format!("{:?}", compute(url))
     }
 
@@ -41,8 +41,8 @@ impl RedisCache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as a string.
-    pub fn cached_results_json(&mut self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let hashed_url_string = Self::compute_url_hash(url);
+    pub fn cached_json(&mut self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let hashed_url_string = Self::hash_url(url);
         Ok(self.connection.get(hashed_url_string)?)
     }
 
@@ -59,7 +59,7 @@ impl RedisCache {
         json_results: String,
         url: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let hashed_url_string = Self::compute_url_hash(url);
+        let hashed_url_string = Self::hash_url(url);
 
         // put results_json into cache
         self.connection.set(&hashed_url_string, json_results)?;

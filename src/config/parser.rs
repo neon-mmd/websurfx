@@ -14,16 +14,16 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// # Fields
 //
 /// * `port` - It stores the parsed port number option on which the server should launch.
-/// * `binding_ip_addr` - It stores the parsed ip address option on which the server should launch
+/// * `binding_ip` - It stores the parsed ip address option on which the server should launch
 /// * `style` - It stores the theming options for the website.
-/// * `redis_connection_url` - It stores the redis connection url address on which the redis
+/// * `redis_url` - It stores the redis connection url address on which the redis
 /// client should connect.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
-    pub binding_ip_addr: String,
+    pub binding_ip: String,
     pub style: Style,
-    pub redis_connection_url: String,
+    pub redis_url: String,
     pub aggregator: AggregatorConfig,
     pub logging: bool,
     pub debug: bool,
@@ -50,17 +50,17 @@ impl Config {
             let globals = context.globals();
 
             context
-                .load(&fs::read_to_string(Config::get_config_path()?)?)
+                .load(&fs::read_to_string(Config::config_path()?)?)
                 .exec()?;
 
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
-                binding_ip_addr: globals.get::<_, String>("binding_ip_addr")?,
+                binding_ip: globals.get::<_, String>("binding_ip")?,
                 style: Style::new(
                     globals.get::<_, String>("theme")?,
                     globals.get::<_, String>("colorscheme")?,
                 ),
-                redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
+                redis_url: globals.get::<_, String>("redis_url")?,
                 aggregator: AggregatorConfig {
                     random_delay: globals.get::<_, bool>("production_use")?,
                 },
@@ -81,7 +81,7 @@ impl Config {
     ///    one (3).
     /// 3. `websurfx/` (under project folder ( or codebase in other words)) if it is not present
     ///    here then it returns an error as mentioned above.
-    fn get_config_path() -> Result<String, Box<dyn std::error::Error>> {
+    fn config_path() -> Result<String, Box<dyn std::error::Error>> {
         // check user config
 
         let path = format!(
