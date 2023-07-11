@@ -24,6 +24,7 @@ md5 = {version="*"}
 rand={version="*"}
 once_cell = {version="*"}
 error-stack = {version="0.3.1"}
+async-trait = {version="*"}
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
