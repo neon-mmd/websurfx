@@ -1,8 +1,9 @@
 //! This module provides the error enum to handle different errors associated while requesting data from
 //! the upstream search engines with the search query provided by the user.
 
-use error_stack::Context;
-use std::fmt;
+use crate::search_results_handler::aggregation_models::RawSearchResult;
+use error_stack::{IntoReport, Result, ResultExt};
+use std::{collections::HashMap, fmt, time::Duration};
 
 /// A custom error type used for handle engine associated errors.
 ///
@@ -40,4 +41,34 @@ impl fmt::Display for EngineError {
     }
 }
 
-impl Context for EngineError {}
+impl error_stack::Context for EngineError {}
+
+#[async_trait::async_trait]
+pub trait SearchEngine {
+    async fn fetch_html_from_upstream(
+        &self,
+        url: String,
+        header_map: reqwest::header::HeaderMap,
+    ) -> Result<String, EngineError> {
+        // fetch the html from upstream search engine
+        Ok(reqwest::Client::new()
+            .get(url)
+            .timeout(Duration::from_secs(5))
+            .headers(header_map) // add spoofed headers to emulate human behaviour
+            .send()
+            .await
+            .into_report()
+            .change_context(EngineError::RequestError)?
+            .text()
+            .await
+            .into_report()
+            .change_context(EngineError::RequestError)?)
+    }
+
+    async fn results(
+        &self,
+        query: String,
+        page: u32,
+        user_agent: String,
+    ) -> Result<HashMap<String, RawSearchResult>, EngineError>;
+}
