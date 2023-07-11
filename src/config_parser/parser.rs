@@ -3,7 +3,7 @@
 
 use super::parser_models::Style;
 use rlua::Lua;
-use std::{format, fs, path::Path};
+use std::{collections::HashMap, format, fs, path::Path};
 
 // ------- Constants --------
 static COMMON_DIRECTORY_NAME: &str = "websurfx";
@@ -27,6 +27,7 @@ pub struct Config {
     pub aggregator: AggreatorConfig,
     pub logging: bool,
     pub debug: bool,
+    pub upstream_search_engines: Vec<String>,
 }
 
 /// Configuration options for the aggregator.
@@ -75,6 +76,11 @@ impl Config {
                 aggregator: aggregator_config,
                 logging: globals.get::<_, bool>("logging")?,
                 debug: globals.get::<_, bool>("debug")?,
+                upstream_search_engines: globals
+                    .get::<_, HashMap<String, bool>>("upstream_search_engines")?
+                    .into_iter()
+                    .filter_map(|(key, value)| value.then(|| key))
+                    .collect(),
             })
         })
     }
