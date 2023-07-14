@@ -22,7 +22,7 @@ use serde::Deserialize;
 /// of the search url.
 /// * `page` - It stores the search parameter `page` (or pageno in simple words)
 /// of the search url.
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SearchParams {
     q: Option<String>,
     page: Option<u32>,
@@ -137,12 +137,15 @@ pub async fn search(
                     Err(_) => {
                         let mut results_json: crate::search_results_handler::aggregation_models::SearchResults = match req.cookie("appCookie") {
                             Some(cookie_value) => {
-                                        let cookie_value:Cookie = serde_json::from_str(cookie_value.name_value().1).unwrap();
-                                        aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, cookie_value.engines).await?
+                                    let cookie_value:Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+                                    aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, cookie_value.engines).await?
                             },
                             None => aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, config.upstream_search_engines.clone()).await?,
                         };
                         results_json.add_style(config.style.clone());
+                        if results_json.is_empty_result_set() {
+                            results_json.set_empty_result_set();
+                        }
                         redis_cache
                             .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
                         let page_content: String = hbs.render("search", &results_json)?;
