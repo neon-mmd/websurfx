@@ -59,26 +59,35 @@ pub async fn aggregate(
     }
 
     // fetch results from upstream search engines simultaneously/concurrently.
-    let search_engines: Vec<Box<dyn SearchEngine>> = upstream_search_engines
+    let search_engines: Vec<Box<dyn SearchEngine + Send + Sync>> = upstream_search_engines
         .iter()
         .map(|engine| match engine.to_lowercase().as_str() {
-            "duckduckgo" => Box::new(duckduckgo::DuckDuckGo) as Box<dyn SearchEngine>,
-            "searx " => Box::new(searx::Searx) as Box<dyn SearchEngine>,
+            "duckduckgo" => Box::new(duckduckgo::DuckDuckGo) as Box<dyn SearchEngine + Send + Sync>,
+            "searx" => Box::new(searx::Searx) as Box<dyn SearchEngine + Send + Sync>,
+            &_ => panic!("Config Error: Incorrect config file option provided"),
         })
         .collect();
 
+    let task_capacity: usize = search_engines.len();
+
     let tasks: Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>> =
         search_engines
-            .iter()
+            .into_iter()
             .map(|search_engine| {
-                tokio::spawn(search_engine.results(query.clone(), page, user_agent.clone()))
+                let query: String = query.clone();
+                let user_agent: String = user_agent.clone();
+                tokio::spawn(
+                    async move { search_engine.results(query, page, user_agent.clone()).await },
+                )
             })
             .collect();
 
-    let mut outputs = Vec::with_capacity(search_engines.len());
+    let mut outputs = Vec::with_capacity(task_capacity);
 
     for task in tasks {
-        outputs.push(task.await.ok())
+        if let Ok(result) = task.await {
+            outputs.push(result.ok())
+        }
     }
 
     let mut initial: bool = true;
@@ -87,8 +96,7 @@ pub async fn aggregate(
         if initial {
             match results {
                 Some(result) => {
-                    let new_result = result.clone();
-                    result_map.extend(new_result.as_ref().unwrap().clone());
+                    result_map.extend(result.clone());
                     counter += 1;
                     initial = false
                 }
@@ -105,27 +113,21 @@ pub async fn aggregate(
         } else {
             match results {
                 Some(result) => {
-                    let new_result = result.clone();
-                    new_result
-                        .as_ref()
-                        .unwrap()
-                        .clone()
-                        .into_iter()
-                        .for_each(|(key, value)| {
-                            result_map
-                                .entry(key)
-                                .and_modify(|result| {
-                                    result.add_engines(value.clone().engine());
-                                })
-                                .or_insert_with(|| -> RawSearchResult {
-                                    RawSearchResult::new(
-                                        value.title.clone(),
-                                        value.visiting_url.clone(),
-                                        value.description.clone(),
-                                        value.engine.clone(),
-                                    )
-                                });
-                        });
+                    result.clone().into_iter().for_each(|(key, value)| {
+                        result_map
+                            .entry(key)
+                            .and_modify(|result| {
+                                result.add_engines(value.clone().engine());
+                            })
+                            .or_insert_with(|| -> RawSearchResult {
+                                RawSearchResult::new(
+                                    value.title.clone(),
+                                    value.visiting_url.clone(),
+                                    value.description.clone(),
+                                    value.engine.clone(),
+                                )
+                            });
+                    });
                     counter += 1
                 }
                 None => {
