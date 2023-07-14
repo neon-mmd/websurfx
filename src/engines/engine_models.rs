@@ -53,7 +53,7 @@ pub trait SearchEngine {
         // fetch the html from upstream search engine
         Ok(reqwest::Client::new()
             .get(url)
-            .timeout(Duration::from_secs(5))
+            .timeout(Duration::from_secs(30))
             .headers(header_map) // add spoofed headers to emulate human behaviour
             .send()
             .await
