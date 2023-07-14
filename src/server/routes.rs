@@ -51,6 +51,14 @@ pub async fn not_found(
         .body(page_content))
 }
 
+#[allow(dead_code)]
+#[derive(Deserialize)]
+struct Cookie {
+    theme: String,
+    colorscheme: String,
+    engines: Vec<String>,
+}
+
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
 ///
@@ -127,8 +135,13 @@ pub async fn search(
                         Ok(HttpResponse::Ok().body(page_content))
                     }
                     Err(_) => {
-                        let mut results_json: crate::search_results_handler::aggregation_models::SearchResults =
-                            aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, config.upstream_search_engines.clone()).await?;
+                        let mut results_json: crate::search_results_handler::aggregation_models::SearchResults = match req.cookie("appCookie") {
+                            Some(cookie_value) => {
+                                        let cookie_value:Cookie = serde_json::from_str(cookie_value.name_value().1).unwrap();
+                                        aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, cookie_value.engines).await?
+                            },
+                            None => aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, config.upstream_search_engines.clone()).await?,
+                        };
                         results_json.add_style(config.style.clone());
                         redis_cache
                             .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
