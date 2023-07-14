@@ -89,7 +89,7 @@ impl SearchEngine for DuckDuckGo {
         );
 
         let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(&self, url, header_map).await?,
+            &DuckDuckGo::fetch_html_from_upstream(self, url, header_map).await?,
         );
 
         let no_result: Selector = Selector::parse(".no-results")

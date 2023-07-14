@@ -79,7 +79,7 @@ impl Config {
                 upstream_search_engines: globals
                     .get::<_, HashMap<String, bool>>("upstream_search_engines")?
                     .into_iter()
-                    .filter_map(|(key, value)| value.then(|| key))
+                    .filter_map(|(key, value)| value.then_some(key))
                     .collect(),
             })
         })
