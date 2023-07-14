@@ -8,7 +8,7 @@ use rand::Rng;
 use tokio::task::JoinHandle;
 
 use super::{
-    aggregation_models::{RawSearchResult, SearchResult, SearchResults},
+    aggregation_models::{EngineErrorInfo, RawSearchResult, SearchResult, SearchResults},
     user_agent::random_user_agent,
 };
 
@@ -17,6 +17,8 @@ use crate::engines::{
     engine_models::{EngineError, SearchEngine},
     searx,
 };
+
+type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>>;
 
 /// A function that aggregates all the scraped results from the above upstream engines and
 /// then removes duplicate results and if two results are found to be from two or more engines
@@ -70,49 +72,48 @@ pub async fn aggregate(
 
     let task_capacity: usize = search_engines.len();
 
-    let tasks: Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>> =
-        search_engines
-            .into_iter()
-            .map(|search_engine| {
-                let query: String = query.clone();
-                let user_agent: String = user_agent.clone();
-                tokio::spawn(
-                    async move { search_engine.results(query, page, user_agent.clone()).await },
-                )
-            })
-            .collect();
+    let tasks: FutureVec = search_engines
+        .into_iter()
+        .map(|search_engine| {
+            let query: String = query.clone();
+            let user_agent: String = user_agent.clone();
+            tokio::spawn(
+                async move { search_engine.results(query, page, user_agent.clone()).await },
+            )
+        })
+        .collect();
 
     let mut outputs = Vec::with_capacity(task_capacity);
 
     for task in tasks {
         if let Ok(result) = task.await {
-            outputs.push(result.ok())
+            outputs.push(result)
         }
     }
+
+    let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
     let mut initial: bool = true;
     let mut counter: usize = 0;
     outputs.iter().for_each(|results| {
         if initial {
             match results {
-                Some(result) => {
+                Ok(result) => {
                     result_map.extend(result.clone());
                     counter += 1;
                     initial = false
                 }
-                None => {
-                    if debug {
-                        log::error!(
-                            "Error fetching results from {}",
-                            upstream_search_engines[counter]
-                        );
-                    };
+                Err(error_type) => {
+                    engine_errors_info.push(EngineErrorInfo::new(
+                        error_type.downcast_ref::<EngineError>().unwrap(),
+                        upstream_search_engines[counter].clone(),
+                    ));
                     counter += 1
                 }
             }
         } else {
             match results {
-                Some(result) => {
+                Ok(result) => {
                     result.clone().into_iter().for_each(|(key, value)| {
                         result_map
                             .entry(key)
@@ -130,13 +131,11 @@ pub async fn aggregate(
                     });
                     counter += 1
                 }
-                None => {
-                    if debug {
-                        log::error!(
-                            "Error fetching results from {}",
-                            upstream_search_engines[counter]
-                        );
-                    };
+                Err(error_type) => {
+                    engine_errors_info.push(EngineErrorInfo::new(
+                        error_type.downcast_ref::<EngineError>().unwrap(),
+                        upstream_search_engines[counter].clone(),
+                    ));
                     counter += 1
                 }
             }
@@ -157,5 +156,6 @@ pub async fn aggregate(
             })
             .collect(),
         query.to_string(),
+        engine_errors_info,
     ))
 }
