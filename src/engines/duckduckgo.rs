@@ -2,7 +2,7 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
