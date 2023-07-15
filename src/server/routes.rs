@@ -1,14 +1,14 @@
 //! This module provides the functionality to handle different routes of the `websurfx`
-//! meta search engine website and provide approriate response to each route/page
+//! meta search engine website and provide appropriate response to each route/page
 //! when requested.
 
 use std::fs::read_to_string;
 
 use crate::{
     cache::cacher::RedisCache,
-    config_parser::parser::Config,
-    handler::public_path_handler::handle_different_public_path,
-    search_results_handler::{aggregation_models::SearchResults, aggregator::aggregate},
+    config::parser::Config,
+    handler::public_paths::public_path,
+    results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
@@ -87,86 +87,25 @@ pub async fn search(
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
-
-    //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(config.redis_connection_url.clone())?;
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
-                Ok(HttpResponse::Found()
+                return Ok(HttpResponse::Found()
                     .insert_header(("location", "/"))
-                    .finish())
-            } else {
-                let page_url: String; // Declare the page_url variable without initializing it
-
-                // ...
-
-                let page = match params.page {
-                    Some(page_number) => {
-                        if page_number <= 1 {
-                            page_url = format!(
-                                "http://{}:{}/search?q={}&page={}",
-                                config.binding_ip_addr, config.port, query, 1
-                            );
-                            1
-                        } else {
-                            page_url = format!(
-                                "http://{}:{}/search?q={}&page={}",
-                                config.binding_ip_addr, config.port, query, page_number
-                            );
-
-                            page_number
-                        }
-                    }
-                    None => {
-                        page_url = format!(
-                            "http://{}:{}{}&page={}",
-                            config.binding_ip_addr,
-                            config.port,
-                            req.uri(),
-                            1
-                        );
-
-                        1
-                    }
-                };
-
-                // fetch the cached results json.
-                let cached_results_json = redis_cache.cached_results_json(&page_url);
-                // check if fetched catch results was indeed fetched or it was an error and if so
-                // handle the data accordingly.
-                match cached_results_json {
-                    Ok(results_json) => {
-                        let new_results_json: SearchResults = serde_json::from_str(&results_json)?;
-                        let page_content: String = hbs.render("search", &new_results_json)?;
-                        Ok(HttpResponse::Ok().body(page_content))
-                    }
-                    Err(_) => {
-                        // check if the cookie value is empty or not if it is empty then use the
-                        // default selected upstream search engines from the config file otherwise
-                        // parse the non-empty cookie and grab the user selected engines from the
-                        // UI and use that.
-                        let mut results_json: crate::search_results_handler::aggregation_models::SearchResults = match req.cookie("appCookie") {
-                            Some(cookie_value) => {
-                                    let cookie_value:Cookie = serde_json::from_str(cookie_value.name_value().1)?;
-                                    aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, cookie_value.engines).await?
-                            },
-                            None => aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, config.upstream_search_engines.clone()).await?,
-                        };
-                        results_json.add_style(config.style.clone());
-                        // check whether the results grabbed from the upstream engines are empty or
-                        // not if they are empty then set the empty_result_set option to true in
-                        // the result json.
-                        if results_json.is_empty_result_set() {
-                            results_json.set_empty_result_set();
-                        }
-                        redis_cache
-                            .cache_results(serde_json::to_string(&results_json)?, &page_url)?;
-                        let page_content: String = hbs.render("search", &results_json)?;
-                        Ok(HttpResponse::Ok().body(page_content))
-                    }
-                }
+                    .finish());
             }
+            let page = match &params.page {
+                Some(page) => *page,
+                None => 0,
+            };
+
+            let url = format!(
+                "http://{}:{}/search?q={}&page={}",
+                config.binding_ip, config.port, query, page
+            );
+            let results_json = results(url, &config, query.to_string(), page, req).await?;
+            let page_content: String = hbs.render("search", &results_json)?;
+            Ok(HttpResponse::Ok().body(page_content))
         }
         None => Ok(HttpResponse::Found()
             .insert_header(("location", "/"))
@@ -174,11 +113,70 @@ pub async fn search(
     }
 }
 
+/// Fetches the results for a query and page.
+/// First checks the redis cache, if that fails it gets proper results
+async fn results(
+    url: String,
+    config: &Config,
+    query: String,
+    page: u32,
+    req: HttpRequest,
+) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    //Initialize redis cache connection struct
+    let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
+    // fetch the cached results json.
+    let cached_results_json = redis_cache.cached_json(&url);
+    // check if fetched catch results was indeed fetched or it was an error and if so
+    // handle the data accordingly.
+    match cached_results_json {
+        Ok(results_json) => Ok(serde_json::from_str::<SearchResults>(&results_json).unwrap()),
+        Err(_) => {
+            // check if the cookie value is empty or not if it is empty then use the
+            // default selected upstream search engines from the config file otherwise
+            // parse the non-empty cookie and grab the user selected engines from the
+            // UI and use that.
+            let mut results_json: crate::results::aggregation_models::SearchResults = match req
+                .cookie("appCookie")
+            {
+                Some(cookie_value) => {
+                    let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        cookie_value.engines,
+                    )
+                    .await?
+                }
+                None => {
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        config.upstream_search_engines.clone(),
+                    )
+                    .await?
+                }
+            };
+            results_json.add_style(config.style.clone());
+            // check whether the results grabbed from the upstream engines are empty or
+            // not if they are empty then set the empty_result_set option to true in
+            // the result json.
+            if results_json.is_empty_result_set() {
+                results_json.set_empty_result_set();
+            }
+            redis_cache.cache_results(serde_json::to_string(&results_json)?, &url)?;
+            Ok(results_json)
+        }
+    }
+}
+
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String =
-        read_to_string(format!("{}/robots.txt", handle_different_public_path()?))?;
+    let page_content: String = read_to_string(format!("{}/robots.txt", public_path()?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))

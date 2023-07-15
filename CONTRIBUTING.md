@@ -14,7 +14,7 @@ Know how to fix or improve a github action?. Consider Submitting a Pull request 
 
 ## Source Code
 
-You should know atleast one of the things below to start contributing:
+You should know at least one of the things below to start contributing:
 
 - Rust basics
 - Actix-web crate basics

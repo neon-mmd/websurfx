@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{config_parser::parser_models::Style, engines::engine_models::EngineError};
+use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 
 /// A named struct to store, serialize and deserializes the individual search result from all the
 /// scraped and aggregated search results from the upstream search engines.

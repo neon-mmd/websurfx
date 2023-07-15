@@ -14,9 +14,9 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// # Fields
 //
 /// * `port` - It stores the parsed port number option on which the server should launch.
-/// * `binding_ip_addr` - It stores the parsed ip address option on which the server should launch
+/// * `binding_ip` - It stores the parsed ip address option on which the server should launch
 /// * `style` - It stores the theming options for the website.
-/// * `redis_connection_url` - It stores the redis connection url address on which the redis
+/// * `redis_url` - It stores the redis connection url address on which the redis
 /// client should connect.
 /// * `aggregator` -  It stores the option to whether enable or disable production use.
 /// * `logging` - It stores the option to whether enable or disable logs.
@@ -25,10 +25,10 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
-    pub binding_ip_addr: String,
+    pub binding_ip: String,
     pub style: Style,
-    pub redis_connection_url: String,
-    pub aggregator: AggreatorConfig,
+    pub redis_url: String,
+    pub aggregator: AggregatorConfig,
     pub logging: bool,
     pub debug: bool,
     pub upstream_search_engines: Vec<String>,
@@ -41,47 +41,38 @@ pub struct Config {
 /// * `random_delay` - It stores the option to whether enable or disable random delays between
 /// requests.
 #[derive(Clone)]
-pub struct AggreatorConfig {
+pub struct AggregatorConfig {
     pub random_delay: bool,
 }
 
 impl Config {
     /// A function which parses the config.lua file and puts all the parsed options in the newly
-    /// contructed Config struct and returns it.
+    /// constructed Config struct and returns it.
     ///
     /// # Error
     ///
     /// Returns a lua parse error if parsing of the config.lua file fails or has a syntax error
-    /// or io error if the config.lua file doesn't exists otherwise it returns a newly contructed
+    /// or io error if the config.lua file doesn't exists otherwise it returns a newly constructed
     /// Config struct with all the parsed config options from the parsed config file.
     pub fn parse() -> Result<Self, Box<dyn std::error::Error>> {
         Lua::new().context(|context| -> Result<Self, Box<dyn std::error::Error>> {
             let globals = context.globals();
 
             context
-                .load(&fs::read_to_string(
-                    Config::handle_different_config_file_path()?,
-                )?)
+                .load(&fs::read_to_string(Config::config_path()?)?)
                 .exec()?;
-
-            let production_use = globals.get::<_, bool>("production_use")?;
-            let aggregator_config = if production_use {
-                AggreatorConfig { random_delay: true }
-            } else {
-                AggreatorConfig {
-                    random_delay: false,
-                }
-            };
 
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
-                binding_ip_addr: globals.get::<_, String>("binding_ip_addr")?,
+                binding_ip: globals.get::<_, String>("binding_ip")?,
                 style: Style::new(
                     globals.get::<_, String>("theme")?,
                     globals.get::<_, String>("colorscheme")?,
                 ),
-                redis_connection_url: globals.get::<_, String>("redis_connection_url")?,
-                aggregator: aggregator_config,
+                redis_url: globals.get::<_, String>("redis_url")?,
+                aggregator: AggregatorConfig {
+                    random_delay: globals.get::<_, bool>("production_use")?,
+                },
                 logging: globals.get::<_, bool>("logging")?,
                 debug: globals.get::<_, bool>("debug")?,
                 upstream_search_engines: globals
@@ -104,35 +95,37 @@ impl Config {
     ///    one (3).
     /// 3. `websurfx/` (under project folder ( or codebase in other words)) if it is not present
     ///    here then it returns an error as mentioned above.
-    fn handle_different_config_file_path() -> Result<String, Box<dyn std::error::Error>> {
-        if Path::new(
-            format!(
-                "{}/.config/{}/config.lua",
-                std::env::var("HOME").unwrap(),
-                COMMON_DIRECTORY_NAME
-            )
-            .as_str(),
-        )
-        .exists()
-        {
-            Ok(format!(
+    fn config_path() -> Result<String, Box<dyn std::error::Error>> {
+        // check user config
+
+        let path = format!(
+            "{}/.config/{}/config.lua",
+            std::env::var("HOME").unwrap(),
+            COMMON_DIRECTORY_NAME
+        );
+        if Path::new(path.as_str()).exists() {
+            return Ok(format!(
                 "{}/.config/{}/{}",
                 std::env::var("HOME").unwrap(),
                 COMMON_DIRECTORY_NAME,
                 CONFIG_FILE_NAME
-            ))
-        } else if Path::new(
-            format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str(),
-        )
-        .exists()
-        {
-            Ok("/etc/xdg/websurfx/config.lua".to_string())
-        } else if Path::new(format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str())
+            ));
+        }
+
+        // look for config in /etc/xdg
+        if Path::new(format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str())
             .exists()
         {
-            Ok("./websurfx/config.lua".to_string())
-        } else {
-            Err("Config file not found!!".to_string().into())
+            return Ok("/etc/xdg/websurfx/config.lua".to_string());
         }
+
+        // use dev config
+        if Path::new(format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str()).exists()
+        {
+            return Ok("./websurfx/config.lua".to_string());
+        }
+
+        // if no of the configs above exist, return error
+        Err("Config file not found!!".to_string().into())
     }
 }

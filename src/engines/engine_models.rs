@@ -1,7 +1,7 @@
 //! This module provides the error enum to handle different errors associated while requesting data from
 //! the upstream search engines with the search query provided by the user.
 
-use crate::search_results_handler::aggregation_models::RawSearchResult;
+use crate::results::aggregation_models::RawSearchResult;
 use error_stack::{IntoReport, Result, ResultExt};
 use std::{collections::HashMap, fmt, time::Duration};
 
@@ -14,7 +14,7 @@ use std::{collections::HashMap, fmt, time::Duration};
 /// search engines.
 /// * `UnexpectedError` - This variant handles all the errors which are unexpected or occur rarely
 /// and are errors mostly related to failure in initialization of HeaderMap, Selector errors and
-/// all other errors occuring within the code handling the `upstream search engines`.
+/// all other errors occurring within the code handling the `upstream search engines`.
 #[derive(Debug)]
 pub enum EngineError {
     EmptyResultSet,

@@ -1,5 +1,5 @@
 /**
- * Navigates to the next page by incrementing the current page number in the URL query parameters.
+ * Navigates to the next page by incrementing the current page number in the URL query string.
  * @returns {void}
  */
 function navigate_forward() {
@@ -19,7 +19,7 @@ function navigate_forward() {
 }
 
 /**
- * Navigates to the previous page by decrementing the current page number in the URL query parameters.
+ * Navigates to the previous page by decrementing the current page number in the URL query string.
  * @returns {void}
  */
 function navigate_backward() {
@@ -30,8 +30,8 @@ function navigate_backward() {
     let page = parseInt(searchParams.get('page'));
 
     if (isNaN(page)) {
-        page = 1;
-    } else if (page > 1) {
+        page = 0;
+    } else if (page > 0) {
         page--;
     }
 
