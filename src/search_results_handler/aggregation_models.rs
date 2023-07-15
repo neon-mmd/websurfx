@@ -143,6 +143,11 @@ impl EngineErrorInfo {
 /// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
 /// `SearchResult` structs.
 /// * `page_query` - Stores the current pages search query `q` provided in the search url.
+/// * `style` - Stores the theming options for the website.
+/// * `engine_errors_info` - Stores the information on which engines failed with their engine name
+/// and the type of error that caused it.
+/// * `empty_result_set` - Stores a boolean which indicates that no engines gave a result for the
+/// given search query.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
@@ -162,6 +167,8 @@ impl SearchResults {
     /// and stores it into a vector of `SearchResult` structs.
     /// * `page_query` - Takes an argument of current page`s search query `q` provided in
     /// the search url.
+    /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
+    /// given search query.
     pub fn new(
         results: Vec<SearchResult>,
         page_query: String,
@@ -176,14 +183,17 @@ impl SearchResults {
         }
     }
 
+    /// A setter function to add website style to the return search results.
     pub fn add_style(&mut self, style: Style) {
         self.style = style;
     }
 
+    /// A function which checks whether the results stored are empty or not.
     pub fn is_empty_result_set(&self) -> bool {
         self.results.is_empty()
     }
 
+    /// A setter function which sets the empty_result_set to true.
     pub fn set_empty_result_set(&mut self) {
         self.empty_result_set = true;
     }

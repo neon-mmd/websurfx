@@ -43,6 +43,7 @@ impl fmt::Display for EngineError {
 
 impl error_stack::Context for EngineError {}
 
+/// A trait to define common behaviour for all search engines.
 #[async_trait::async_trait]
 pub trait SearchEngine {
     async fn fetch_html_from_upstream(
@@ -53,7 +54,7 @@ pub trait SearchEngine {
         // fetch the html from upstream search engine
         Ok(reqwest::Client::new()
             .get(url)
-            .timeout(Duration::from_secs(30))
+            .timeout(Duration::from_secs(30)) // Add timeout to request to avoid DDOSing the server
             .headers(header_map) // add spoofed headers to emulate human behaviour
             .send()
             .await

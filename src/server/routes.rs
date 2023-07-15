@@ -51,6 +51,13 @@ pub async fn not_found(
         .body(page_content))
 }
 
+/// A named struct which is used to deserialize the cookies fetched from the client side.
+///
+/// # Fields
+///
+/// * `theme` - It stores the theme name used in the website.
+/// * `colorscheme` - It stores the colorscheme name used for the website theme.
+/// * `engines` - It stores the user selected upstream search engines selected from the UI.
 #[allow(dead_code)]
 #[derive(Deserialize)]
 struct Cookie {
@@ -126,7 +133,7 @@ pub async fn search(
 
                 // fetch the cached results json.
                 let cached_results_json = redis_cache.cached_results_json(&page_url);
-                // check if fetched results was indeed fetched or it was an error and if so
+                // check if fetched catch results was indeed fetched or it was an error and if so
                 // handle the data accordingly.
                 match cached_results_json {
                     Ok(results_json) => {
@@ -135,6 +142,10 @@ pub async fn search(
                         Ok(HttpResponse::Ok().body(page_content))
                     }
                     Err(_) => {
+                        // check if the cookie value is empty or not if it is empty then use the
+                        // default selected upstream search engines from the config file otherwise
+                        // parse the non-empty cookie and grab the user selected engines from the
+                        // UI and use that.
                         let mut results_json: crate::search_results_handler::aggregation_models::SearchResults = match req.cookie("appCookie") {
                             Some(cookie_value) => {
                                     let cookie_value:Cookie = serde_json::from_str(cookie_value.name_value().1)?;
@@ -143,6 +154,9 @@ pub async fn search(
                             None => aggregate(query.clone(), page, config.aggregator.random_delay, config.debug, config.upstream_search_engines.clone()).await?,
                         };
                         results_json.add_style(config.style.clone());
+                        // check whether the results grabbed from the upstream engines are empty or
+                        // not if they are empty then set the empty_result_set option to true in
+                        // the result json.
                         if results_json.is_empty_result_set() {
                             results_json.set_empty_result_set();
                         }

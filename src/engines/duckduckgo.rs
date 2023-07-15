@@ -13,28 +13,29 @@ use super::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{IntoReport, Report, Result, ResultExt};
 
-/// This function scrapes results from the upstream engine duckduckgo and puts all the scraped
-/// results like title, visiting_url (href in html),engine (from which engine it was fetched from)
-/// and description in a RawSearchResult and then adds that to HashMap whose keys are url and
-/// values are RawSearchResult struct and then returns it within a Result enum.
-///
-/// # Arguments
-///
-/// * `query` - Takes the user provided query to query to the upstream search engine with.
-/// * `page` - Takes an u32 as an argument.
-/// * `user_agent` - Takes a random user agent string as an argument.
-///
-/// # Errors
-///
-/// Returns an `EngineErrorKind` if the user is not connected to the internet or if their is failure to
-/// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
-/// provide results for the requested search query and also returns error if the scraping selector
-/// or HeaderMap fails to initialize.
-
+/// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
+/// reduce code duplication as well as allows to create vector of different search engines easily.
 pub struct DuckDuckGo;
 
 #[async_trait::async_trait]
 impl SearchEngine for DuckDuckGo {
+    /// This function scrapes results from the upstream engine duckduckgo and puts all the scraped
+    /// results like title, visiting_url (href in html),engine (from which engine it was fetched from)
+    /// and description in a RawSearchResult and then adds that to HashMap whose keys are url and
+    /// values are RawSearchResult struct and then returns it within a Result enum.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Takes the user provided query to query to the upstream search engine with.
+    /// * `page` - Takes an u32 as an argument.
+    /// * `user_agent` - Takes a random user agent string as an argument.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `EngineErrorKind` if the user is not connected to the internet or if their is failure to
+    /// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
+    /// provide results for the requested search query and also returns error if the scraping selector
+    /// or HeaderMap fails to initialize.
     async fn results(
         &self,
         query: String,

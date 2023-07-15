@@ -18,14 +18,21 @@ use crate::engines::{
     searx,
 };
 
+/// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>>;
 
-/// A function that aggregates all the scraped results from the above upstream engines and
-/// then removes duplicate results and if two results are found to be from two or more engines
-/// then puts their names together to show the results are fetched from these upstream engines
-/// and then removes all data from the HashMap and puts into a struct of all results aggregated
-/// into a vector and also adds the query used into the struct this is neccessory because
-/// otherwise the search bar in search remains empty if searched from the query url
+/// A function that aggregates all the scraped results from the above user selected upstream
+/// search engines either selected from the UI or from the config file which is handled by the code
+/// by matching over the selected search engines and adding the selected ones to the vector which
+/// is then used to create an async task vector with `tokio::spawn` which returns a future which
+/// is then awaited on in another loop and then all the collected results is filtered for errors
+/// and proper results and if an error is found is then sent to the UI with the engine name and the
+/// error type that caused it by putting them finallt in the returned `SearchResults` struct. Also
+/// the same process also removes duplicate results and if two results are found to be from two or
+/// more engines then puts their names together to show the results are fetched from these upstream
+/// engines and then removes all data from the HashMap and puts into a struct of all results aggregated
+/// into a vector and also adds the query used into the struct this is neccessory because otherwise the
+/// search bar in search remains empty if searched from the query url.
 ///
 /// # Example:
 ///
@@ -37,6 +44,9 @@ type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<
 /// * `query` - Accepts a string to query with the above upstream search engines.
 /// * `page` - Accepts an u32 page number.
 /// * `random_delay` - Accepts a boolean value to add a random delay before making the request.
+/// * `debug` - Accepts a boolean value to enable or disable debug mode option.
+/// * `upstream_search_engines` - Accepts a vector of search engine names which was selected by the
+/// user through the UI or the config file.
 ///
 /// # Error
 ///

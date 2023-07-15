@@ -18,6 +18,10 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// * `style` - It stores the theming options for the website.
 /// * `redis_connection_url` - It stores the redis connection url address on which the redis
 /// client should connect.
+/// * `aggregator` -  It stores the option to whether enable or disable production use.
+/// * `logging` - It stores the option to whether enable or disable logs.
+/// * `debug` - It stores the option to whether enable or disable debug mode.
+/// * `upstream_search_engines` - It stores all the engine names that were enabled by the user.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
@@ -31,9 +35,13 @@ pub struct Config {
 }
 
 /// Configuration options for the aggregator.
+///
+/// # Fields
+///
+/// * `random_delay` - It stores the option to whether enable or disable random delays between
+/// requests.
 #[derive(Clone)]
 pub struct AggreatorConfig {
-    /// Whether to introduce a random delay before sending the request to the search engine.
     pub random_delay: bool,
 }
 
