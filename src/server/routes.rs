@@ -126,7 +126,7 @@ async fn results(
     let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
     // fetch the cached results json.
     let cached_results_json = redis_cache.cached_json(&url);
-    // check if fetched catch results was indeed fetched or it was an error and if so
+    // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
         Ok(results_json) => Ok(serde_json::from_str::<SearchResults>(&results_json).unwrap()),
