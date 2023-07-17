@@ -155,7 +155,6 @@ pub struct SearchResults {
     pub page_query: String,
     pub style: Style,
     pub engine_errors_info: Vec<EngineErrorInfo>,
-    pub empty_result_set: bool,
 }
 
 impl SearchResults {
@@ -179,22 +178,11 @@ impl SearchResults {
             page_query,
             style: Style::new("".to_string(), "".to_string()),
             engine_errors_info,
-            empty_result_set: false,
         }
     }
 
     /// A setter function to add website style to the return search results.
     pub fn add_style(&mut self, style: Style) {
         self.style = style;
-    }
-
-    /// A function which checks whether the results stored are empty or not.
-    pub fn is_empty_result_set(&self) -> bool {
-        self.results.is_empty()
-    }
-
-    /// A setter function which sets the empty_result_set to true.
-    pub fn set_empty_result_set(&mut self) {
-        self.empty_result_set = true;
     }
 }

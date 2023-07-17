@@ -161,12 +161,6 @@ async fn results(
                 }
             };
             results_json.add_style(config.style.clone());
-            // check whether the results grabbed from the upstream engines are empty or
-            // not if they are empty then set the empty_result_set option to true in
-            // the result json.
-            if results_json.is_empty_result_set() {
-                results_json.set_empty_result_set();
-            }
             redis_cache.cache_results(serde_json::to_string(&results_json)?, &url)?;
             Ok(results_json)
         }
