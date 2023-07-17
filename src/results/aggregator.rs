@@ -21,18 +21,23 @@ use crate::engines::{
 /// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>>;
 
-/// A function that aggregates all the scraped results from the above user selected upstream
-/// search engines either selected from the UI or from the config file which is handled by the code
-/// by matching over the selected search engines and adding the selected ones to the vector which
-/// is then used to create an async task vector with `tokio::spawn` which returns a future which
-/// is then awaited on in another loop and then all the collected results is filtered for errors
-/// and proper results and if an error is found is then sent to the UI with the engine name and the
-/// error type that caused it by putting them finallt in the returned `SearchResults` struct. Also
-/// the same process also removes duplicate results and if two results are found to be from two or
-/// more engines then puts their names together to show the results are fetched from these upstream
-/// engines and then removes all data from the HashMap and puts into a struct of all results aggregated
-/// into a vector and also adds the query used into the struct this is neccessory because otherwise the
-/// search bar in search remains empty if searched from the query url.
+/// The function aggregates the scraped results from the user-selected upstream search engines.
+/// These engines can be chosen either from the user interface (UI) or from the configuration file.
+/// The code handles this process by matching the selected search engines and adding them to a vector.
+/// This vector is then used to create an asynchronous task vector using `tokio::spawn`, which returns
+/// a future. This future is awaited in another loop. Once the results are collected, they are filtered
+/// to remove any errors and ensure only proper results are included. If an error is encountered, it is
+/// sent to the UI along with the name of the engine and the type of error. This information is finally
+/// placed in the returned `SearchResults` struct.
+///
+/// Additionally, the function eliminates duplicate results. If two results are identified as coming from
+/// multiple engines, their names are combined to indicate that the results were fetched from these upstream
+/// engines. After this, all the data in the `HashMap` is removed and placed into a struct that contains all
+/// the aggregated results in a vector. Furthermore, the query used is also added to the struct. This step is
+/// necessary to ensure that the search bar in the search remains populated even when searched from the query URL.
+///
+/// Overall, this function serves to aggregate scraped results from user-selected search engines, handling errors,
+/// removing duplicates, and organizing the data for display in the UI.
 ///
 /// # Example:
 ///
