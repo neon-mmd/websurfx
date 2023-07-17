@@ -108,6 +108,27 @@ pub async fn aggregate(
 
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
+    // The code block `outputs.iter()` determines whether it is the first time the code is being run.
+    // It does this by checking the initial flag. If it is the first time, the code selects the first
+    // engine from which results are fetched and adds or extends them into the `result_map`. If the
+    // initially selected engine fails, the code automatically selects another engine to map or extend
+    // into the `result_map`. On the other hand, if an engine selected for the first time successfully
+    // fetches results and maps them into the `result_map`, the initial flag is set to false. Subsequently,
+    // the code iterates through the remaining engines one by one. It compares the fetched results from each
+    // engine with the results already present in the `result_map` to identify any duplicates. If duplicate
+    // results are found, the code groups them together with the name of the engine from which they were
+    // fetched, and automatically removes the duplicate results from the newly fetched data.
+    //
+    // Additionally, the code handles errors returned by the engines. It keeps track of which engines
+    // encountered errors and stores this information in a vector of structures called `EngineErrorInfo`.
+    // Each structure in this vector contains the name of the engine and the type of error it returned.
+    // These structures will later be added to the final `SearchResults` structure. The `SearchResults`
+    // structure is used to display an error box in the UI containing the relevant information from
+    // the `EngineErrorInfo` structure.
+    //
+    // In summary, this code block manages the selection of engines, handling of duplicate results, and tracking
+    // of errors in order to populate the `result_map` and provide informative feedback to the user through the
+    // `SearchResults` structure.
     let mut initial: bool = true;
     let mut counter: usize = 0;
     outputs.iter().for_each(|results| {
