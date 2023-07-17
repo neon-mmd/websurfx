@@ -129,13 +129,13 @@ async fn results(
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
-        Ok(results_json) => Ok(serde_json::from_str::<SearchResults>(&results_json).unwrap()),
+        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results).unwrap()),
         Err(_) => {
             // check if the cookie value is empty or not if it is empty then use the
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results_json: crate::results::aggregation_models::SearchResults = match req
+            let mut results: crate::results::aggregation_models::SearchResults = match req
                 .cookie("appCookie")
             {
                 Some(cookie_value) => {
@@ -160,9 +160,9 @@ async fn results(
                     .await?
                 }
             };
-            results_json.add_style(config.style.clone());
-            redis_cache.cache_results(serde_json::to_string(&results_json)?, &url)?;
-            Ok(results_json)
+            results.add_style(config.style.clone());
+            redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+            Ok(results)
         }
     }
 }
