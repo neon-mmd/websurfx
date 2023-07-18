@@ -17,6 +17,7 @@ Some of the configuration options provided in the file are stated below. These a
 - Server
 - Website
 - Cache
+- Search Engines
 
 # General
 
@@ -36,14 +37,17 @@ Some of the configuration options provided in the file are stated below. These a
 > By Default we provide 9 colorschemes to choose from these are:
 >
 > 1. catppuccin-mocha
-> 2. dracula
-> 3. monokai
-> 4. nord
-> 5. oceanic-next
-> 6. solarized-dark
-> 7. solarized-light
-> 8. tomorrow-night
-> 9. gruvbox-dark
+> 2. dark-chocolate
+> 3. dracula
+> 4. gruvbox-dark
+> 5. monokai
+> 6. nord
+> 7. oceanic-next
+> 8. one-dark
+> 9. solarized-dark
+> 10. solarized-light
+> 11. tokyo-night
+> 12. tomorrow-night
 
 - **theme:** The theme name which should be used for the website (again, the name should be in accordance to the theme file name present in `public/static/themes` folder).
 
@@ -53,6 +57,10 @@ Some of the configuration options provided in the file are stated below. These a
 
 ## Cache
 
-- **redis_connection_url:** Redis connection url address on which the client should connect on.
+- **redis_url:** Redis connection url address on which the client should connect on.
 
-[⬅️  Go back to Home](./README.md)
+## Search Engines
+
+- **upstream_search_engines:** Select from the different upstream search engines from which the results should be fetched.
+
+[⬅️ Go back to Home](./README.md)
