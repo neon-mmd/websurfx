@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::config::parser_models::Style;
+use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 
 /// A named struct to store, serialize and deserializes the individual search result from all the
 /// scraped and aggregated search results from the upstream search engines.
@@ -16,7 +16,7 @@ use crate::config::parser_models::Style;
 /// * `url` - The url to be displayed below the search result title in html.
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub title: String,
@@ -116,6 +116,25 @@ impl RawSearchResult {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct EngineErrorInfo {
+    pub error: String,
+    pub engine: String,
+}
+
+impl EngineErrorInfo {
+    pub fn new(error: &EngineError, engine: String) -> Self {
+        Self {
+            error: match error {
+                EngineError::RequestError => String::from("RequestError"),
+                EngineError::EmptyResultSet => String::from("EmptyResultSet"),
+                EngineError::UnexpectedError => String::from("UnexpectedError"),
+            },
+            engine,
+        }
+    }
+}
+
 /// A named struct to store, serialize, deserialize the all the search results scraped and
 /// aggregated from the upstream search engines.
 ///
@@ -124,12 +143,18 @@ impl RawSearchResult {
 /// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
 /// `SearchResult` structs.
 /// * `page_query` - Stores the current pages search query `q` provided in the search url.
+/// * `style` - Stores the theming options for the website.
+/// * `engine_errors_info` - Stores the information on which engines failed with their engine name
+/// and the type of error that caused it.
+/// * `empty_result_set` - Stores a boolean which indicates that no engines gave a result for the
+/// given search query.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub results: Vec<SearchResult>,
     pub page_query: String,
     pub style: Style,
+    pub engine_errors_info: Vec<EngineErrorInfo>,
 }
 
 impl SearchResults {
@@ -141,14 +166,22 @@ impl SearchResults {
     /// and stores it into a vector of `SearchResult` structs.
     /// * `page_query` - Takes an argument of current page`s search query `q` provided in
     /// the search url.
-    pub fn new(results: Vec<SearchResult>, page_query: String) -> Self {
+    /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
+    /// given search query.
+    pub fn new(
+        results: Vec<SearchResult>,
+        page_query: String,
+        engine_errors_info: Vec<EngineErrorInfo>,
+    ) -> Self {
         SearchResults {
             results,
             page_query,
             style: Style::new("".to_string(), "".to_string()),
+            engine_errors_info,
         }
     }
 
+    /// A setter function to add website style to the return search results.
     pub fn add_style(&mut self, style: Style) {
         self.style = style;
     }

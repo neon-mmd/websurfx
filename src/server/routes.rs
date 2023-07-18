@@ -22,7 +22,7 @@ use serde::Deserialize;
 /// of the search url.
 /// * `page` - It stores the search parameter `page` (or pageno in simple words)
 /// of the search url.
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct SearchParams {
     q: Option<String>,
     page: Option<u32>,
@@ -51,6 +51,21 @@ pub async fn not_found(
         .body(page_content))
 }
 
+/// A named struct which is used to deserialize the cookies fetched from the client side.
+///
+/// # Fields
+///
+/// * `theme` - It stores the theme name used in the website.
+/// * `colorscheme` - It stores the colorscheme name used for the website theme.
+/// * `engines` - It stores the user selected upstream search engines selected from the UI.
+#[allow(dead_code)]
+#[derive(Deserialize)]
+struct Cookie {
+    theme: String,
+    colorscheme: String,
+    engines: Vec<String>,
+}
+
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
 ///
@@ -72,7 +87,6 @@ pub async fn search(
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
-
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
@@ -89,7 +103,7 @@ pub async fn search(
                 "http://{}:{}/search?q={}&page={}",
                 config.binding_ip, config.port, query, page
             );
-            let results_json = results(url, &config, query, page).await?;
+            let results_json = results(url, &config, query.to_string(), page, req).await?;
             let page_content: String = hbs.render("search", &results_json)?;
             Ok(HttpResponse::Ok().body(page_content))
         }
@@ -104,23 +118,51 @@ pub async fn search(
 async fn results(
     url: String,
     config: &Config,
-    query: &str,
+    query: String,
     page: u32,
+    req: HttpRequest,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     //Initialize redis cache connection struct
     let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
     // fetch the cached results json.
     let cached_results_json = redis_cache.cached_json(&url);
-    // check if fetched results was indeed fetched or it was an error and if so
+    // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
-        Ok(results_json) => Ok(serde_json::from_str::<SearchResults>(&results_json).unwrap()),
+        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results).unwrap()),
         Err(_) => {
-            let mut results_json: crate::results::aggregation_models::SearchResults =
-                aggregate(query, page, config.aggregator.random_delay, config.debug).await?;
-            results_json.add_style(config.style.clone());
-            redis_cache.cache_results(serde_json::to_string(&results_json)?, &url)?;
-            Ok(results_json)
+            // check if the cookie value is empty or not if it is empty then use the
+            // default selected upstream search engines from the config file otherwise
+            // parse the non-empty cookie and grab the user selected engines from the
+            // UI and use that.
+            let mut results: crate::results::aggregation_models::SearchResults = match req
+                .cookie("appCookie")
+            {
+                Some(cookie_value) => {
+                    let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        cookie_value.engines,
+                    )
+                    .await?
+                }
+                None => {
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        config.upstream_search_engines.clone(),
+                    )
+                    .await?
+                }
+            };
+            results.add_style(config.style.clone());
+            redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+            Ok(results)
         }
     }
 }
