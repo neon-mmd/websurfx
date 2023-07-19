@@ -34,7 +34,7 @@ Some of the configuration options provided in the file are stated below. These a
 
 - **colorscheme:** The colorscheme name which should be used for the website theme (the name should be in accordance to the colorscheme file name present in `public/static/colorschemes` folder).
 
-> By Default we provide 9 colorschemes to choose from these are:
+> By Default we provide 12 colorschemes to choose from these are:
 >
 > 1. catppuccin-mocha
 > 2. dark-chocolate
