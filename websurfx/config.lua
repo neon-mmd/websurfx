@@ -13,12 +13,16 @@ production_use = false -- whether to use production mode or not (in other words 
 -- The different colorschemes provided are:
 -- {{
 -- catppuccin-mocha
+-- dark-chocolate
 -- dracula
+-- gruvbox-dark
 -- monokai
 -- nord
 -- oceanic-next
+-- one-dark
 -- solarized-dark
 -- solarized-light
+-- tokyo-night
 -- tomorrow-night
 -- }}
 colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
