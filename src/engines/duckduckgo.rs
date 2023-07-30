@@ -29,6 +29,7 @@ impl SearchEngine for DuckDuckGo {
     /// * `query` - Takes the user provided query to query to the upstream search engine with.
     /// * `page` - Takes an u32 as an argument.
     /// * `user_agent` - Takes a random user agent string as an argument.
+    /// * `request_timeout` - Takes a time (secs) as a value which controls the server request timeout.
     ///
     /// # Errors
     ///

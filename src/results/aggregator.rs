@@ -51,6 +51,7 @@ type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<
 /// * `random_delay` - Accepts a boolean value to add a random delay before making the request.
 /// * `debug` - Accepts a boolean value to enable or disable debug mode option.
 /// * `upstream_search_engines` - Accepts a vector of search engine names which was selected by the
+/// * `request_timeout` - Accepts a time (secs) as a value which controls the server request timeout.
 /// user through the UI or the config file.
 ///
 /// # Error

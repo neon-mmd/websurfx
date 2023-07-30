@@ -22,6 +22,7 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// * `logging` - It stores the option to whether enable or disable logs.
 /// * `debug` - It stores the option to whether enable or disable debug mode.
 /// * `upstream_search_engines` - It stores all the engine names that were enabled by the user.
+/// * `request_timeout` - It stores the time (secs) which controls the server request timeout.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
