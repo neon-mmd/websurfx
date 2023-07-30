@@ -4,7 +4,7 @@
 
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use crate::results::aggregation_models::RawSearchResult;
 
