@@ -41,6 +41,7 @@ impl SearchEngine for DuckDuckGo {
         query: String,
         page: u32,
         user_agent: String,
+        request_timeout: u8,
     ) -> Result<HashMap<String, RawSearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
@@ -90,7 +91,7 @@ impl SearchEngine for DuckDuckGo {
         );
 
         let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(self, url, header_map).await?,
+            &DuckDuckGo::fetch_html_from_upstream(self, url, header_map, request_timeout).await?,
         );
 
         let no_result: Selector = Selector::parse(".no-results")

@@ -64,6 +64,7 @@ pub async fn aggregate(
     random_delay: bool,
     debug: bool,
     upstream_search_engines: Vec<String>,
+    request_timeout: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
     let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
@@ -92,9 +93,11 @@ pub async fn aggregate(
         .map(|search_engine| {
             let query: String = query.clone();
             let user_agent: String = user_agent.clone();
-            tokio::spawn(
-                async move { search_engine.results(query, page, user_agent.clone()).await },
-            )
+            tokio::spawn(async move {
+                search_engine
+                    .results(query, page, user_agent.clone(), request_timeout)
+                    .await
+            })
         })
         .collect();
 
