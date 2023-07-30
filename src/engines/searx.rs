@@ -43,7 +43,10 @@ impl SearchEngine for Searx {
     ) -> Result<HashMap<String, RawSearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
-        let url: String = format!("https://searx.work/search?q={query}&pageno={page}");
+        let url: String = match page {
+            0 | 1 => format!("https://searx.work/search?q={query}&pageno=1"),
+            _ => format!("https://searx.work/search?q={query}&pageno={page}"),
+        };
 
         // initializing headers and adding appropriate headers.
         let mut header_map = HeaderMap::new();
