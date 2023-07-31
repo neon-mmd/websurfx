@@ -146,6 +146,7 @@ async fn results(
                         config.aggregator.random_delay,
                         config.debug,
                         cookie_value.engines,
+                        config.request_timeout,
                     )
                     .await?
                 }
@@ -156,6 +157,7 @@ async fn results(
                         config.aggregator.random_delay,
                         config.debug,
                         config.upstream_search_engines.clone(),
+                        config.request_timeout,
                     )
                     .await?
                 }

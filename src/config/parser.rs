@@ -22,6 +22,7 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// * `logging` - It stores the option to whether enable or disable logs.
 /// * `debug` - It stores the option to whether enable or disable debug mode.
 /// * `upstream_search_engines` - It stores all the engine names that were enabled by the user.
+/// * `request_timeout` - It stores the time (secs) which controls the server request timeout.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
@@ -32,6 +33,7 @@ pub struct Config {
     pub logging: bool,
     pub debug: bool,
     pub upstream_search_engines: Vec<String>,
+    pub request_timeout: u8,
 }
 
 /// Configuration options for the aggregator.
@@ -80,6 +82,7 @@ impl Config {
                     .into_iter()
                     .filter_map(|(key, value)| value.then_some(key))
                     .collect(),
+                request_timeout: globals.get::<_, u8>("request_timeout")?,
             })
         })
     }
