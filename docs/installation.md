@@ -86,6 +86,7 @@ binding_ip_addr = "0.0.0.0" --ip address on the which server should be launched.
 production_use = false -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users)
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
+request_timeout = 60 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
 
 -- ### Website ###
 -- The different colorschemes provided are:
