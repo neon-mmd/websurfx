@@ -47,7 +47,7 @@ impl SearchEngine for DuckDuckGo {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = match page {
-            1 => {
+            1 | 0 => {
                 format!("https://html.duckduckgo.com/html/?q={query}&s=&dc=&v=1&o=json&api=/d.js")
             }
             _ => {
