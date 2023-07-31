@@ -50,11 +50,12 @@ pub trait SearchEngine {
         &self,
         url: String,
         header_map: reqwest::header::HeaderMap,
+        request_timeout: u8,
     ) -> Result<String, EngineError> {
         // fetch the html from upstream search engine
         Ok(reqwest::Client::new()
             .get(url)
-            .timeout(Duration::from_secs(30)) // Add timeout to request to avoid DDOSing the server
+            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .headers(header_map) // add spoofed headers to emulate human behaviour
             .send()
             .await
@@ -71,5 +72,6 @@ pub trait SearchEngine {
         query: String,
         page: u32,
         user_agent: String,
+        request_timeout: u8,
     ) -> Result<HashMap<String, RawSearchResult>, EngineError>;
 }
