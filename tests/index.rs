@@ -8,7 +8,7 @@ fn spawn_app() -> String {
     // Binding to port 0 will trigger the OS to assign a port for us.
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
-    let config = Config::parse().unwrap();
+    let config = Config::parse(true).unwrap();
     let server = run(listener, config).expect("Failed to bind address");
 
     tokio::spawn(server);
@@ -36,7 +36,7 @@ async fn test_index() {
     assert_eq!(res.status(), 200);
 
     let handlebars = handlebars();
-    let config = Config::parse().unwrap();
+    let config = Config::parse(false).unwrap();
     let template = handlebars.render("index", &config.style).unwrap();
     assert_eq!(res.text().await.unwrap(), template);
 }

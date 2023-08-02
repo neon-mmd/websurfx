@@ -54,12 +54,17 @@ impl Config {
     /// A function which parses the config.lua file and puts all the parsed options in the newly
     /// constructed Config struct and returns it.
     ///
+    /// # Arguments
+    ///
+    /// * `logging_initialized` - It takes a boolean which ensures that the logging doesn't get
+    /// initialized twice.
+    ///
     /// # Error
     ///
     /// Returns a lua parse error if parsing of the config.lua file fails or has a syntax error
     /// or io error if the config.lua file doesn't exists otherwise it returns a newly constructed
     /// Config struct with all the parsed config options from the parsed config file.
-    pub fn parse() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn parse(logging_initialized: bool) -> Result<Self, Box<dyn std::error::Error>> {
         Lua::new().context(|context| -> Result<Self, Box<dyn std::error::Error>> {
             let globals = context.globals();
 
@@ -72,14 +77,17 @@ impl Config {
             let debug: bool = globals.get::<_, bool>("debug")?;
             let logging:bool= globals.get::<_, bool>("logging")?;
 
-            // Initializing logging middleware with level set to default or info.
-            let mut log_level: LevelFilter = LevelFilter::Off;
-            if logging && debug == false {
-                log_level = LevelFilter::Info;
-            } else if debug {
-                log_level = LevelFilter::Trace;
-            };
-            env_logger::Builder::new().filter(None, log_level).init();
+            // Check whether logging has not been initialized before.
+            if logging_initialized {
+                // Initializing logging middleware with level set to default or info.
+                let mut log_level: LevelFilter = LevelFilter::Off;
+                if logging && debug == false {
+                    log_level = LevelFilter::Info;
+                } else if debug {
+                    log_level = LevelFilter::Trace;
+                };
+                env_logger::Builder::new().filter(None, log_level).init();
+            }
 
             let threads: u8 = if parsed_threads == 0 {
                     let total_num_of_threads:usize =  available_parallelism()?.get() /2;
