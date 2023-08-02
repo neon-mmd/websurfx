@@ -34,7 +34,7 @@ use handler::public_paths::public_path;
 /// use std::net::TcpListener;
 /// use websurfx::{config::parser::Config, run};
 ///
-/// let config = Config::parse().unwrap();
+/// let config = Config::parse(true).unwrap();
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
 /// let server = run(listener,config).expect("Failed to start server");
 /// ```
