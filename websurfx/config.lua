@@ -1,6 +1,7 @@
 -- ### General ###
 logging = true -- an option to enable or disable logs.
 debug = false -- an option to enable or disable debug mode.
+threads = 10 -- the amount of threads that the app will use to run (the value should be greater than 0).
 
 -- ### Server ###
 port = "8080" -- port on which server should be launched

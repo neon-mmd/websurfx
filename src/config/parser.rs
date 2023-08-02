@@ -2,8 +2,9 @@
 //! into rust readable form.
 
 use super::parser_models::Style;
+use log::LevelFilter;
 use rlua::Lua;
-use std::{collections::HashMap, format, fs, path::Path};
+use std::{collections::HashMap, format, fs, io::Write, path::Path, thread::available_parallelism};
 
 // ------- Constants --------
 static COMMON_DIRECTORY_NAME: &str = "websurfx";
@@ -23,6 +24,7 @@ static CONFIG_FILE_NAME: &str = "config.lua";
 /// * `debug` - It stores the option to whether enable or disable debug mode.
 /// * `upstream_search_engines` - It stores all the engine names that were enabled by the user.
 /// * `request_timeout` - It stores the time (secs) which controls the server request timeout.
+/// * `threads` - It stores the number of threads which controls the app will use to run.
 #[derive(Clone)]
 pub struct Config {
     pub port: u16,
@@ -34,6 +36,7 @@ pub struct Config {
     pub debug: bool,
     pub upstream_search_engines: Vec<String>,
     pub request_timeout: u8,
+    pub threads: u8,
 }
 
 /// Configuration options for the aggregator.
@@ -64,6 +67,35 @@ impl Config {
                 .load(&fs::read_to_string(Config::config_path()?)?)
                 .exec()?;
 
+            let parsed_threads: u8 = globals.get::<_, u8>("threads")?;
+
+            let debug: bool = globals.get::<_, bool>("debug")?;
+            let logging:bool= globals.get::<_, bool>("logging")?;
+
+            // Initializing logging middleware with level set to default or info.
+            let mut log_level: LevelFilter = LevelFilter::Off;
+            if logging && debug == false {
+                log_level = LevelFilter::Info;
+            } else if debug {
+                log_level = LevelFilter::Trace;
+            };
+            env_logger::Builder::new().filter(None, log_level).init();
+
+            let threads: u8 = if parsed_threads == 0 {
+                    let total_num_of_threads:usize =  available_parallelism()?.get() /2;
+                if debug || logging {
+                    log::error!("Config Error: The value of `threads` option should be a non zero positive integer");
+                    log::info!("Falling back to using {} threads", total_num_of_threads)
+                } else {
+                    std::io::stdout()
+                        .lock()
+                        .write_all(&format!("Config Error: The value of `threads` option should be a non zero positive integer\nFalling back to using {} threads\n", total_num_of_threads).into_bytes())?;
+                };
+                total_num_of_threads as u8 
+            } else {
+                parsed_threads
+            };
+
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
                 binding_ip: globals.get::<_, String>("binding_ip")?,
@@ -75,14 +107,15 @@ impl Config {
                 aggregator: AggregatorConfig {
                     random_delay: globals.get::<_, bool>("production_use")?,
                 },
-                logging: globals.get::<_, bool>("logging")?,
-                debug: globals.get::<_, bool>("debug")?,
+                logging,
+                debug,
                 upstream_search_engines: globals
                     .get::<_, HashMap<String, bool>>("upstream_search_engines")?
                     .into_iter()
                     .filter_map(|(key, value)| value.then_some(key))
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
+                threads,
             })
         })
     }
