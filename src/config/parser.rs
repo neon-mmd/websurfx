@@ -91,7 +91,7 @@ impl Config {
                         .lock()
                         .write_all(&format!("Config Error: The value of `threads` option should be a non zero positive integer\nFalling back to using {} threads\n", total_num_of_threads).into_bytes())?;
                 };
-                total_num_of_threads as u8 
+                total_num_of_threads as u8
             } else {
                 parsed_threads
             };
