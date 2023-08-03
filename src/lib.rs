@@ -34,7 +34,7 @@ use handler::public_paths::public_path;
 /// use std::net::TcpListener;
 /// use websurfx::{config::parser::Config, run};
 ///
-/// let config = Config::parse().unwrap();
+/// let config = Config::parse(true).unwrap();
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
 /// let server = run(listener,config).expect("Failed to start server");
 /// ```
@@ -48,6 +48,8 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
         .unwrap();
 
     let handlebars_ref: web::Data<Handlebars> = web::Data::new(handlebars);
+
+    let cloned_config_threads_opt: u8 = config.threads;
 
     let server = HttpServer::new(move || {
         App::new()
@@ -70,6 +72,7 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             .service(routes::settings) // settings page
             .default_service(web::route().to(routes::not_found)) // error page
     })
+    .workers(cloned_config_threads_opt as usize)
     // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
     .listen(listener)?
     .run();

@@ -4,7 +4,6 @@
 //! stdout and handles the command line arguments provided and launches the `websurfx` server.
 
 use std::net::TcpListener;
-
 use websurfx::{config::parser::Config, run};
 
 /// The function that launches the main server and registers all the routes of the website.
@@ -16,15 +15,18 @@ use websurfx::{config::parser::Config, run};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialize the parsed config file.
-    let config = Config::parse().unwrap();
+    let config = Config::parse(true).unwrap();
 
-    // Initializing logging middleware with level set to default or info.
-    if config.logging || config.debug {
-        use env_logger::Env;
-        env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-    }
-
-    log::info!("started server on port {}", config.port);
+    log::info!(
+        "started server on port {} and IP {}",
+        config.port,
+        config.binding_ip
+    );
+    log::info!(
+        "Open http://{}:{}/ in your browser",
+        config.port,
+        config.binding_ip
+    );
 
     let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;
 
