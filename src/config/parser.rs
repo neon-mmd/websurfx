@@ -4,7 +4,7 @@
 use super::parser_models::Style;
 use log::LevelFilter;
 use rlua::Lua;
-use std::{collections::HashMap, format, fs, io::Write, path::Path, thread::available_parallelism};
+use std::{collections::HashMap, format, fs, path::Path, thread::available_parallelism};
 
 // ------- Constants --------
 static COMMON_DIRECTORY_NAME: &str = "websurfx";
@@ -79,26 +79,26 @@ impl Config {
 
             // Check whether logging has not been initialized before.
             if logging_initialized {
-                // Initializing logging middleware with level set to default or info.
-                let mut log_level: LevelFilter = LevelFilter::Off;
-                if logging && debug == false {
-                    log_level = LevelFilter::Info;
-                } else if debug {
-                    log_level = LevelFilter::Trace;
-                };
-                env_logger::Builder::new().filter(None, log_level).init();
+                if let Ok(pkg_env_var) = std::env::var("PKG_ENV"){
+                    if pkg_env_var.to_lowercase() == "dev" {
+                        env_logger::Builder::new().filter(None, LevelFilter::Trace).init();
+                    }
+                } else {
+                    // Initializing logging middleware with level set to default or info.
+                    let mut log_level: LevelFilter = LevelFilter::Error;
+                    if logging && debug == false {
+                        log_level = LevelFilter::Info;
+                    } else if debug {
+                        log_level = LevelFilter::Debug;
+                    };
+                    env_logger::Builder::new().filter(None, log_level).init();
+                }
             }
 
             let threads: u8 = if parsed_threads == 0 {
-                    let total_num_of_threads:usize =  available_parallelism()?.get() /2;
-                if debug || logging {
-                    log::error!("Config Error: The value of `threads` option should be a non zero positive integer");
-                    log::info!("Falling back to using {} threads", total_num_of_threads)
-                } else {
-                    std::io::stdout()
-                        .lock()
-                        .write_all(&format!("Config Error: The value of `threads` option should be a non zero positive integer\nFalling back to using {} threads\n", total_num_of_threads).into_bytes())?;
-                };
+                let total_num_of_threads: usize =  available_parallelism()?.get() / 2;
+                log::error!("Config Error: The value of `threads` option should be a non zero positive integer");
+                log::info!("Falling back to using {} threads", total_num_of_threads);
                 total_num_of_threads as u8
             } else {
                 parsed_threads
