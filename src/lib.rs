@@ -12,8 +12,9 @@ use std::net::TcpListener;
 
 use crate::server::routes;
 
+use actix_cors::Cors;
 use actix_files as fs;
-use actix_web::{dev::Server, middleware::Logger, web, App, HttpServer};
+use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
 use config::parser::Config;
 use handlebars::Handlebars;
 use handler::public_paths::public_path;
@@ -52,9 +53,20 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let cloned_config_threads_opt: u8 = config.threads;
 
     let server = HttpServer::new(move || {
+        let cors: Cors = Cors::default()
+            .allow_any_origin()
+            .allowed_methods(vec!["GET"])
+            .allowed_headers(vec![
+                header::ORIGIN,
+                header::CONTENT_TYPE,
+                header::REFERER,
+                header::COOKIE,
+            ]);
+
         App::new()
             .app_data(handlebars_ref.clone())
             .app_data(web::Data::new(config.clone()))
+            .wrap(cors)
             .wrap(Logger::default()) // added logging middleware for logging.
             // Serve images and static files (css and js files).
             .service(
