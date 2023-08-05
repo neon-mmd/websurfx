@@ -24,8 +24,8 @@ async fn main() -> std::io::Result<()> {
     );
     log::info!(
         "Open http://{}:{}/ in your browser",
+        config.binding_ip,
         config.port,
-        config.binding_ip
     );
 
     let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;

@@ -144,6 +144,7 @@ pub async fn aggregate(
                     initial = false
                 }
                 Err(error_type) => {
+                    log::error!("Engine Error: {:?}", error_type);
                     engine_errors_info.push(EngineErrorInfo::new(
                         error_type.downcast_ref::<EngineError>().unwrap(),
                         upstream_search_engines[counter].clone(),
@@ -172,6 +173,7 @@ pub async fn aggregate(
                     counter += 1
                 }
                 Err(error_type) => {
+                    log::error!("Engine Error: {:?}", error_type);
                     engine_errors_info.push(EngineErrorInfo::new(
                         error_type.downcast_ref::<EngineError>().unwrap(),
                         upstream_search_engines[counter].clone(),

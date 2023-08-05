@@ -98,7 +98,7 @@ impl Config {
             let threads: u8 = if parsed_threads == 0 {
                 let total_num_of_threads: usize =  available_parallelism()?.get() / 2;
                 log::error!("Config Error: The value of `threads` option should be a non zero positive integer");
-                log::info!("Falling back to using {} threads", total_num_of_threads);
+                log::error!("Falling back to using {} threads", total_num_of_threads);
                 total_num_of_threads as u8
             } else {
                 parsed_threads
