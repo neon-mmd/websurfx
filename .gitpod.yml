@@ -1,23 +1,24 @@
 ---
-image: gitpod/workspace-base
+image: gitpod/workspace-rust
 # Commands that will run on workspace start 
 tasks: 
     - name: Setup, Install & Build 
-      before: apt install cargo redis-server nodejs npm -y && cargo test
-      init: cargo install cargo-watch 
-      command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
+      before: apt install redis-server nodejs npm -y
+      init: cargo build -r
+      command: redis-server --port 8080 & ./target/release/websurfx
+
 # Ports to expose on workspace startup 
 ports: 
     - name: Website 
       description: Website Preview 
       port: 8080 
-      onOpen: open-preview
+      onOpen: notify
 # vscode IDE setup
 vscode: 
    extensions: 
     - vadimcn.vscode-lldb
     - cschleiden.vscode-github-actions
-    - rust-lang.rust
+    - rust-lang.rust-analyzer
     - bungcip.better-toml
     - serayuzgur.crates
     - usernamehw.errorlens
@@ -26,7 +27,6 @@ vscode:
     - stylelint.vscode-stylelint
     - dbaeumer.vscode-eslint
     - evgeniypeshkov.syntax-highlighter
-    - redhat.vscode-yaml
     - ms-azuretools.vscode-docker
     - Catppuccin.catppuccin-vsc
     - PKief.material-icon-theme
