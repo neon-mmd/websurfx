@@ -29,6 +29,8 @@ vscode:
     - formulahendry.auto-rename-tag
     - swellaby.vscode-rust-test-adapter
     - belfz.search-crates-io
+    - hbenl.test-adapter-converter
+    - hbenl.vscode-test-explorer
 
 github: 
    prebuilds: 
