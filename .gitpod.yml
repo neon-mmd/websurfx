@@ -4,9 +4,15 @@ image:
 
 # Commands that will run on workspace start 
 tasks: 
-    - name: Build & Deploy
-      init: cargo build -r
-      command: redis-server --port 8082 & ./target/release/websurfx
+    - name: Start Redis Server
+      command: redis-server --port 8082
+    - name: Run The App
+      init: cargo build
+      command: PKG_ENV=dev ./target/release/websurfx
+    - name: Tests
+      command: cargo test
+    - name: Clippy Checks
+      command: cargo clippy
 
 # vscode IDE setup
 vscode: 
@@ -32,6 +38,7 @@ vscode:
     - hbenl.test-adapter-converter
     - hbenl.vscode-test-explorer
     - eamodio.gitlens
+
 github: 
    prebuilds: 
       master: true 
