@@ -13,6 +13,7 @@ use crate::{
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use serde::Deserialize;
+use tokio::join;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 ///
@@ -96,15 +97,49 @@ pub async fn search(
             }
             let page = match &params.page {
                 Some(page) => *page,
-                None => 0,
+                None => 1,
             };
 
-            let url = format!(
-                "http://{}:{}/search?q={}&page={}",
-                config.binding_ip, config.port, query, page
+            let (_, results, _) = join!(
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip,
+                        config.port,
+                        query,
+                        page - 1
+                    ),
+                    &config,
+                    query.to_string(),
+                    page - 1,
+                    req.clone(),
+                ),
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip, config.port, query, page
+                    ),
+                    &config,
+                    query.to_string(),
+                    page,
+                    req.clone(),
+                ),
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip,
+                        config.port,
+                        query,
+                        page + 1
+                    ),
+                    &config,
+                    query.to_string(),
+                    page + 1,
+                    req.clone(),
+                )
             );
-            let results_json = results(url, &config, query.to_string(), page, req).await?;
-            let page_content: String = hbs.render("search", &results_json)?;
+
+            let page_content: String = hbs.render("search", &results?)?;
             Ok(HttpResponse::Ok().body(page_content))
         }
         None => Ok(HttpResponse::Found()
