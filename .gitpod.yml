@@ -1,18 +1,13 @@
 ---
-image: gitpod/workspace-rust
+image:
+    file: .gitpod.Dockerfile
+
 # Commands that will run on workspace start 
 tasks: 
-    - name: Setup, Install & Build 
-      before: apt install redis-server nodejs npm -y
+    - name: Build & Deploy
       init: cargo build -r
-      command: redis-server --port 8080 & ./target/release/websurfx
+      command: redis-server --port 8082 & ./target/release/websurfx
 
-# Ports to expose on workspace startup 
-ports: 
-    - name: Website 
-      description: Website Preview 
-      port: 8080 
-      onOpen: notify
 # vscode IDE setup
 vscode: 
    extensions: 
@@ -32,7 +27,9 @@ vscode:
     - PKief.material-icon-theme
     - oderwat.indent-rainbow
     - formulahendry.auto-rename-tag
-    - eamodio.gitlens
+    - swellaby.vscode-rust-test-adapter
+    - belfz.search-crates-io
+
 github: 
    prebuilds: 
       master: true 
@@ -40,5 +37,5 @@ github:
       pullRequests: true 
       pullRequestsFromForks: true 
       addCheck: true 
-      addComment: false 
+      addComment: false
       addBadge: true
