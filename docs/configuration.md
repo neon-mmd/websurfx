@@ -23,6 +23,7 @@ Some of the configuration options provided in the file are stated below. These a
 
 - **logging:** An option to enable or disable logs.
 - **debug:** An option to enable or disable debug mode.
+- **threads:** The amount of threads that the app will use to run (the value should be greater than 0).
 
 ## Server
 

@@ -1,23 +1,25 @@
 ---
-image: gitpod/workspace-base
+image:
+    file: .gitpod.Dockerfile
+
 # Commands that will run on workspace start 
 tasks: 
-    - name: Setup, Install & Build 
-      before: apt install cargo redis-server nodejs npm -y && cargo test
-      init: cargo install cargo-watch 
-      command: redis-server --port 8080 & cargo watch -q -w "." -x "run" 
-# Ports to expose on workspace startup 
-ports: 
-    - name: Website 
-      description: Website Preview 
-      port: 8080 
-      onOpen: open-preview
+    - name: Start Redis Server
+      command: redis-server --port 8082
+    - name: Run The App
+      init: cargo build
+      command: PKG_ENV=dev ./target/release/websurfx
+    - name: Tests
+      command: cargo test
+    - name: Clippy Checks
+      command: cargo clippy
+
 # vscode IDE setup
 vscode: 
    extensions: 
     - vadimcn.vscode-lldb
     - cschleiden.vscode-github-actions
-    - rust-lang.rust
+    - rust-lang.rust-analyzer
     - bungcip.better-toml
     - serayuzgur.crates
     - usernamehw.errorlens
@@ -26,13 +28,17 @@ vscode:
     - stylelint.vscode-stylelint
     - dbaeumer.vscode-eslint
     - evgeniypeshkov.syntax-highlighter
-    - redhat.vscode-yaml
     - ms-azuretools.vscode-docker
     - Catppuccin.catppuccin-vsc
     - PKief.material-icon-theme
     - oderwat.indent-rainbow
     - formulahendry.auto-rename-tag
+    - swellaby.vscode-rust-test-adapter
+    - belfz.search-crates-io
+    - hbenl.test-adapter-converter
+    - hbenl.vscode-test-explorer
     - eamodio.gitlens
+
 github: 
    prebuilds: 
       master: true 
@@ -40,5 +46,5 @@ github:
       pullRequests: true 
       pullRequestsFromForks: true 
       addCheck: true 
-      addComment: false 
+      addComment: false
       addBadge: true
