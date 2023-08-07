@@ -88,7 +88,7 @@
 
 # Features 🚀 
 
-- 🎨 Make Websurfx uniquely yours with nine color schemes provided by default. It also supports creation of custom themes and color schemes in a quick and easy way, so unleash your creativity!
+- 🎨 Make Websurfx uniquely yours with twelve color schemes provided by default. It also supports creation of custom themes and color schemes in a quick and easy way, so unleash your creativity!
 - 🔐 Fast, private, and secure
 - 🆓 100% free and open source
 - 💨 Ad-free and clean results
