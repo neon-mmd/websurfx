@@ -6,4 +6,20 @@
     placeholder="Type to search"
   />
   <button type="submit" onclick="searchWeb()">search</button>
+  <div class="error_box">
+    <button onclick="toggleErrorBox()" class="error_box_dropdown">
+      <img src="./images/info.svg" alt="Info icon for error box" />
+    </button>
+    {{#each engineErrorsInfo}}
+    <div class="error_item">
+      <span class="engine_name">{{{this.engine}}}</span>
+      <span class="engine_name">{{{this.error}}}</span>
+      <span
+        class="severity_color"
+        style="background: {{{this.severity_color}}}; width: 400px; height: 400px"
+        >lsl</span
+      >
+    </div>
+    {{/each}}
+  </div>
 </div>

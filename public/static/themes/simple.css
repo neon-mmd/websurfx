@@ -70,6 +70,27 @@ body {
   filter: brightness(1.2);
 }
 
+.result_not_found {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5rem;
+  color: var(--foreground-color);
+}
+
+.result_not_found p {
+  margin: 1rem 0;
+}
+
+.result_not_found ul {
+  margin: 1rem 0;
+}
+
+.result_not_found img {
+  width: 40rem;
+}
+
+
+
 /* styles for the footer and header */
 
 header {
