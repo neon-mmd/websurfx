@@ -137,7 +137,7 @@ impl SearchEngine for Searx {
                     vec!["searx".to_string()],
                 )
             })
-            .map(|search_result| (search_result.visiting_url.clone(), search_result))
+            .map(|search_result| (search_result.url.clone(), search_result))
             .collect())
     }
 }

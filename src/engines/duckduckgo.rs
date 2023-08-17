@@ -147,7 +147,7 @@ impl SearchEngine for DuckDuckGo {
                     vec!["duckduckgo".to_string()],
                 )
             })
-            .map(|search_result| (search_result.visiting_url.clone(), search_result))
+            .map(|search_result| (search_result.url.clone(), search_result))
             .collect())
     }
 }

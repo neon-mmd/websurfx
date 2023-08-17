@@ -11,8 +11,6 @@ use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 /// # Fields
 ///
 /// * `title` - The title of the search result.
-/// * `visiting_url` - The url which is accessed when clicked on it (href url in html in simple
-/// words).
 /// * `url` - The url to be displayed below the search result title in html.
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
@@ -20,7 +18,6 @@ use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub title: String,
-    pub visiting_url: String,
     pub url: String,
     pub description: String,
     pub engine: Vec<String>,
@@ -37,19 +34,21 @@ impl SearchResult {
     /// * `url` - The url to be displayed below the search result title in html.
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(
-        title: String,
-        visiting_url: String,
-        url: String,
-        description: String,
-        engine: Vec<String>,
-    ) -> Self {
+    pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
         SearchResult {
             title,
-            visiting_url,
             url,
             description,
             engine,
+        }
+    }
+
+    pub fn from_raw(raw: RawSearchResult) -> Self {
+        SearchResult {
+            title: raw.title,
+            url: raw.url,
+            description: raw.description,
+            engine: raw.engine,
         }
     }
 }
@@ -61,14 +60,14 @@ impl SearchResult {
 /// # Fields
 ///
 /// * `title` - The title of the search result.
-/// * `visiting_url` - The url which is accessed when clicked on it
+/// * `url` - The url which is accessed when clicked on it
 /// (href url in html in simple words).
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
 #[derive(Clone)]
 pub struct RawSearchResult {
     pub title: String,
-    pub visiting_url: String,
+    pub url: String,
     pub description: String,
     pub engine: Vec<String>,
 }
@@ -79,19 +78,14 @@ impl RawSearchResult {
     /// # Arguments
     ///
     /// * `title` - The title of the search result.
-    /// * `visiting_url` - The url which is accessed when clicked on it
+    /// * `url` - The url which is accessed when clicked on it
     /// (href url in html in simple words).
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(
-        title: String,
-        visiting_url: String,
-        description: String,
-        engine: Vec<String>,
-    ) -> Self {
+    pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
         RawSearchResult {
             title,
-            visiting_url,
+            url,
             description,
             engine,
         }

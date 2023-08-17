@@ -11,6 +11,10 @@
   ],
   "language": "en",
   "noConfigSearch": true,
-  "words": ["megalinter", "oxsecurity"],
+  "words": [
+    "megalinter",
+    "oxsecurity",
+    "websurfx"
+  ],
   "version": "0.2"
 }

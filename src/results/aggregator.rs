@@ -64,11 +64,10 @@ pub async fn aggregate(
     page: u32,
     random_delay: bool,
     debug: bool,
-    upstream_search_engines: Vec<String>,
+    mut upstream_search_engines: Vec<String>,
     request_timeout: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
-    let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
 
     // Add a random delay before making the request.
     if random_delay || !debug {
@@ -77,20 +76,14 @@ pub async fn aggregate(
         tokio::time::sleep(Duration::from_secs(delay_secs)).await;
     }
 
-    // fetch results from upstream search engines simultaneously/concurrently.
-    let search_engines: Vec<Box<dyn SearchEngine + Send + Sync>> = upstream_search_engines
+    // create tasks for upstream result fetching
+    let tasks: FutureVec = upstream_search_engines
         .iter()
         .map(|engine| match engine.to_lowercase().as_str() {
             "duckduckgo" => Box::new(duckduckgo::DuckDuckGo) as Box<dyn SearchEngine + Send + Sync>,
             "searx" => Box::new(searx::Searx) as Box<dyn SearchEngine + Send + Sync>,
             &_ => panic!("Config Error: Incorrect config file option provided"),
         })
-        .collect();
-
-    let task_capacity: usize = search_engines.len();
-
-    let tasks: FutureVec = search_engines
-        .into_iter()
         .map(|search_engine| {
             let query: String = query.clone();
             let user_agent: String = user_agent.clone();
@@ -102,101 +95,67 @@ pub async fn aggregate(
         })
         .collect();
 
-    let mut outputs = Vec::with_capacity(task_capacity);
+    // get upstream responses
+    let mut responses = Vec::with_capacity(tasks.len());
 
     for task in tasks {
         if let Ok(result) = task.await {
-            outputs.push(result)
+            responses.push(result)
         }
     }
 
+    // aggregate search results, removing duplicates and handling errors the upstream engines returned
+    let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
-    // The code block `outputs.iter()` determines whether it is the first time the code is being run.
-    // It does this by checking the initial flag. If it is the first time, the code selects the first
-    // engine from which results are fetched and adds or extends them into the `result_map`. If the
-    // initially selected engine fails, the code automatically selects another engine to map or extend
-    // into the `result_map`. On the other hand, if an engine selected for the first time successfully
-    // fetches results and maps them into the `result_map`, the initial flag is set to false. Subsequently,
-    // the code iterates through the remaining engines one by one. It compares the fetched results from each
-    // engine with the results already present in the `result_map` to identify any duplicates. If duplicate
-    // results are found, the code groups them together with the name of the engine from which they were
-    // fetched, and automatically removes the duplicate results from the newly fetched data.
-    //
-    // Additionally, the code handles errors returned by the engines. It keeps track of which engines
-    // encountered errors and stores this information in a vector of structures called `EngineErrorInfo`.
-    // Each structure in this vector contains the name of the engine and the type of error it returned.
-    // These structures will later be added to the final `SearchResults` structure. The `SearchResults`
-    // structure is used to display an error box in the UI containing the relevant information from
-    // the `EngineErrorInfo` structure.
-    //
-    // In summary, this code block manages the selection of engines, handling of duplicate results, and tracking
-    // of errors in order to populate the `result_map` and provide informative feedback to the user through the
-    // `SearchResults` structure.
-    let mut initial: bool = true;
-    let mut counter: usize = 0;
-    outputs.iter().for_each(|results| {
-        if initial {
-            match results {
-                Ok(result) => {
-                    result_map.extend(result.clone());
-                    counter += 1;
-                    initial = false
+    let mut handle_error = |error: Report<EngineError>, engine_name: String| {
+        log::error!("Engine Error: {:?}", error);
+        engine_errors_info.push(EngineErrorInfo::new(
+            error.downcast_ref::<EngineError>().unwrap(),
+            engine_name,
+        ));
+    };
+
+    for _ in 0..responses.len() {
+        let response = responses.pop().unwrap();
+        let engine_name = upstream_search_engines.pop().unwrap();
+
+        if result_map.is_empty() {
+            match response {
+                Ok(results) => {
+                    result_map = results.clone();
                 }
-                Err(error_type) => {
-                    log::error!("Engine Error: {:?}", error_type);
-                    engine_errors_info.push(EngineErrorInfo::new(
-                        error_type.downcast_ref::<EngineError>().unwrap(),
-                        upstream_search_engines[counter].clone(),
-                    ));
-                    counter += 1
+                Err(error) => {
+                    handle_error(error, engine_name.clone());
                 }
             }
-        } else {
-            match results {
-                Ok(result) => {
-                    result.clone().into_iter().for_each(|(key, value)| {
-                        result_map
-                            .entry(key)
-                            .and_modify(|result| {
-                                result.add_engines(value.clone().engine());
-                            })
-                            .or_insert_with(|| -> RawSearchResult {
-                                RawSearchResult::new(
-                                    value.title.clone(),
-                                    value.visiting_url.clone(),
-                                    value.description.clone(),
-                                    value.engine.clone(),
-                                )
-                            });
-                    });
-                    counter += 1
-                }
-                Err(error_type) => {
-                    log::error!("Engine Error: {:?}", error_type);
-                    engine_errors_info.push(EngineErrorInfo::new(
-                        error_type.downcast_ref::<EngineError>().unwrap(),
-                        upstream_search_engines[counter].clone(),
-                    ));
-                    counter += 1
-                }
+            continue;
+        }
+
+        match response {
+            Ok(result) => {
+                result.into_iter().for_each(|(key, value)| {
+                    result_map
+                        .entry(key)
+                        .and_modify(|result| {
+                            result.add_engines(engine_name.clone());
+                        })
+                        .or_insert_with(|| -> RawSearchResult { value });
+                });
+            }
+            Err(error) => {
+                handle_error(error, engine_name.clone());
             }
         }
-    });
+    }
+
+    let mut results = Vec::with_capacity(result_map.len());
+    for (_, result) in result_map {
+        results.push(SearchResult::from_raw(result))
+    }
 
     Ok(SearchResults::new(
-        result_map
-            .into_iter()
-            .map(|(key, value)| {
-                SearchResult::new(
-                    value.title,
-                    value.visiting_url,
-                    key,
-                    value.description,
-                    value.engine,
-                )
-            })
-            .collect(),
+        results,
         query.to_string(),
         engine_errors_info,
     ))
