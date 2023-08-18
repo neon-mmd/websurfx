@@ -76,7 +76,7 @@ impl Config {
 
             let debug: bool = globals.get::<_, bool>("debug")?;
             let logging:bool= globals.get::<_, bool>("logging")?;
-            
+
             if !logging_initialized {
                 set_logging_level(debug, logging);
             }
@@ -164,7 +164,6 @@ impl Config {
 
 /// a helper function that sets the proper logging level
 fn set_logging_level(debug: bool, logging: bool) {
-
     if let Ok(pkg_env_var) = std::env::var("PKG_ENV") {
         if pkg_env_var.to_lowercase() == "dev" {
             env_logger::Builder::new()
