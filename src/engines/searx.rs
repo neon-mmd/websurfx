@@ -6,7 +6,7 @@ use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 
-use crate::results::aggregation_models::RawSearchResult;
+use crate::results::aggregation_models::SearchResult;
 
 use super::engine_models::{EngineError, SearchEngine};
 use error_stack::{IntoReport, Report, Result, ResultExt};
@@ -42,7 +42,7 @@ impl SearchEngine for Searx {
         page: u32,
         user_agent: String,
         request_timeout: u8,
-    ) -> Result<HashMap<String, RawSearchResult>, EngineError> {
+    ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = match page {
@@ -111,7 +111,7 @@ impl SearchEngine for Searx {
         Ok(document
             .select(&results)
             .map(|result| {
-                RawSearchResult::new(
+                SearchResult::new(
                     result
                         .select(&result_title)
                         .next()

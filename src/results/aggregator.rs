@@ -8,18 +8,14 @@ use rand::Rng;
 use tokio::task::JoinHandle;
 
 use super::{
-    aggregation_models::{EngineErrorInfo, RawSearchResult, SearchResult, SearchResults},
+    aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
     user_agent::random_user_agent,
 };
 
-use crate::engines::{
-    duckduckgo,
-    engine_models::{EngineError, SearchEngine},
-    searx,
-};
+use crate::engines::engine_models::{EngineError, EngineHandler};
 
 /// Aliases for long type annotations
-type FutureVec = Vec<JoinHandle<Result<HashMap<String, RawSearchResult>, Report<EngineError>>>>;
+type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
 
 /// The function aggregates the scraped results from the user-selected upstream search engines.
 /// These engines can be chosen either from the user interface (UI) or from the configuration file.
@@ -64,7 +60,7 @@ pub async fn aggregate(
     page: u32,
     random_delay: bool,
     debug: bool,
-    mut upstream_search_engines: Vec<String>,
+    upstream_search_engines: Vec<EngineHandler>,
     request_timeout: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
@@ -76,24 +72,22 @@ pub async fn aggregate(
         tokio::time::sleep(Duration::from_secs(delay_secs)).await;
     }
 
+    let mut names: Vec<&str> = vec![];
+
     // create tasks for upstream result fetching
-    let tasks: FutureVec = upstream_search_engines
-        .iter()
-        .map(|engine| match engine.to_lowercase().as_str() {
-            "duckduckgo" => Box::new(duckduckgo::DuckDuckGo) as Box<dyn SearchEngine + Send + Sync>,
-            "searx" => Box::new(searx::Searx) as Box<dyn SearchEngine + Send + Sync>,
-            &_ => panic!("Config Error: Incorrect config file option provided"),
-        })
-        .map(|search_engine| {
-            let query: String = query.clone();
-            let user_agent: String = user_agent.clone();
-            tokio::spawn(async move {
-                search_engine
-                    .results(query, page, user_agent.clone(), request_timeout)
-                    .await
-            })
-        })
-        .collect();
+    let mut tasks: FutureVec = FutureVec::new();
+
+    for engine_handler in upstream_search_engines {
+        let (name, search_engine) = engine_handler.into_name_engine();
+        names.push(name);
+        let query: String = query.clone();
+        let user_agent: String = user_agent.clone();
+        tasks.push(tokio::spawn(async move {
+            search_engine
+                .results(query, page, user_agent.clone(), request_timeout)
+                .await
+        }));
+    }
 
     // get upstream responses
     let mut responses = Vec::with_capacity(tasks.len());
@@ -105,20 +99,20 @@ pub async fn aggregate(
     }
 
     // aggregate search results, removing duplicates and handling errors the upstream engines returned
-    let mut result_map: HashMap<String, RawSearchResult> = HashMap::new();
+    let mut result_map: HashMap<String, SearchResult> = HashMap::new();
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
     let mut handle_error = |error: Report<EngineError>, engine_name: String| {
         log::error!("Engine Error: {:?}", error);
         engine_errors_info.push(EngineErrorInfo::new(
             error.downcast_ref::<EngineError>().unwrap(),
-            engine_name,
+            engine_name.to_string(),
         ));
     };
 
     for _ in 0..responses.len() {
         let response = responses.pop().unwrap();
-        let engine_name = upstream_search_engines.pop().unwrap();
+        let engine = names.pop().unwrap().to_string();
 
         if result_map.is_empty() {
             match response {
@@ -126,7 +120,7 @@ pub async fn aggregate(
                     result_map = results.clone();
                 }
                 Err(error) => {
-                    handle_error(error, engine_name.clone());
+                    handle_error(error, engine);
                 }
             }
             continue;
@@ -138,21 +132,18 @@ pub async fn aggregate(
                     result_map
                         .entry(key)
                         .and_modify(|result| {
-                            result.add_engines(engine_name.clone());
+                            result.add_engines(engine.clone());
                         })
-                        .or_insert_with(|| -> RawSearchResult { value });
+                        .or_insert_with(|| -> SearchResult { value });
                 });
             }
             Err(error) => {
-                handle_error(error, engine_name.clone());
+                handle_error(error, engine);
             }
         }
     }
 
-    let mut results = Vec::with_capacity(result_map.len());
-    for (_, result) in result_map {
-        results.push(SearchResult::from_raw(result))
-    }
+    let results = result_map.into_values().collect();
 
     Ok(SearchResults::new(
         results,

@@ -5,54 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 
-/// A named struct to store, serialize and deserializes the individual search result from all the
-/// scraped and aggregated search results from the upstream search engines.
-///
-/// # Fields
-///
-/// * `title` - The title of the search result.
-/// * `url` - The url to be displayed below the search result title in html.
-/// * `description` - The description of the search result.
-/// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SearchResult {
-    pub title: String,
-    pub url: String,
-    pub description: String,
-    pub engine: Vec<String>,
-}
-
-impl SearchResult {
-    /// Constructs a new `SearchResult` with the given arguments needed for the struct.
-    ///
-    /// # Arguments
-    ///
-    /// * `title` - The title of the search result.
-    /// * `visiting_url` - The url which is accessed when clicked on it
-    /// (href url in html in simple words).
-    /// * `url` - The url to be displayed below the search result title in html.
-    /// * `description` - The description of the search result.
-    /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
-        SearchResult {
-            title,
-            url,
-            description,
-            engine,
-        }
-    }
-
-    pub fn from_raw(raw: RawSearchResult) -> Self {
-        SearchResult {
-            title: raw.title,
-            url: raw.url,
-            description: raw.description,
-            engine: raw.engine,
-        }
-    }
-}
-
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
 /// to write idiomatic rust using `Iterators`.
@@ -64,15 +16,16 @@ impl SearchResult {
 /// (href url in html in simple words).
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Clone)]
-pub struct RawSearchResult {
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchResult {
     pub title: String,
     pub url: String,
     pub description: String,
     pub engine: Vec<String>,
 }
 
-impl RawSearchResult {
+impl SearchResult {
     /// Constructs a new `RawSearchResult` with the given arguments needed for the struct.
     ///
     /// # Arguments
@@ -83,7 +36,7 @@ impl RawSearchResult {
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
     pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
-        RawSearchResult {
+        SearchResult {
             title,
             url,
             description,

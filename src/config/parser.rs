@@ -34,7 +34,7 @@ pub struct Config {
     pub aggregator: AggregatorConfig,
     pub logging: bool,
     pub debug: bool,
-    pub upstream_search_engines: Vec<String>,
+    pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
 }
@@ -107,6 +107,7 @@ impl Config {
                     .get::<_, HashMap<String, bool>>("upstream_search_engines")?
                     .into_iter()
                     .filter_map(|(key, value)| value.then_some(key))
+                    .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(&engine))
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
                 threads,

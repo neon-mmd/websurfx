@@ -7,6 +7,7 @@ use std::fs::read_to_string;
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
+    engines::engine_models::EngineHandler,
     handler::public_paths::public_path,
     results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
@@ -175,12 +176,19 @@ async fn results(
             {
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+
+                    let engines = cookie_value
+                        .engines
+                        .iter()
+                        .filter_map(|name| EngineHandler::new(name))
+                        .collect();
+
                     aggregate(
                         query,
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        cookie_value.engines,
+                        engines,
                         config.request_timeout,
                     )
                     .await?
