@@ -34,7 +34,7 @@ pub struct Config {
     pub aggregator: AggregatorConfig,
     pub logging: bool,
     pub debug: bool,
-    pub upstream_search_engines: Vec<String>,
+    pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
 }
@@ -57,7 +57,7 @@ impl Config {
     /// # Arguments
     ///
     /// * `logging_initialized` - It takes a boolean which ensures that the logging doesn't get
-    /// initialized twice.
+    /// initialized twice. Pass false if the logger has not yet been initialized.
     ///
     /// # Error
     ///
@@ -77,22 +77,8 @@ impl Config {
             let debug: bool = globals.get::<_, bool>("debug")?;
             let logging:bool= globals.get::<_, bool>("logging")?;
 
-            // Check whether logging has not been initialized before.
-            if logging_initialized {
-                if let Ok(pkg_env_var) = std::env::var("PKG_ENV"){
-                    if pkg_env_var.to_lowercase() == "dev" {
-                        env_logger::Builder::new().filter(None, LevelFilter::Trace).init();
-                    }
-                } else {
-                    // Initializing logging middleware with level set to default or info.
-                    let mut log_level: LevelFilter = LevelFilter::Error;
-                    if logging && debug == false {
-                        log_level = LevelFilter::Info;
-                    } else if debug {
-                        log_level = LevelFilter::Debug;
-                    };
-                    env_logger::Builder::new().filter(None, log_level).init();
-                }
+            if !logging_initialized {
+                set_logging_level(debug, logging);
             }
 
             let threads: u8 = if parsed_threads == 0 {
@@ -121,12 +107,14 @@ impl Config {
                     .get::<_, HashMap<String, bool>>("upstream_search_engines")?
                     .into_iter()
                     .filter_map(|(key, value)| value.then_some(key))
+                    .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(&engine))
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
                 threads,
             })
         })
     }
+
     /// A helper function which returns an appropriate config file path checking if the config
     /// file exists on that path.
     ///
@@ -172,4 +160,26 @@ impl Config {
         // if no of the configs above exist, return error
         Err("Config file not found!!".to_string().into())
     }
+}
+
+/// a helper function that sets the proper logging level
+fn set_logging_level(debug: bool, logging: bool) {
+    if let Ok(pkg_env_var) = std::env::var("PKG_ENV") {
+        if pkg_env_var.to_lowercase() == "dev" {
+            env_logger::Builder::new()
+                .filter(None, LevelFilter::Trace)
+                .init();
+            return;
+        }
+    }
+
+    // Initializing logging middleware with level set to default or info.
+    let log_level = match (debug, logging) {
+        (true, true) => LevelFilter::Debug,
+        (true, false) => LevelFilter::Debug,
+        (false, true) => LevelFilter::Info,
+        (false, false) => LevelFilter::Error,
+    };
+
+    env_logger::Builder::new().filter(None, log_level).init();
 }
