@@ -15,7 +15,7 @@ use websurfx::{config::parser::Config, run};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialize the parsed config file.
-    let config = Config::parse(true).unwrap();
+    let config = Config::parse(false).unwrap();
 
     log::info!(
         "started server on port {} and IP {}",

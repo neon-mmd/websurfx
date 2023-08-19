@@ -175,7 +175,7 @@ fn set_logging_level(debug: bool, logging: bool) {
 
     // Initializing logging middleware with level set to default or info.
     let log_level = match (debug, logging) {
-        (true, true) => LevelFilter::Error,
+        (true, true) => LevelFilter::Debug,
         (true, false) => LevelFilter::Debug,
         (false, true) => LevelFilter::Info,
         (false, false) => LevelFilter::Error,
