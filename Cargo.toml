@@ -1,15 +1,15 @@
 [package]
 name = "websurfx"
-version = "0.17.0"
+version = "0.18.0"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
 license = "AGPL-3.0"
 
 [dependencies]
-reqwest = {version="0.11.18",features=["json"]}
+reqwest = {version="0.11.19",features=["json"]}
 tokio = {version="1.32.0",features=["full"]}
-serde = {version="1.0.183",features=["derive"]}
+serde = {version="1.0.185",features=["derive"]}
 handlebars = { version = "4.3.7", features = ["dir_source"] }
 scraper = {version="0.17.1"}
 actix-web = {version="4.3.1", features = ["cookies"]}
@@ -26,6 +26,7 @@ rand={version="0.8.5"}
 once_cell = {version="1.18.0"}
 error-stack = {version="0.3.1"}
 async-trait = {version="0.1.73"}
+regex = {version="1.9.3", features=["perf"]}
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
@@ -50,7 +51,7 @@ split-debuginfo = '...'
 debug-assertions = false
 overflow-checks = false
 lto = 'thin'
-panic = 'unwind'
+panic = 'abort'
 incremental = false
 codegen-units = 16
 rpath = false
