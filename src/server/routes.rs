@@ -215,7 +215,8 @@ async fn results(
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
+    let page_content: String =
+        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))
