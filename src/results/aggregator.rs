@@ -1,7 +1,11 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
-use std::{collections::HashMap, io::BufReader, time::Duration};
+use std::{
+    collections::HashMap,
+    io::{BufReader, Read},
+    time::Duration,
+};
 
 use super::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
@@ -176,10 +180,10 @@ fn filter_with_lists(
     resultant_map: &mut HashMap<String, SearchResult>,
     file_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    for (url, search_result) in map_to_be_filtered.clone().into_iter() {
-        let reader = BufReader::new(File::open(file_path)?);
-        for line in reader.lines() {
-            let re = Regex::new(&line?)?;
+    let mut reader = BufReader::new(File::open(file_path)?);
+    for line in reader.by_ref().lines() {
+        let re = Regex::new(&line?)?;
+        for (url, search_result) in map_to_be_filtered.clone().into_iter() {
             if re.is_match(&url.to_lowercase())
                 || re.is_match(&search_result.title.to_lowercase())
                 || re.is_match(&search_result.description.to_lowercase())
