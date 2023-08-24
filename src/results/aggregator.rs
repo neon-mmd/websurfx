@@ -175,22 +175,86 @@ pub async fn aggregate(
     ))
 }
 
-fn filter_with_lists(
+/// Filters a map of search results using a list of regex patterns.
+///
+/// # Arguments
+///
+/// * `map_to_be_filtered` - A mutable reference to a `HashMap` of search results to filter, where the filtered results will be removed from.
+/// * `resultant_map` - A mutable reference to a `HashMap` to hold the filtered results.
+/// * `file_path` - A `&str` representing the path to a file containing regex patterns to use for filtering.
+///
+/// # Errors
+///
+/// Returns an error if the file at `file_path` cannot be opened or read, or if a regex pattern is invalid.
+pub fn filter_with_lists(
     map_to_be_filtered: &mut HashMap<String, SearchResult>,
     resultant_map: &mut HashMap<String, SearchResult>,
     file_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = BufReader::new(File::open(file_path)?);
+
     for line in reader.by_ref().lines() {
         let re = Regex::new(&line?)?;
+
+        // Iterate over each search result in the map and check if it matches the regex pattern
         for (url, search_result) in map_to_be_filtered.clone().into_iter() {
             if re.is_match(&url.to_lowercase())
                 || re.is_match(&search_result.title.to_lowercase())
                 || re.is_match(&search_result.description.to_lowercase())
             {
+                // If the search result matches the regex pattern, move it from the original map to the resultant map
                 resultant_map.insert(url.clone(), map_to_be_filtered.remove(&url).unwrap());
             }
         }
     }
+
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_filter_with_lists() -> Result<(), Box<dyn std::error::Error>> {
+        // Create a map of search results to filter
+        let mut map_to_be_filtered = HashMap::new();
+        map_to_be_filtered.insert(
+            "https://www.example.com".to_string(),
+            SearchResult {
+                title: "Example Domain".to_string(),
+                url: "https://www.example.com".to_string(),
+                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                engine: vec!["Google".to_string(), "Bing".to_string()],
+            },
+        );
+        map_to_be_filtered.insert(
+            "https://www.rust-lang.org/".to_string(),
+            SearchResult {
+                title: "Rust Programming Language".to_string(),
+                url: "https://www.rust-lang.org/".to_string(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_string(),
+                engine: vec!["Google".to_string(), "DuckDuckGo".to_string()],
+            },
+        );
+
+        // Create a temporary file with regex patterns
+        let mut file = NamedTempFile::new()?;
+        writeln!(file, "example")?;
+        writeln!(file, "rust")?;
+        file.flush()?;
+
+        let mut resultant_map = HashMap::new();
+        filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap())?;
+
+        assert_eq!(resultant_map.len(), 2);
+        assert!(resultant_map.contains_key("https://www.example.com"));
+        assert!(resultant_map.contains_key("https://www.rust-lang.org/"));
+        assert_eq!(map_to_be_filtered.len(), 0);
+
+        Ok(())
+    }
 }
