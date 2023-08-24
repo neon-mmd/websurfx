@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
 use scraper::{Html, Selector};
 
-use crate::results::aggregation_models::RawSearchResult;
+use crate::results::aggregation_models::SearchResult;
 
 use super::engine_models::{EngineError, SearchEngine};
 
@@ -43,7 +43,7 @@ impl SearchEngine for DuckDuckGo {
         page: u32,
         user_agent: String,
         request_timeout: u8,
-    ) -> Result<HashMap<String, RawSearchResult>, EngineError> {
+    ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = match page {
@@ -120,7 +120,7 @@ impl SearchEngine for DuckDuckGo {
         Ok(document
             .select(&results)
             .map(|result| {
-                RawSearchResult::new(
+                SearchResult::new(
                     result
                         .select(&result_title)
                         .next()
@@ -147,7 +147,7 @@ impl SearchEngine for DuckDuckGo {
                     vec!["duckduckgo".to_string()],
                 )
             })
-            .map(|search_result| (search_result.visiting_url.clone(), search_result))
+            .map(|search_result| (search_result.url.clone(), search_result))
             .collect())
     }
 }

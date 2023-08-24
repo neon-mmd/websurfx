@@ -7,12 +7,14 @@ use std::fs::read_to_string;
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
+    engines::engine_models::EngineHandler,
     handler::public_paths::public_path,
     results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use serde::Deserialize;
+use tokio::join;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 ///
@@ -96,15 +98,49 @@ pub async fn search(
             }
             let page = match &params.page {
                 Some(page) => *page,
-                None => 0,
+                None => 1,
             };
 
-            let url = format!(
-                "http://{}:{}/search?q={}&page={}",
-                config.binding_ip, config.port, query, page
+            let (_, results, _) = join!(
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip,
+                        config.port,
+                        query,
+                        page - 1
+                    ),
+                    &config,
+                    query.to_string(),
+                    page - 1,
+                    req.clone(),
+                ),
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip, config.port, query, page
+                    ),
+                    &config,
+                    query.to_string(),
+                    page,
+                    req.clone(),
+                ),
+                results(
+                    format!(
+                        "http://{}:{}/search?q={}&page={}",
+                        config.binding_ip,
+                        config.port,
+                        query,
+                        page + 1
+                    ),
+                    &config,
+                    query.to_string(),
+                    page + 1,
+                    req.clone(),
+                )
             );
-            let results_json = results(url, &config, query.to_string(), page, req).await?;
-            let page_content: String = hbs.render("search", &results_json)?;
+
+            let page_content: String = hbs.render("search", &results?)?;
             Ok(HttpResponse::Ok().body(page_content))
         }
         None => Ok(HttpResponse::Found()
@@ -140,12 +176,19 @@ async fn results(
             {
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+
+                    let engines = cookie_value
+                        .engines
+                        .iter()
+                        .filter_map(|name| EngineHandler::new(name))
+                        .collect();
+
                     aggregate(
                         query,
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        cookie_value.engines,
+                        engines,
                         config.request_timeout,
                     )
                     .await?
