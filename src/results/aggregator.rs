@@ -259,6 +259,45 @@ mod tests {
     }
 
     #[test]
+    fn test_filter_with_lists_wildcard() -> Result<(), Box<dyn std::error::Error>> {
+        let mut map_to_be_filtered = HashMap::new();
+        map_to_be_filtered.insert(
+            "https://www.example.com".to_string(),
+            SearchResult {
+                title: "Example Domain".to_string(),
+                url: "https://www.example.com".to_string(),
+                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                engine: vec!["Google".to_string(), "Bing".to_string()],
+            },
+        );
+        map_to_be_filtered.insert(
+            "https://www.rust-lang.org/".to_string(),
+            SearchResult {
+                title: "Rust Programming Language".to_string(),
+                url: "https://www.rust-lang.org/".to_string(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_string(),
+                engine: vec!["Google".to_string(), "DuckDuckGo".to_string()],
+            },
+        );
+
+        // Create a temporary file with a regex pattern containing a wildcard
+        let mut file = NamedTempFile::new()?;
+        writeln!(file, "ex.*le")?;
+        file.flush()?;
+
+        let mut resultant_map = HashMap::new();
+
+        filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap())?;
+
+        assert_eq!(resultant_map.len(), 1);
+        assert!(resultant_map.contains_key("https://www.example.com"));
+        assert_eq!(map_to_be_filtered.len(), 1);
+        assert!(map_to_be_filtered.contains_key("https://www.rust-lang.org/"));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_filter_with_lists_file_not_found() {
         let mut map_to_be_filtered = HashMap::new();
 
