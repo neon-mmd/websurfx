@@ -1,1 +1,1 @@
-pub mod public_paths;
+pub mod paths;

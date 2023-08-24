@@ -1,14 +1,12 @@
 //! This module provides the functionality to parse the lua config and convert the config options
 //! into rust readable form.
 
+use crate::handler::paths::{file_path, FileType};
+
 use super::parser_models::Style;
 use log::LevelFilter;
 use rlua::Lua;
-use std::{collections::HashMap, format, fs, path::Path, thread::available_parallelism};
-
-// ------- Constants --------
-static COMMON_DIRECTORY_NAME: &str = "websurfx";
-static CONFIG_FILE_NAME: &str = "config.lua";
+use std::{collections::HashMap, fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
 ///
@@ -69,7 +67,7 @@ impl Config {
             let globals = context.globals();
 
             context
-                .load(&fs::read_to_string(Config::config_path()?)?)
+                .load(&fs::read_to_string(file_path(FileType::Config)?)?)
                 .exec()?;
 
             let parsed_threads: u8 = globals.get::<_, u8>("threads")?;
@@ -113,52 +111,6 @@ impl Config {
                 threads,
             })
         })
-    }
-
-    /// A helper function which returns an appropriate config file path checking if the config
-    /// file exists on that path.
-    ///
-    /// # Error
-    ///
-    /// Returns a `config file not found!!` error if the config file is not present under following
-    /// paths which are:
-    /// 1. `~/.config/websurfx/` if it not present here then it fallbacks to the next one (2)
-    /// 2. `/etc/xdg/websurfx/config.lua` if it is not present here then it fallbacks to the next
-    ///    one (3).
-    /// 3. `websurfx/` (under project folder ( or codebase in other words)) if it is not present
-    ///    here then it returns an error as mentioned above.
-    fn config_path() -> Result<String, Box<dyn std::error::Error>> {
-        // check user config
-
-        let path = format!(
-            "{}/.config/{}/config.lua",
-            std::env::var("HOME").unwrap(),
-            COMMON_DIRECTORY_NAME
-        );
-        if Path::new(path.as_str()).exists() {
-            return Ok(format!(
-                "{}/.config/{}/{}",
-                std::env::var("HOME").unwrap(),
-                COMMON_DIRECTORY_NAME,
-                CONFIG_FILE_NAME
-            ));
-        }
-
-        // look for config in /etc/xdg
-        if Path::new(format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str())
-            .exists()
-        {
-            return Ok("/etc/xdg/websurfx/config.lua".to_string());
-        }
-
-        // use dev config
-        if Path::new(format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME).as_str()).exists()
-        {
-            return Ok("./websurfx/config.lua".to_string());
-        }
-
-        // if no of the configs above exist, return error
-        Err("Config file not found!!".to_string().into())
     }
 }
 
