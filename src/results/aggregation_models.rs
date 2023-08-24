@@ -63,10 +63,12 @@ impl SearchResult {
     }
 }
 
+///
 #[derive(Serialize, Deserialize)]
 pub struct EngineErrorInfo {
     pub error: String,
     pub engine: String,
+    pub severity_color: String,
 }
 
 impl EngineErrorInfo {
@@ -78,6 +80,11 @@ impl EngineErrorInfo {
                 EngineError::UnexpectedError => String::from("UnexpectedError"),
             },
             engine,
+            severity_color: match error {
+                EngineError::RequestError => String::from("green"),
+                EngineError::EmptyResultSet => String::from("blue"),
+                EngineError::UnexpectedError => String::from("red"),
+            },
         }
     }
 }

@@ -70,15 +70,90 @@ body {
   filter: brightness(1.2);
 }
 
+.result_not_found {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5rem;
+  color: var(--foreground-color);
+}
+
+.result_not_found p {
+  margin: 1rem 0;
+}
+
+.result_not_found ul {
+  margin: 1rem 0;
+}
+
+.result_not_found img {
+  width: 40rem;
+}
+
+/* styles for the error box */
+.error_box .error_box_toggle_button {
+  background: var(--foreground-color);
+}
+
+.error_box .dropdown_error_box {
+  position: absolute;
+  display: none;
+  flex-direction: column;
+  background: var(--background-color);
+  border-radius: 0;
+  margin-left: 2rem;
+  min-height: 20rem;
+  min-width: 22rem;
+}
+.error_box .dropdown_error_box.show {
+  display: flex;
+}
+.error_box .dropdown_error_box .error_item,
+.error_box .dropdown_error_box .no_errors {
+  display: flex;
+  align-items: center;
+  color: var(--foreground-color);
+  letter-spacing: 0.1rem;
+  padding: 1rem;
+  font-size: 1.2rem;
+}
+.error_box .dropdown_error_box .error_item {
+  justify-content: space-between;
+}
+.error_box .dropdown_error_box .no_errors {
+  min-height: 18rem;
+  justify-content: center;
+}
+
+.error_box .dropdown_error_box .error_item:hover {
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+}
+
+.error_box .error_item .severity_color {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 /* styles for the footer and header */
 
-header {
-  background: var(--background-color);
+header,
+footer {
   width: 100%;
+  background: var(--background-color);
   display: flex;
-  justify-content: right;
-  align-items: center;
   padding: 1rem;
+  align-items: center;
+}
+
+header {
+  justify-content: space-between;
+}
+
+header h1 a {
+  text-transform: capitalize;
+  text-decoration: none;
+  color: var(--foreground-color);
+  letter-spacing: 0.1rem;
+  margin-left: 1rem;
 }
 
 header ul,
@@ -121,13 +196,8 @@ footer div {
 }
 
 footer {
-  background: var(--background-color);
-  width: 100%;
-  padding: 1rem;
-  display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
 }
 
 /* Styles for the search page */
