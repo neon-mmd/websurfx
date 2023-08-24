@@ -257,4 +257,16 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_filter_with_lists_file_not_found() {
+        let mut map_to_be_filtered = HashMap::new();
+
+        let mut resultant_map = HashMap::new();
+
+        // Call the `filter_with_lists` function with a non-existent file path
+        let result = filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, "non-existent-file.txt");
+
+        assert!(result.is_err());
+    }
 }
