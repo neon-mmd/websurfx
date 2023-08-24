@@ -227,7 +227,8 @@ mod tests {
             SearchResult {
                 title: "Example Domain".to_string(),
                 url: "https://www.example.com".to_string(),
-                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                description: "This domain is for use in illustrative examples in documents."
+                    .to_string(),
                 engine: vec!["Google".to_string(), "Bing".to_string()],
             },
         );
@@ -248,7 +249,11 @@ mod tests {
         file.flush()?;
 
         let mut resultant_map = HashMap::new();
-        filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap())?;
+        filter_with_lists(
+            &mut map_to_be_filtered,
+            &mut resultant_map,
+            file.path().to_str().unwrap(),
+        )?;
 
         assert_eq!(resultant_map.len(), 2);
         assert!(resultant_map.contains_key("https://www.example.com"));
@@ -266,7 +271,8 @@ mod tests {
             SearchResult {
                 title: "Example Domain".to_string(),
                 url: "https://www.example.com".to_string(),
-                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                description: "This domain is for use in illustrative examples in documents."
+                    .to_string(),
                 engine: vec!["Google".to_string(), "Bing".to_string()],
             },
         );
@@ -287,7 +293,11 @@ mod tests {
 
         let mut resultant_map = HashMap::new();
 
-        filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap())?;
+        filter_with_lists(
+            &mut map_to_be_filtered,
+            &mut resultant_map,
+            file.path().to_str().unwrap(),
+        )?;
 
         assert_eq!(resultant_map.len(), 1);
         assert!(resultant_map.contains_key("https://www.example.com"));
@@ -304,7 +314,11 @@ mod tests {
         let mut resultant_map = HashMap::new();
 
         // Call the `filter_with_lists` function with a non-existent file path
-        let result = filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, "non-existent-file.txt");
+        let result = filter_with_lists(
+            &mut map_to_be_filtered,
+            &mut resultant_map,
+            "non-existent-file.txt",
+        );
 
         assert!(result.is_err());
     }
@@ -317,7 +331,8 @@ mod tests {
             SearchResult {
                 title: "Example Domain".to_string(),
                 url: "https://www.example.com".to_string(),
-                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                description: "This domain is for use in illustrative examples in documents."
+                    .to_string(),
                 engine: vec!["Google".to_string(), "Bing".to_string()],
             },
         );
@@ -329,8 +344,12 @@ mod tests {
         writeln!(file, "example(").unwrap();
         file.flush().unwrap();
 
-        let result = filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap());
+        let result = filter_with_lists(
+            &mut map_to_be_filtered,
+            &mut resultant_map,
+            file.path().to_str().unwrap(),
+        );
 
         assert!(result.is_err());
-}
+    }
 }
