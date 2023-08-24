@@ -1,18 +1,26 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
-use std::{collections::HashMap, time::Duration};
-
-use error_stack::Report;
-use rand::Rng;
-use tokio::task::JoinHandle;
+use std::{
+    collections::HashMap,
+    io::{BufReader, Read},
+    time::Duration,
+};
 
 use super::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
     user_agent::random_user_agent,
 };
+use error_stack::Report;
+use rand::Rng;
+use regex::Regex;
+use std::{fs::File, io::BufRead};
+use tokio::task::JoinHandle;
 
-use crate::engines::engine_models::{EngineError, EngineHandler};
+use crate::{
+    engines::engine_models::{EngineError, EngineHandler},
+    handler::paths::{file_path, FileType},
+};
 
 /// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
@@ -106,7 +114,7 @@ pub async fn aggregate(
         log::error!("Engine Error: {:?}", error);
         engine_errors_info.push(EngineErrorInfo::new(
             error.downcast_ref::<EngineError>().unwrap(),
-            engine_name.to_string(),
+            engine_name,
         ));
     };
 
@@ -143,11 +151,46 @@ pub async fn aggregate(
         }
     }
 
-    let results = result_map.into_values().collect();
+    let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
+    filter_with_lists(
+        &mut result_map,
+        &mut blacklist_map,
+        &file_path(FileType::BlockList)?,
+    )?;
+
+    filter_with_lists(
+        &mut blacklist_map,
+        &mut result_map,
+        &file_path(FileType::AllowList)?,
+    )?;
+
+    drop(blacklist_map);
+
+    let results: Vec<SearchResult> = result_map.into_values().collect();
 
     Ok(SearchResults::new(
         results,
         query.to_string(),
         engine_errors_info,
     ))
+}
+
+fn filter_with_lists(
+    map_to_be_filtered: &mut HashMap<String, SearchResult>,
+    resultant_map: &mut HashMap<String, SearchResult>,
+    file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut reader = BufReader::new(File::open(file_path)?);
+    for line in reader.by_ref().lines() {
+        let re = Regex::new(&line?)?;
+        for (url, search_result) in map_to_be_filtered.clone().into_iter() {
+            if re.is_match(&url.to_lowercase())
+                || re.is_match(&search_result.title.to_lowercase())
+                || re.is_match(&search_result.description.to_lowercase())
+            {
+                resultant_map.insert(url.clone(), map_to_be_filtered.remove(&url).unwrap());
+            }
+        }
+    }
+    Ok(())
 }

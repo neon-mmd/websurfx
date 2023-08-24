@@ -8,7 +8,7 @@ use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
     engines::engine_models::EngineHandler,
-    handler::public_paths::public_path,
+    handler::paths::{file_path, FileType},
     results::{aggregation_models::SearchResults, aggregator::aggregate},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
@@ -215,7 +215,8 @@ async fn results(
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = read_to_string(format!("{}/robots.txt", public_path()?))?;
+    let page_content: String =
+        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
     Ok(HttpResponse::Ok()
         .content_type("text/plain; charset=ascii")
         .body(page_content))
