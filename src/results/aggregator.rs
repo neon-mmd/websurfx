@@ -269,4 +269,29 @@ mod tests {
 
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_filter_with_lists_invalid_regex() {
+        let mut map_to_be_filtered = HashMap::new();
+        map_to_be_filtered.insert(
+            "https://www.example.com".to_string(),
+            SearchResult {
+                title: "Example Domain".to_string(),
+                url: "https://www.example.com".to_string(),
+                description: "This domain is for use in illustrative examples in documents.".to_string(),
+                engine: vec!["Google".to_string(), "Bing".to_string()],
+            },
+        );
+
+        let mut resultant_map = HashMap::new();
+
+        // Create a temporary file with an invalid regex pattern
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "example(").unwrap();
+        file.flush().unwrap();
+
+        let result = filter_with_lists(&mut map_to_be_filtered, &mut resultant_map, file.path().to_str().unwrap());
+
+        assert!(result.is_err());
+}
 }
