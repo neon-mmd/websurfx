@@ -62,10 +62,10 @@ pub async fn not_found(
 /// * `engines` - It stores the user selected upstream search engines selected from the UI.
 #[allow(dead_code)]
 #[derive(Deserialize)]
-struct Cookie {
-    theme: String,
-    colorscheme: String,
-    engines: Vec<String>,
+struct Cookie<'a> {
+    theme: &'a str,
+    colorscheme: &'a str,
+    engines: Vec<&'a str>,
 }
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
@@ -111,9 +111,9 @@ pub async fn search(
                         page - 1
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page - 1,
-                    req.clone(),
+                    &req,
                 ),
                 results(
                     format!(
@@ -121,9 +121,9 @@ pub async fn search(
                         config.binding_ip, config.port, query, page
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page,
-                    req.clone(),
+                    &req,
                 ),
                 results(
                     format!(
@@ -134,9 +134,9 @@ pub async fn search(
                         page + 1
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page + 1,
-                    req.clone(),
+                    &req,
                 )
             );
 
@@ -154,30 +154,28 @@ pub async fn search(
 async fn results(
     url: String,
     config: &Config,
-    query: String,
+    query: &str,
     page: u32,
-    req: HttpRequest,
+    req: &HttpRequest,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
+    let mut redis_cache = RedisCache::new(&config.redis_url, 5).await?;
     // fetch the cached results json.
-    let cached_results_json = redis_cache.cached_json(&url);
+    let cached_results_json = redis_cache.cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
-        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results).unwrap()),
+        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results)?),
         Err(_) => {
             // check if the cookie value is empty or not if it is empty then use the
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: crate::results::aggregation_models::SearchResults = match req
-                .cookie("appCookie")
-            {
+            let mut results: SearchResults = match req.cookie("appCookie") {
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
 
-                    let engines = cookie_value
+                    let engines: Vec<EngineHandler> = cookie_value
                         .engines
                         .iter()
                         .filter_map(|name| EngineHandler::new(name))
@@ -188,7 +186,7 @@ async fn results(
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        engines,
+                        &engines,
                         config.request_timeout,
                     )
                     .await?
@@ -199,14 +197,16 @@ async fn results(
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        config.upstream_search_engines.clone(),
+                        &config.upstream_search_engines,
                         config.request_timeout,
                     )
                     .await?
                 }
             };
-            results.add_style(config.style.clone());
-            redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+            results.add_style(&config.style);
+            redis_cache
+                .cache_results(&serde_json::to_string(&results)?, &url)
+                .await?;
             Ok(results)
         }
     }
