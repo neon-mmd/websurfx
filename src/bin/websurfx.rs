@@ -6,7 +6,7 @@
 use std::net::TcpListener;
 use websurfx::{config::parser::Config, run};
 
-/// A dhat heap memory profiler 
+/// A dhat heap memory profiler
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     // A dhat heap profiler initialization.
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
-    
+
     // Initialize the parsed config file.
     let config = Config::parse(false).unwrap();
 
