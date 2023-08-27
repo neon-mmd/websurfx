@@ -6,6 +6,11 @@
 use std::net::TcpListener;
 use websurfx::{config::parser::Config, run};
 
+/// A dhat heap memory profiler 
+#[cfg(feature = "dhat-heap")]
+#[global_allocator]
+static ALLOC: dhat::Alloc = dhat::Alloc;
+
 /// The function that launches the main server and registers all the routes of the website.
 ///
 /// # Error
@@ -14,6 +19,10 @@ use websurfx::{config::parser::Config, run};
 /// available for being used for other applications.
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // A dhat heap profiler initialization.
+    #[cfg(feature = "dhat-heap")]
+    let _profiler = dhat::Profiler::new_heap();
+    
     // Initialize the parsed config file.
     let config = Config::parse(false).unwrap();
 
