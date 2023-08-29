@@ -4,10 +4,10 @@ name: Rust
 on:
   push:
     branches:
-      - "**"
+      - '**'
   pull_request:
     branches:
-      - "rolling" 
+      - 'rolling'
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,23 +21,26 @@ jobs:
           - stable
 
     steps:
-    - uses: actions/checkout@v3
-    - run: rustup toolchain install stable --profile minimal
-    - uses: Swatinem/rust-cache@v2
-      with:
-        prefix-key: ""
-        shared-key: ""
-        key: ""
-        env-vars: ""
-        workspaces: ""
-        cache-directories: ""
-        cache-targets: ""
-        cache-on-failure: ""
-        cache-all-crates: ""
-        save-if: ""    
-    - uses: actions/checkout@v3
-    - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: 'luajit'
+      - uses: actions/checkout@v3
+      - run: rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ''
+          shared-key: ''
+          key: ''
+          env-vars: ''
+          workspaces: ''
+          cache-directories: ''
+          cache-targets: ''
+          cache-on-failure: ''
+          cache-all-crates: ''
+          save-if: ''
+      - uses: actions/checkout@v3
+      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
