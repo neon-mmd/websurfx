@@ -3,6 +3,7 @@
 //! This module contains the main function which handles the logging of the application to the
 //! stdout and handles the command line arguments provided and launches the `websurfx` server.
 
+use mimalloc::MiMalloc;
 use std::net::TcpListener;
 use websurfx::{config::parser::Config, run};
 
@@ -10,6 +11,10 @@ use websurfx::{config::parser::Config, run};
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
+
+#[cfg(not(feature = "dhat-heap"))]
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 /// The function that launches the main server and registers all the routes of the website.
 ///
