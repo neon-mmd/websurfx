@@ -67,7 +67,7 @@ dependencies = [
  "actix-rt",
  "actix-service",
  "actix-utils",
- "ahash 0.8.3",
+ "ahash",
  "base64 0.21.3",
  "bitflags 2.4.0",
  "brotli",
