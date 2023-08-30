@@ -12,7 +12,7 @@ tokio = {version="1.32.0",features=["rt-multi-thread","macros"]}
 serde = {version="1.0.188",features=["derive"]}
 handlebars = { version = "4.3.7", features = ["dir_source"] }
 scraper = {version="0.17.1"}
-actix-web = {version="4.3.1", features = ["cookies"]}
+actix-web = {version="4.4.0", features = ["cookies"]}
 actix-files = {version="0.6.2"}
 actix-cors = {version="0.6.4"}
 serde_json = {version="1.0.105"}
