@@ -42,7 +42,7 @@ use handler::paths::{file_path, FileType};
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars = Handlebars::new();
 
-    let public_folder_path: String = file_path(FileType::Theme)?;
+    let public_folder_path: &str = file_path(FileType::Theme)?;
 
     handlebars
         .register_templates_directory(".html", format!("{}/templates", public_folder_path))
