@@ -13,6 +13,9 @@ jobs:
     name: Rust project
     runs-on: ubuntu-latest
     steps:
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: 'luajit'
       - uses: actions/checkout@v2
       - name: Install minimal stable with clippy and rustfmt
         uses: actions-rs/toolchain@v1
