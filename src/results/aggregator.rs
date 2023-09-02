@@ -70,6 +70,7 @@ pub async fn aggregate(
     debug: bool,
     upstream_search_engines: Vec<EngineHandler>,
     request_timeout: u8,
+    safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let user_agent: String = random_user_agent();
 
@@ -92,7 +93,13 @@ pub async fn aggregate(
         let user_agent: String = user_agent.clone();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(query, page, user_agent.clone(), request_timeout)
+                .results(
+                    query,
+                    page,
+                    user_agent.clone(),
+                    request_timeout,
+                    safe_search,
+                )
                 .await
         }));
     }
@@ -151,20 +158,22 @@ pub async fn aggregate(
         }
     }
 
-    let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
-    filter_with_lists(
-        &mut result_map,
-        &mut blacklist_map,
-        &file_path(FileType::BlockList)?,
-    )?;
+    if safe_search >= 3 {
+        let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
+        filter_with_lists(
+            &mut result_map,
+            &mut blacklist_map,
+            &file_path(FileType::BlockList)?,
+        )?;
 
-    filter_with_lists(
-        &mut blacklist_map,
-        &mut result_map,
-        &file_path(FileType::AllowList)?,
-    )?;
+        filter_with_lists(
+            &mut blacklist_map,
+            &mut result_map,
+            &file_path(FileType::AllowList)?,
+        )?;
 
-    drop(blacklist_map);
+        drop(blacklist_map);
+    }
 
     let results: Vec<SearchResult> = result_map.into_values().collect();
 
@@ -194,7 +203,7 @@ pub fn filter_with_lists(
     let mut reader = BufReader::new(File::open(file_path)?);
 
     for line in reader.by_ref().lines() {
-        let re = Regex::new(&line?)?;
+        let re = Regex::new(line?.trim())?;
 
         // Iterate over each search result in the map and check if it matches the regex pattern
         for (url, search_result) in map_to_be_filtered.clone().into_iter() {
