@@ -52,8 +52,8 @@ pub struct AggregatorConfig {
 ///
 /// # Fields
 ///
-/// * `number_of_requests` -
-/// * `time_limit` -
+/// * `number_of_requests` - The number of request that are allowed within a provided time limit.
+/// * `time_limit` - The time limit in which the quantity of requests that should be accepted.
 #[derive(Clone)]
 pub struct RateLimiter {
     pub number_of_requests: u8,
