@@ -11,6 +11,17 @@ production_use = false -- whether to use production mode or not (in other words 
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
 
+-- ### Search ###
+-- Filter results based on different levels. The levels provided are:
+-- {{
+-- 0 - None
+-- 1 - Low
+-- 2 - Moderate
+-- 3 - High
+-- 4 - Aggressive
+-- }}
+safe_search = 2
+
 -- ### Website ###
 -- The different colorschemes provided are:
 -- {{
