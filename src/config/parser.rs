@@ -35,6 +35,7 @@ pub struct Config {
     pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
+    pub safe_search: u8,
 }
 
 /// Configuration options for the aggregator.
@@ -88,6 +89,16 @@ impl Config {
                 parsed_threads
             };
 
+            let parsed_safe_search:u8 = globals.get::<_,u8>("safe_search")?;
+            let safe_search: u8 = match parsed_safe_search {
+                0..=4 => parsed_safe_search,
+                _ => {
+                    log::error!("Config Error: The value of `safe_search` option should be a non zero positive integer from 0 to 4.");
+                    log::error!("Falling back to using the value `1` for the option");
+                    1
+                }
+            }; 
+
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
                 binding_ip: globals.get::<_, String>("binding_ip")?,
@@ -109,6 +120,7 @@ impl Config {
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
                 threads,
+                safe_search
             })
         })
     }
