@@ -73,6 +73,7 @@ pub trait SearchEngine: Sync + Send {
         page: u32,
         user_agent: String,
         request_timeout: u8,
+        safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError>;
 }
 
