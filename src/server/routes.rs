@@ -2,7 +2,10 @@
 //! meta search engine website and provide appropriate response to each route/page
 //! when requested.
 
-use std::fs::read_to_string;
+use std::{
+    fs::{read_to_string, File},
+    io::{BufRead, BufReader, Read},
+};
 
 use crate::{
     cache::cacher::RedisCache,
@@ -13,6 +16,7 @@ use crate::{
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
+use regex::Regex;
 use serde::Deserialize;
 use tokio::join;
 
@@ -28,6 +32,7 @@ use tokio::join;
 struct SearchParams {
     q: Option<String>,
     page: Option<u32>,
+    safesearch: Option<u8>,
 }
 
 /// Handles the route of index page or main page of the `websurfx` meta search engine website.
@@ -101,42 +106,58 @@ pub async fn search(
                 None => 1,
             };
 
+            let safe_search: u8 = match config.safe_search {
+                3..=4 => config.safe_search,
+                _ => match &params.safesearch {
+                    Some(safesearch) => match safesearch {
+                        0..=2 => *safesearch,
+                        _ => 1,
+                    },
+                    None => config.safe_search,
+                },
+            };
+
             let (_, results, _) = join!(
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}",
+                        "http://{}:{}/search?q={}&page={}&safesearch={}",
                         config.binding_ip,
                         config.port,
                         query,
-                        page - 1
+                        page - 1,
+                        safe_search
                     ),
                     &config,
                     query.to_string(),
                     page - 1,
                     req.clone(),
+                    safe_search
                 ),
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}",
-                        config.binding_ip, config.port, query, page
+                        "http://{}:{}/search?q={}&page={}&safesearch={}",
+                        config.binding_ip, config.port, query, page, safe_search
                     ),
                     &config,
                     query.to_string(),
                     page,
                     req.clone(),
+                    safe_search
                 ),
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}",
+                        "http://{}:{}/search?q={}&page={}&safesearch={}",
                         config.binding_ip,
                         config.port,
                         query,
-                        page + 1
+                        page + 1,
+                        safe_search
                     ),
                     &config,
                     query.to_string(),
                     page + 1,
                     req.clone(),
+                    safe_search
                 )
             );
 
@@ -157,6 +178,7 @@ async fn results(
     query: String,
     page: u32,
     req: HttpRequest,
+    safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     //Initialize redis cache connection struct
     let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
@@ -165,15 +187,28 @@ async fn results(
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
-        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results).unwrap()),
+        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results)?),
         Err(_) => {
+            if safe_search == 4 {
+                let mut results: SearchResults = SearchResults::default();
+                let mut _flag: bool =
+                    is_match_from_filter_list(&file_path(FileType::BlockList)?, &query)?;
+                _flag = !is_match_from_filter_list(&file_path(FileType::AllowList)?, &query)?;
+
+                if _flag {
+                    results.set_disallowed();
+                    results.add_style(&config.style);
+                    results.set_page_query(&query);
+                    redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+                    return Ok(results);
+                }
+            }
+
             // check if the cookie value is empty or not if it is empty then use the
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: crate::results::aggregation_models::SearchResults = match req
-                .cookie("appCookie")
-            {
+            let mut results: SearchResults = match req.cookie("appCookie") {
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
 
@@ -190,6 +225,7 @@ async fn results(
                         config.debug,
                         engines,
                         config.request_timeout,
+                        safe_search,
                     )
                     .await?
                 }
@@ -201,15 +237,35 @@ async fn results(
                         config.debug,
                         config.upstream_search_engines.clone(),
                         config.request_timeout,
+                        safe_search,
                     )
                     .await?
                 }
             };
-            results.add_style(config.style.clone());
+            if results.engine_errors_info().is_empty() && results.results().is_empty() {
+                results.set_filtered();
+            }
+            results.add_style(&config.style);
             redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
             Ok(results)
         }
     }
+}
+
+fn is_match_from_filter_list(
+    file_path: &str,
+    query: &str,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let mut flag = false;
+    let mut reader = BufReader::new(File::open(file_path)?);
+    for line in reader.by_ref().lines() {
+        let re = Regex::new(&line?)?;
+        if re.is_match(query) {
+            flag = true;
+            break;
+        }
+    }
+    Ok(flag)
 }
 
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
