@@ -97,7 +97,7 @@ impl Config {
                     log::error!("Falling back to using the value `1` for the option");
                     1
                 }
-            }; 
+            };
 
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
