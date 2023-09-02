@@ -3,7 +3,7 @@
 
 use crate::handler::paths::{file_path, FileType};
 
-use super::parser_models::Style;
+use super::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
 use rlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
@@ -35,17 +35,7 @@ pub struct Config {
     pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
-}
-
-/// Configuration options for the aggregator.
-///
-/// # Fields
-///
-/// * `random_delay` - It stores the option to whether enable or disable random delays between
-/// requests.
-#[derive(Clone)]
-pub struct AggregatorConfig {
-    pub random_delay: bool,
+    pub rate_limter: RateLimiter,
 }
 
 impl Config {
@@ -88,6 +78,8 @@ impl Config {
                 parsed_threads
             };
 
+            let rate_limter = globals.get::<_,HashMap<String, u8>>("rate_limiter")?;
+
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
                 binding_ip: globals.get::<_, String>("binding_ip")?,
@@ -109,6 +101,10 @@ impl Config {
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
                 threads,
+                rate_limter: RateLimiter {
+                    number_of_requests: rate_limter["number_of_requests"], 
+                    time_limit: rate_limter["time_limit"], 
+                }
             })
         })
     }
