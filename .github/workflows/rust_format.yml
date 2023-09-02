@@ -13,6 +13,10 @@ jobs:
     name: Rust project
     runs-on: ubuntu-latest
     steps:
+      - name: Install LuaJIT and Lua 
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends liblua5.4-dev liblua5.3-dev liblua5.2-dev liblua5.1-0-dev libluajit-5.1-dev
       - uses: actions/checkout@v2
       - name: Install minimal stable with clippy and rustfmt
         uses: actions-rs/toolchain@v1
