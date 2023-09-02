@@ -42,12 +42,21 @@ impl SearchEngine for Searx {
         page: u32,
         user_agent: String,
         request_timeout: u8,
+        mut safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
+        if safe_search == 3 {
+            safe_search = 2;
+        };
+
         let url: String = match page {
-            0 | 1 => format!("https://searx.work/search?q={query}&pageno=1"),
-            _ => format!("https://searx.work/search?q={query}&pageno={page}"),
+            0 | 1 => {
+                format!("https://searx.work/search?q={query}&pageno=1&safesearch={safe_search}")
+            }
+            _ => format!(
+                "https://searx.work/search?q={query}&pageno={page}&safesearch={safe_search}"
+            ),
         };
 
         // initializing headers and adding appropriate headers.
