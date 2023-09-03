@@ -84,7 +84,7 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             )
             .service(router::robots_data) // robots.txt
             .service(router::index) // index page
-            .service(router::search) // search page
+            .service(server::routes::search::search) // search page
             .service(router::about) // about page
             .service(router::settings) // settings page
             .default_service(web::route().to(router::not_found)) // error page
