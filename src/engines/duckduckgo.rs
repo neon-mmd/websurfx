@@ -19,7 +19,7 @@ pub struct DuckDuckGo;
 
 #[async_trait::async_trait]
 impl SearchEngine for DuckDuckGo {
-        async fn results(
+    async fn results(
         &self,
         query: String,
         page: u32,
