@@ -9,12 +9,13 @@ pub mod cache;
 pub mod config;
 pub mod engines;
 pub mod handler;
+pub mod models;
 pub mod results;
 pub mod server;
 
 use std::net::TcpListener;
 
-use crate::server::routes;
+use crate::server::router;
 
 use actix_cors::Cors;
 use actix_files as fs;
@@ -81,12 +82,12 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
                 fs::Files::new("/images", format!("{}/images", public_folder_path))
                     .show_files_listing(),
             )
-            .service(routes::robots_data) // robots.txt
-            .service(routes::index) // index page
-            .service(routes::search) // search page
-            .service(routes::about) // about page
-            .service(routes::settings) // settings page
-            .default_service(web::route().to(routes::not_found)) // error page
+            .service(router::robots_data) // robots.txt
+            .service(router::index) // index page
+            .service(router::search) // search page
+            .service(router::about) // about page
+            .service(router::settings) // settings page
+            .default_service(web::route().to(router::not_found)) // error page
     })
     .workers(cloned_config_threads_opt as usize)
     // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.

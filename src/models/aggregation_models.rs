@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{config::parser_models::Style, engines::engine_models::EngineError};
+use super::{engine_models::EngineError, parser_models::Style};
 
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed

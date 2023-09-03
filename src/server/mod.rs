@@ -3,4 +3,5 @@
 //! the search route. Also, caches the next, current and previous search results in the search
 //! routes with the help of the redis server.
 
+pub mod router;
 pub mod routes;

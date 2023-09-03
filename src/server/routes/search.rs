@@ -1,66 +1,18 @@
-//! This module provides the functionality to handle different routes of the `websurfx`
-//! meta search engine website and provide appropriate response to each route/page
-//! when requested.
-
-use std::fs::read_to_string;
+//! This module handles the search route of the search engine website.
 
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
-    engines::engine_models::EngineHandler,
-    handler::paths::{file_path, FileType},
-    results::{aggregation_models::SearchResults, aggregator::aggregate},
+    models::{
+        aggregation_models::SearchResults,
+        engine_models::EngineHandler,
+        server_models::{Cookie, SearchParams},
+    },
+    results::aggregator::aggregate,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
-use serde::Deserialize;
 use tokio::join;
-
-/// A named struct which deserializes all the user provided search parameters and stores them.
-#[derive(Deserialize)]
-struct SearchParams {
-    /// It stores the search parameter option `q` (or query in simple words)
-    /// of the search url.
-    q: Option<String>,
-    /// It stores the search parameter `page` (or pageno in simple words)
-    /// of the search url.
-    page: Option<u32>,
-}
-
-/// Handles the route of index page or main page of the `websurfx` meta search engine website.
-#[get("/")]
-pub async fn index(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("index", &config.style).unwrap();
-    Ok(HttpResponse::Ok().body(page_content))
-}
-
-/// Handles the route of any other accessed route/page which is not provided by the
-/// website essentially the 404 error page.
-pub async fn not_found(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("404", &config.style)?;
-
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(page_content))
-}
-
-/// A named struct which is used to deserialize the cookies fetched from the client side.
-#[allow(dead_code)]
-#[derive(Deserialize)]
-struct Cookie {
-    /// It stores the theme name used in the website.
-    theme: String,
-    /// It stores the colorscheme name used for the website theme.
-    colorscheme: String,
-    /// It stores the user selected upstream search engines selected from the UI.
-    engines: Vec<String>,
-}
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
@@ -178,9 +130,7 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: crate::results::aggregation_models::SearchResults = match req
-                .cookie("appCookie")
-            {
+            let mut results: SearchResults = match req.cookie("appCookie") {
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
 
@@ -217,34 +167,4 @@ async fn results(
             Ok(results)
         }
     }
-}
-
-/// Handles the route of robots.txt page of the `websurfx` meta search engine website.
-#[get("/robots.txt")]
-pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String =
-        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
-    Ok(HttpResponse::Ok()
-        .content_type("text/plain; charset=ascii")
-        .body(page_content))
-}
-
-/// Handles the route of about page of the `websurfx` meta search engine website.
-#[get("/about")]
-pub async fn about(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("about", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
-}
-
-/// Handles the route of settings page of the `websurfx` meta search engine website.
-#[get("/settings")]
-pub async fn settings(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("settings", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
 }

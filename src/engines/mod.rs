@@ -4,5 +4,4 @@
 //! code. Moreover, it also provides a custom error for the upstream search engine handling code.
 
 pub mod duckduckgo;
-pub mod engine_models;
 pub mod searx;
