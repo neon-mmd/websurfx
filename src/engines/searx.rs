@@ -17,25 +17,6 @@ pub struct Searx;
 
 #[async_trait::async_trait]
 impl SearchEngine for Searx {
-    /// This function scrapes results from the upstream engine duckduckgo and puts all the scraped
-    /// results like title, visiting_url (href in html),engine (from which engine it was fetched from)
-    /// and description in a RawSearchResult and then adds that to HashMap whose keys are url and
-    /// values are RawSearchResult struct and then returns it within a Result enum.
-    ///
-    /// # Arguments
-    ///
-    /// * `query` - Takes the user provided query to query to the upstream search engine with.
-    /// * `page` - Takes an u32 as an argument.
-    /// * `user_agent` - Takes a random user agent string as an argument.
-    /// * `request_timeout` - Takes a time (secs) as a value which controls the server request timeout.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `EngineErrorKind` if the user is not connected to the internet or if their is failure to
-    /// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
-    /// provide results for the requested search query and also returns error if the scraping selector
-    /// or HeaderMap fails to initialize.
-
     async fn results(
         &self,
         query: String,

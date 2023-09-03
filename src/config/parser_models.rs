@@ -12,15 +12,12 @@ use serde::{Deserialize, Serialize};
 /// order to allow the deserializing the json back to struct in aggregate function in
 /// aggregator.rs and create a new struct out of it and then serialize it back to json and pass
 /// it to the template files.
-///
-/// # Fields
-//
-/// * `theme` - It stores the parsed theme option used to set a theme for the website.
-/// * `colorscheme` - It stores the parsed colorscheme option used to set a colorscheme for the
-/// theme being used.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Style {
+    /// It stores the parsed theme option used to set a theme for the website.
     pub theme: String,
+    /// It stores the parsed colorscheme option used to set a colorscheme for the
+    /// theme being used.
     pub colorscheme: String,
 }
 

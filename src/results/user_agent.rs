@@ -2,6 +2,8 @@
 
 use fake_useragent::{Browsers, UserAgents, UserAgentsBuilder};
 
+/// A static variable which stores the initially build `UserAgents` struct. So as it can be resused
+/// again and again without the need of reinitializing the `UserAgents` struct.
 static USER_AGENTS: once_cell::sync::Lazy<UserAgents> = once_cell::sync::Lazy::new(|| {
     UserAgentsBuilder::new()
         .cache(false)

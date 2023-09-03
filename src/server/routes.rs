@@ -17,16 +17,13 @@ use serde::Deserialize;
 use tokio::join;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
-///
-/// # Fields
-///
-/// * `q` - It stores the search parameter option `q` (or query in simple words)
-/// of the search url.
-/// * `page` - It stores the search parameter `page` (or pageno in simple words)
-/// of the search url.
 #[derive(Deserialize)]
 struct SearchParams {
+    /// It stores the search parameter option `q` (or query in simple words)
+    /// of the search url.
     q: Option<String>,
+    /// It stores the search parameter `page` (or pageno in simple words)
+    /// of the search url.
     page: Option<u32>,
 }
 
@@ -54,17 +51,14 @@ pub async fn not_found(
 }
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.
-///
-/// # Fields
-///
-/// * `theme` - It stores the theme name used in the website.
-/// * `colorscheme` - It stores the colorscheme name used for the website theme.
-/// * `engines` - It stores the user selected upstream search engines selected from the UI.
 #[allow(dead_code)]
 #[derive(Deserialize)]
 struct Cookie {
+    /// It stores the theme name used in the website.
     theme: String,
+    /// It stores the colorscheme name used for the website theme.
     colorscheme: String,
+    /// It stores the user selected upstream search engines selected from the UI.
     engines: Vec<String>,
 }
 
@@ -149,8 +143,21 @@ pub async fn search(
     }
 }
 
-/// Fetches the results for a query and page.
-/// First checks the redis cache, if that fails it gets proper results
+/// Fetches the results for a query and page. It First checks the redis cache, if that
+/// fails it gets proper results by requesting from the upstream search engines.
+///
+/// # Arguments
+///
+/// * `url` - It takes the url of the current page that requested the search results for a
+/// particular search query.
+/// * `config` - It takes a parsed config struct.
+/// * `query` - It takes the page number as u32 value.
+/// * `req` - It takes the `HttpRequest` struct as a value.
+///
+/// # Error
+///
+/// It returns the `SearchResults` struct if the search results could be successfully fetched from
+/// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
     url: String,
     config: &Config,
@@ -158,7 +165,7 @@ async fn results(
     page: u32,
     req: HttpRequest,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    //Initialize redis cache connection struct
+    // Initialize redis cache connection struct
     let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
     // fetch the cached results json.
     let cached_results_json = redis_cache.cached_json(&url);

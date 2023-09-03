@@ -6,11 +6,8 @@ use redis::{Client, Commands, Connection};
 
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
-///
-/// # Fields
-///
-/// * `redis_connection_url` - It stores the redis Connection url address.
 pub struct RedisCache {
+    /// It stores the redis Connection url address.
     connection: Connection,
 }
 
