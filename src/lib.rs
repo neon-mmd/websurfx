@@ -21,6 +21,7 @@ use actix_cors::Cors;
 use actix_files as fs;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
+use cache::cacher::{Cache, SharedCache};
 use config::parser::Config;
 use handlebars::Handlebars;
 use handler::paths::{file_path, FileType};
@@ -45,7 +46,7 @@ use handler::paths::{file_path, FileType};
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
 /// let server = run(listener,config).expect("Failed to start server");
 /// ```
-pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
+pub fn run(listener: TcpListener, config: Config, cache: Cache) -> std::io::Result<Server> {
     let mut handlebars: Handlebars<'_> = Handlebars::new();
 
     let public_folder_path: &str = file_path(FileType::Theme)?;
@@ -57,6 +58,8 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let handlebars_ref: web::Data<Handlebars<'_>> = web::Data::new(handlebars);
 
     let cloned_config_threads_opt: u8 = config.threads;
+
+    let cache = web::Data::new(SharedCache::new(cache));
 
     let server = HttpServer::new(move || {
         let cors: Cors = Cors::default()
@@ -73,6 +76,7 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             .wrap(Logger::default()) // added logging middleware for logging.
             .app_data(handlebars_ref.clone())
             .app_data(web::Data::new(config.clone()))
+            .app_data(cache.clone())
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()

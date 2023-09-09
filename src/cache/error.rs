@@ -12,6 +12,7 @@ pub enum PoolError {
     /// This variant handles the errors which occurs when all the connections
     /// in the connection pool return a connection dropped redis error.
     PoolExhaustionWithConnectionDropError,
+    MissingValue,
 }
 
 impl fmt::Display for PoolError {
@@ -29,6 +30,9 @@ impl fmt::Display for PoolError {
                     f,
                     "Error all connections from the pool dropped with connection error"
                 )
+            }
+            PoolError::MissingValue => {
+                write!(f, "The value is missing from the cache")
             }
         }
     }

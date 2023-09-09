@@ -1,7 +1,7 @@
 //! This module handles the search route of the search engine website.
 
 use crate::{
-    cache::cacher::RedisCache,
+    cache::cacher::SharedCache,
     config::parser::Config,
     handler::paths::{file_path, FileType},
     models::{aggregation_models::SearchResults, engine_models::EngineHandler},
@@ -16,10 +16,6 @@ use std::{
     io::{BufRead, BufReader, Read},
 };
 use tokio::join;
-
-// ---- Constants ----
-/// Initialize redis cache connection once and store it on the heap.
-static REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 #[derive(Deserialize)]
@@ -89,6 +85,7 @@ pub async fn search(
     hbs: web::Data<Handlebars<'_>>,
     req: HttpRequest,
     config: web::Data<Config>,
+    cache: web::Data<SharedCache>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
     match &params.q {
@@ -125,6 +122,7 @@ pub async fn search(
                         safe_search
                     ),
                     &config,
+                    &cache,
                     query,
                     page - 1,
                     req.clone(),
@@ -136,6 +134,7 @@ pub async fn search(
                         config.binding_ip, config.port, query, page, safe_search
                     ),
                     &config,
+                    &cache,
                     query,
                     page,
                     req.clone(),
@@ -151,6 +150,7 @@ pub async fn search(
                         safe_search
                     ),
                     &config,
+                    &cache,
                     query,
                     page + 1,
                     req.clone(),
@@ -185,27 +185,19 @@ pub async fn search(
 async fn results(
     url: String,
     config: &Config,
+    cache: &web::Data<SharedCache>,
     query: &str,
     page: u32,
     req: HttpRequest,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    // Initialize redis cache connection struct
-    let mut redis_cache: RedisCache = REDIS_CACHE
-        .get_or_init(async {
-            // Initialize redis cache connection pool only one and store it in the heap.
-            RedisCache::new(&config.redis_url, 5).await.unwrap()
-        })
-        .await
-        .clone();
     // fetch the cached results json.
-    let cached_results_json: Result<String, error_stack::Report<crate::cache::error::PoolError>> =
-        redis_cache.clone().cached_json(&url).await;
+    let cached_results_json = cache.cached_json(&url).await.ok();
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
-        Ok(results) => Ok(serde_json::from_str::<SearchResults>(&results)?),
-        Err(_) => {
+        Some(results) => Ok(serde_json::from_str::<SearchResults>(&results)?),
+        None => {
             if safe_search == 4 {
                 let mut results: SearchResults = SearchResults::default();
                 let mut _flag: bool =
@@ -216,8 +208,8 @@ async fn results(
                     results.set_disallowed();
                     results.add_style(&config.style);
                     results.set_page_query(query);
-                    redis_cache
-                        .cache_results(&serde_json::to_string(&results)?, &url)
+                    cache
+                        .cache_results(serde_json::to_string(&results)?, &url)
                         .await?;
                     return Ok(results);
                 }
@@ -266,9 +258,8 @@ async fn results(
                 results.set_filtered();
             }
             results.add_style(&config.style);
-            redis_cache
-                .cache_results(&serde_json::to_string(&results)?, &url)
-                .await?;
+            let json_results = serde_json::to_string(&results)?;
+            cache.cache_results(json_results, &url).await?;
             Ok(results)
         }
     }

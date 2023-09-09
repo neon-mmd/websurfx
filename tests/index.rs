@@ -9,7 +9,12 @@ fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let config = Config::parse(false).unwrap();
-    let server = run(listener, config).expect("Failed to bind address");
+    let server = run(
+        listener,
+        config,
+        websurfx::cache::cacher::Cache::new_in_memory(),
+    )
+    .expect("Failed to bind address");
 
     tokio::spawn(server);
     format!("http://127.0.0.1:{}/", port)

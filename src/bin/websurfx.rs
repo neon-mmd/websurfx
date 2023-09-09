@@ -5,7 +5,9 @@
 
 use mimalloc::MiMalloc;
 use std::net::TcpListener;
-use websurfx::{config::parser::Config, run};
+use websurfx::{
+    cache::cacher::Cache, cache::redis_cacher::RedisCache, config::parser::Config, run,
+};
 
 /// A dhat heap memory profiler
 #[cfg(feature = "dhat-heap")]
@@ -30,6 +32,14 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize the parsed config file.
     let config = Config::parse(false).unwrap();
+    let cache = match &config.redis_url {
+        Some(url) => Cache::new(
+            RedisCache::new(url, 5)
+                .await
+                .expect("Redis cache configured"),
+        ),
+        None => Cache::new_in_memory(),
+    };
 
     log::info!(
         "started server on port {} and IP {}",
@@ -44,5 +54,5 @@ async fn main() -> std::io::Result<()> {
 
     let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;
 
-    run(listener, config)?.await
+    run(listener, config, cache)?.await
 }
