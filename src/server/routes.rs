@@ -20,6 +20,10 @@ use regex::Regex;
 use serde::Deserialize;
 use tokio::join;
 
+// ---- Constants ----
+/// Initialize redis cache connection once and store it on the heap.
+const REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
+
 /// A named struct which deserializes all the user provided search parameters and stores them.
 ///
 /// # Fields
@@ -67,10 +71,10 @@ pub async fn not_found(
 /// * `engines` - It stores the user selected upstream search engines selected from the UI.
 #[allow(dead_code)]
 #[derive(Deserialize)]
-struct Cookie {
-    theme: String,
-    colorscheme: String,
-    engines: Vec<String>,
+struct Cookie<'a> {
+    theme: &'a str,
+    colorscheme: &'a str,
+    engines: Vec<&'a str>,
 }
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
@@ -128,7 +132,7 @@ pub async fn search(
                         safe_search
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page - 1,
                     req.clone(),
                     safe_search
@@ -139,7 +143,7 @@ pub async fn search(
                         config.binding_ip, config.port, query, page, safe_search
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page,
                     req.clone(),
                     safe_search
@@ -154,7 +158,7 @@ pub async fn search(
                         safe_search
                     ),
                     &config,
-                    query.to_string(),
+                    query,
                     page + 1,
                     req.clone(),
                     safe_search
@@ -175,15 +179,22 @@ pub async fn search(
 async fn results(
     url: String,
     config: &Config,
-    query: String,
+    query: &str,
     page: u32,
     req: HttpRequest,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
+    let redis_cache: RedisCache = REDIS_CACHE
+        .get_or_init(async {
+            // Initialize redis cache connection pool only one and store it in the heap.
+            RedisCache::new(&config.redis_url, 5).await.unwrap()
+        })
+        .await
+        .clone();
+
     // fetch the cached results json.
-    let cached_results_json = redis_cache.cached_json(&url);
+    let cached_results_json: Result<String, error_stack::Report<crate::cache::error::PoolError>> =
+        redis_cache.clone().cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
@@ -212,7 +223,7 @@ async fn results(
                 Some(cookie_value) => {
                     let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
 
-                    let engines = cookie_value
+                    let engines: Vec<EngineHandler> = cookie_value
                         .engines
                         .iter()
                         .filter_map(|name| EngineHandler::new(name))
@@ -223,7 +234,7 @@ async fn results(
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        engines,
+                        &engines,
                         config.request_timeout,
                         safe_search,
                     )
@@ -235,7 +246,7 @@ async fn results(
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        config.upstream_search_engines.clone(),
+                        &config.upstream_search_engines,
                         config.request_timeout,
                         safe_search,
                     )

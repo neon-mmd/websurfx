@@ -4,3 +4,4 @@ package-lock.json
 dump.rdb
 .vscode
 megalinter-reports/
+dhat-heap.json

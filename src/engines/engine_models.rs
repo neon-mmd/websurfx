@@ -2,7 +2,7 @@
 //! the upstream search engines with the search query provided by the user.
 
 use crate::results::aggregation_models::SearchResult;
-use error_stack::{IntoReport, Result, ResultExt};
+use error_stack::{Result, ResultExt};
 use std::{collections::HashMap, fmt, time::Duration};
 
 /// A custom error type used for handle engine associated errors.
@@ -48,7 +48,7 @@ impl error_stack::Context for EngineError {}
 pub trait SearchEngine: Sync + Send {
     async fn fetch_html_from_upstream(
         &self,
-        url: String,
+        url: &str,
         header_map: reqwest::header::HeaderMap,
         request_timeout: u8,
     ) -> Result<String, EngineError> {
@@ -59,19 +59,17 @@ pub trait SearchEngine: Sync + Send {
             .headers(header_map) // add spoofed headers to emulate human behavior
             .send()
             .await
-            .into_report()
             .change_context(EngineError::RequestError)?
             .text()
             .await
-            .into_report()
             .change_context(EngineError::RequestError)?)
     }
 
     async fn results(
         &self,
-        query: String,
+        query: &str,
         page: u32,
-        user_agent: String,
+        user_agent: &str,
         request_timeout: u8,
         safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError>;

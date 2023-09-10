@@ -64,15 +64,15 @@ type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<Eng
 /// function in either `searx` or `duckduckgo` or both otherwise returns a `SearchResults struct`
 /// containing appropriate values.
 pub async fn aggregate(
-    query: String,
+    query: &str,
     page: u32,
     random_delay: bool,
     debug: bool,
-    upstream_search_engines: Vec<EngineHandler>,
+    upstream_search_engines: &[EngineHandler],
     request_timeout: u8,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    let user_agent: String = random_user_agent();
+    let user_agent: &str = random_user_agent();
 
     // Add a random delay before making the request.
     if random_delay || !debug {
@@ -81,16 +81,15 @@ pub async fn aggregate(
         tokio::time::sleep(Duration::from_secs(delay_secs)).await;
     }
 
-    let mut names: Vec<&str> = vec![];
+    let mut names: Vec<&str> = Vec::with_capacity(0);
 
     // create tasks for upstream result fetching
     let mut tasks: FutureVec = FutureVec::new();
 
     for engine_handler in upstream_search_engines {
-        let (name, search_engine) = engine_handler.into_name_engine();
+        let (name, search_engine) = engine_handler.to_owned().into_name_engine();
         names.push(name);
-        let query: String = query.clone();
-        let user_agent: String = user_agent.clone();
+        let query: String = query.to_owned();
         tasks.push(tokio::spawn(async move {
             search_engine
                 .results(
@@ -117,7 +116,7 @@ pub async fn aggregate(
     let mut result_map: HashMap<String, SearchResult> = HashMap::new();
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
-    let mut handle_error = |error: Report<EngineError>, engine_name: String| {
+    let mut handle_error = |error: &Report<EngineError>, engine_name: &'static str| {
         log::error!("Engine Error: {:?}", error);
         engine_errors_info.push(EngineErrorInfo::new(
             error.downcast_ref::<EngineError>().unwrap(),
@@ -127,7 +126,7 @@ pub async fn aggregate(
 
     for _ in 0..responses.len() {
         let response = responses.pop().unwrap();
-        let engine = names.pop().unwrap().to_string();
+        let engine = names.pop().unwrap();
 
         if result_map.is_empty() {
             match response {
@@ -135,7 +134,7 @@ pub async fn aggregate(
                     result_map = results.clone();
                 }
                 Err(error) => {
-                    handle_error(error, engine);
+                    handle_error(&error, engine);
                 }
             }
             continue;
@@ -147,13 +146,13 @@ pub async fn aggregate(
                     result_map
                         .entry(key)
                         .and_modify(|result| {
-                            result.add_engines(engine.clone());
+                            result.add_engines(engine);
                         })
                         .or_insert_with(|| -> SearchResult { value });
                 });
             }
             Err(error) => {
-                handle_error(error, engine);
+                handle_error(&error, engine);
             }
         }
     }
@@ -177,11 +176,7 @@ pub async fn aggregate(
 
     let results: Vec<SearchResult> = result_map.into_values().collect();
 
-    Ok(SearchResults::new(
-        results,
-        query.to_string(),
-        engine_errors_info,
-    ))
+    Ok(SearchResults::new(results, query, &engine_errors_info))
 }
 
 /// Filters a map of search results using a list of regex patterns.
@@ -212,7 +207,10 @@ pub fn filter_with_lists(
                 || re.is_match(&search_result.description.to_lowercase())
             {
                 // If the search result matches the regex pattern, move it from the original map to the resultant map
-                resultant_map.insert(url.clone(), map_to_be_filtered.remove(&url).unwrap());
+                resultant_map.insert(
+                    url.to_owned(),
+                    map_to_be_filtered.remove(&url.to_owned()).unwrap(),
+                );
             }
         }
     }
@@ -223,6 +221,7 @@ pub fn filter_with_lists(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use smallvec::smallvec;
     use std::collections::HashMap;
     use std::io::Write;
     use tempfile::NamedTempFile;
@@ -232,22 +231,22 @@ mod tests {
         // Create a map of search results to filter
         let mut map_to_be_filtered = HashMap::new();
         map_to_be_filtered.insert(
-            "https://www.example.com".to_string(),
+            "https://www.example.com".to_owned(),
             SearchResult {
-                title: "Example Domain".to_string(),
-                url: "https://www.example.com".to_string(),
+                title: "Example Domain".to_owned(),
+                url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
-                    .to_string(),
-                engine: vec!["Google".to_string(), "Bing".to_string()],
+                    .to_owned(),
+                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
         );
         map_to_be_filtered.insert(
-            "https://www.rust-lang.org/".to_string(),
+            "https://www.rust-lang.org/".to_owned(),
             SearchResult {
-                title: "Rust Programming Language".to_string(),
-                url: "https://www.rust-lang.org/".to_string(),
-                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_string(),
-                engine: vec!["Google".to_string(), "DuckDuckGo".to_string()],
+                title: "Rust Programming Language".to_owned(),
+                url: "https://www.rust-lang.org/".to_owned(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
             },
         );
 
@@ -276,22 +275,22 @@ mod tests {
     fn test_filter_with_lists_wildcard() -> Result<(), Box<dyn std::error::Error>> {
         let mut map_to_be_filtered = HashMap::new();
         map_to_be_filtered.insert(
-            "https://www.example.com".to_string(),
+            "https://www.example.com".to_owned(),
             SearchResult {
-                title: "Example Domain".to_string(),
-                url: "https://www.example.com".to_string(),
+                title: "Example Domain".to_owned(),
+                url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
-                    .to_string(),
-                engine: vec!["Google".to_string(), "Bing".to_string()],
+                    .to_owned(),
+                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
         );
         map_to_be_filtered.insert(
-            "https://www.rust-lang.org/".to_string(),
+            "https://www.rust-lang.org/".to_owned(),
             SearchResult {
-                title: "Rust Programming Language".to_string(),
-                url: "https://www.rust-lang.org/".to_string(),
-                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_string(),
-                engine: vec!["Google".to_string(), "DuckDuckGo".to_string()],
+                title: "Rust Programming Language".to_owned(),
+                url: "https://www.rust-lang.org/".to_owned(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
             },
         );
 
@@ -336,13 +335,13 @@ mod tests {
     fn test_filter_with_lists_invalid_regex() {
         let mut map_to_be_filtered = HashMap::new();
         map_to_be_filtered.insert(
-            "https://www.example.com".to_string(),
+            "https://www.example.com".to_owned(),
             SearchResult {
-                title: "Example Domain".to_string(),
-                url: "https://www.example.com".to_string(),
+                title: "Example Domain".to_owned(),
+                url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
-                    .to_string(),
-                engine: vec!["Google".to_string(), "Bing".to_string()],
+                    .to_owned(),
+                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
         );
 
