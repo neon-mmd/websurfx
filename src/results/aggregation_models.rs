@@ -2,6 +2,7 @@
 //! data scraped from the upstream search engines.
 
 use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
 
 use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 
@@ -16,13 +17,13 @@ use crate::{config::parser_models::Style, engines::engine_models::EngineError};
 /// (href url in html in simple words).
 /// * `description` - The description of the search result.
 /// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub title: String,
     pub url: String,
     pub description: String,
-    pub engine: Vec<String>,
+    pub engine: SmallVec<[String; 0]>,
 }
 
 impl SearchResult {
@@ -35,12 +36,12 @@ impl SearchResult {
     /// (href url in html in simple words).
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
+    pub fn new(title: &str, url: &str, description: &str, engine: &[&str]) -> Self {
         SearchResult {
-            title,
-            url,
-            description,
-            engine,
+            title: title.to_owned(),
+            url: url.to_owned(),
+            description: description.to_owned(),
+            engine: engine.iter().map(|name| name.to_string()).collect(),
         }
     }
 
@@ -49,8 +50,8 @@ impl SearchResult {
     /// # Arguments
     ///
     /// * `engine` - Takes an engine name provided as a String.
-    pub fn add_engines(&mut self, engine: String) {
-        self.engine.push(engine)
+    pub fn add_engines(&mut self, engine: &str) {
+        self.engine.push(engine.to_owned())
     }
 
     /// A function which returns the engine name stored from the struct as a string.
@@ -58,13 +59,12 @@ impl SearchResult {
     /// # Returns
     ///
     /// An engine name stored as a string from the struct.
-    pub fn engine(self) -> String {
-        self.engine.get(0).unwrap().to_string()
+    pub fn engine(&mut self) -> String {
+        std::mem::take(&mut self.engine[0])
     }
 }
 
-///
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EngineErrorInfo {
     pub error: String,
     pub engine: String,
@@ -72,18 +72,18 @@ pub struct EngineErrorInfo {
 }
 
 impl EngineErrorInfo {
-    pub fn new(error: &EngineError, engine: String) -> Self {
+    pub fn new(error: &EngineError, engine: &str) -> Self {
         Self {
             error: match error {
-                EngineError::RequestError => String::from("RequestError"),
-                EngineError::EmptyResultSet => String::from("EmptyResultSet"),
-                EngineError::UnexpectedError => String::from("UnexpectedError"),
+                EngineError::RequestError => "RequestError".to_owned(),
+                EngineError::EmptyResultSet => "EmptyResultSet".to_owned(),
+                EngineError::UnexpectedError => "UnexpectedError".to_owned(),
             },
-            engine,
+            engine: engine.to_owned(),
             severity_color: match error {
-                EngineError::RequestError => String::from("green"),
-                EngineError::EmptyResultSet => String::from("blue"),
-                EngineError::UnexpectedError => String::from("red"),
+                EngineError::RequestError => "green".to_owned(),
+                EngineError::EmptyResultSet => "blue".to_owned(),
+                EngineError::UnexpectedError => "red".to_owned(),
             },
         }
     }
@@ -108,7 +108,7 @@ pub struct SearchResults {
     pub results: Vec<SearchResult>,
     pub page_query: String,
     pub style: Style,
-    pub engine_errors_info: Vec<EngineErrorInfo>,
+    pub engine_errors_info: SmallVec<[EngineErrorInfo; 0]>,
 }
 
 impl SearchResults {
@@ -124,19 +124,19 @@ impl SearchResults {
     /// given search query.
     pub fn new(
         results: Vec<SearchResult>,
-        page_query: String,
-        engine_errors_info: Vec<EngineErrorInfo>,
+        page_query: &str,
+        engine_errors_info: &[EngineErrorInfo],
     ) -> Self {
-        SearchResults {
+        Self {
             results,
-            page_query,
-            style: Style::new("".to_string(), "".to_string()),
-            engine_errors_info,
+            page_query: page_query.to_owned(),
+            style: Style::default(),
+            engine_errors_info: SmallVec::from(engine_errors_info),
         }
     }
 
     /// A setter function to add website style to the return search results.
-    pub fn add_style(&mut self, style: Style) {
-        self.style = style;
+    pub fn add_style(&mut self, style: &Style) {
+        self.style = style.to_owned();
     }
 }
