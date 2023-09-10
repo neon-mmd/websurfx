@@ -159,9 +159,9 @@ async fn results(
     req: HttpRequest,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(config.redis_url.clone())?;
+    let mut redis_cache = RedisCache::new(&config.redis_url, 5).await?;
     // fetch the cached results json.
-    let cached_results_json = redis_cache.cached_json(&url);
+    let cached_results_json = redis_cache.cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
@@ -206,7 +206,9 @@ async fn results(
                 }
             };
             results.add_style(config.style.clone());
-            redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+            redis_cache
+                .cache_results(&serde_json::to_string(&results)?, &url)
+                .await?;
             Ok(results)
         }
     }

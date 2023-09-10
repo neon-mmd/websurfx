@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 /// * `theme` - It stores the parsed theme option used to set a theme for the website.
 /// * `colorscheme` - It stores the parsed colorscheme option used to set a colorscheme for the
 /// theme being used.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Style {
     pub theme: String,
     pub colorscheme: String,

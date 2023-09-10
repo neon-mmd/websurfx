@@ -71,7 +71,7 @@ pub async fn aggregate(
     upstream_search_engines: Vec<EngineHandler>,
     request_timeout: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    let user_agent: String = random_user_agent();
+    let user_agent: &str = random_user_agent();
 
     // Add a random delay before making the request.
     if random_delay || !debug {
@@ -89,10 +89,9 @@ pub async fn aggregate(
         let (name, search_engine) = engine_handler.into_name_engine();
         names.push(name);
         let query: String = query.clone();
-        let user_agent: String = user_agent.clone();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(query, page, user_agent.clone(), request_timeout)
+                .results(query, page, user_agent.to_owned(), request_timeout)
                 .await
         }));
     }
@@ -155,13 +154,13 @@ pub async fn aggregate(
     filter_with_lists(
         &mut result_map,
         &mut blacklist_map,
-        &file_path(FileType::BlockList)?,
+        file_path(FileType::BlockList)?,
     )?;
 
     filter_with_lists(
         &mut blacklist_map,
         &mut result_map,
-        &file_path(FileType::AllowList)?,
+        file_path(FileType::AllowList)?,
     )?;
 
     drop(blacklist_map);
