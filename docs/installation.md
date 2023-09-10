@@ -109,7 +109,7 @@ colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used fo
 theme = "simple" -- the theme name which should be used for the website
 
 -- ### Caching ###
-redis_connection_url = "redis://redis:6379" -- redis connection url address on which the client should connect on.
+redis_url = "redis://redis:6379" -- redis connection url address on which the client should connect on.
 
 -- ### Search Engines ###
 upstream_search_engines = { DuckDuckGo = true, Searx = false } -- select the upstream search engines from which the results should be fetched.

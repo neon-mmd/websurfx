@@ -21,9 +21,10 @@ jobs:
           - stable
 
     steps:
-      - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: 'luajit'
+      - name: Install LuaJIT and Lua
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends liblua5.4-dev liblua5.3-dev liblua5.2-dev liblua5.1-0-dev libluajit-5.1-dev
       - uses: actions/checkout@v3
       - run: rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2

@@ -203,6 +203,7 @@ async fn results(
                     .await?
                 }
             };
+
             results.add_style(&config.style);
             redis_cache
                 .cache_results(&serde_json::to_string(&results)?, &url)

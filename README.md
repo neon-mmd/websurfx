@@ -5,7 +5,7 @@
   <b align="center"><a href="README.md">Readme</a></b> |
   <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
-  <b><a href="./docs/README.md">Documentation</a></b>
+  <b><a href="../../tree/HEAD/docs/">Documentation</a></b>
   <br /><br />
   <a href="#">
     <img
