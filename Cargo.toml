@@ -27,9 +27,11 @@ once_cell = {version="1.18.0"}
 error-stack = {version="0.4.0"}
 async-trait = {version="0.1.73"}
 regex = {version="1.9.4", features=["perf"]}
+smallvec = {version="1.11.0", features=["union", "serde"]}
 futures = {version="0.3.28"}
 dhat = {version="0.3.2", optional = true}
-smallvec = {version="1.11.0", features=["union", "serde"]}
+mimalloc = { version = "0.1.38", default-features = false }
+async-once-cell = {version="0.5.3"}
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
@@ -55,10 +57,10 @@ debug = false # This should only be commented when testing with dhat profiler
 split-debuginfo = '...'
 debug-assertions = false
 overflow-checks = false
-lto = 'thin'
+lto = true
 panic = 'abort'
 incremental = false
-codegen-units = 16
+codegen-units = 1
 rpath = false
 strip = "debuginfo"
 

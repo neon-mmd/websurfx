@@ -16,6 +16,10 @@ use handlebars::Handlebars;
 use serde::Deserialize;
 use tokio::join;
 
+// ---- Constants ----
+/// Initialize redis cache connection once and store it on the heap.
+const REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
+
 /// A named struct which deserializes all the user provided search parameters and stores them.
 ///
 /// # Fields
@@ -158,10 +162,17 @@ async fn results(
     page: u32,
     req: &HttpRequest,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    //Initialize redis cache connection struct
-    let mut redis_cache = RedisCache::new(&config.redis_url, 5).await?;
+    let redis_cache: RedisCache = REDIS_CACHE
+        .get_or_init(async {
+            // Initialize redis cache connection pool only one and store it in the heap.
+            RedisCache::new(&config.redis_url, 5).await.unwrap()
+        })
+        .await
+        .clone();
+
     // fetch the cached results json.
-    let cached_results_json = redis_cache.cached_json(&url).await;
+    let cached_results_json: Result<String, error_stack::Report<crate::cache::error::PoolError>> =
+        redis_cache.clone().cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results_json {
@@ -206,6 +217,7 @@ async fn results(
 
             results.add_style(&config.style);
             redis_cache
+                .clone()
                 .cache_results(&serde_json::to_string(&results)?, &url)
                 .await?;
             Ok(results)

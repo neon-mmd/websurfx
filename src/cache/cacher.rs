@@ -17,6 +17,7 @@ use super::error::PoolError;
 /// * `pool_size` - It stores the size of the connection pool (in other words the number of
 /// connections that should be stored in the pool).
 /// * `current_connection` - It stores the index of which connection is being used at the moment.
+#[derive(Clone)]
 pub struct RedisCache {
     connection_pool: Vec<ConnectionManager>,
     pool_size: u8,
