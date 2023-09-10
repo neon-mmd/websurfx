@@ -27,7 +27,7 @@ once_cell = {version="1.18.0"}
 error-stack = {version="0.4.0"}
 async-trait = {version="0.1.73"}
 regex = {version="1.9.4", features=["perf"]}
-futures = {version="0.3.28"}dhat = {version="0.3.2", optional = true}
+futures = {version="0.3.28"}
 dhat = {version="0.3.2", optional = true}
 smallvec = {version="1.11.0", features=["union", "serde"]}
 
