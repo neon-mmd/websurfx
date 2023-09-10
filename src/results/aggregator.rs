@@ -93,7 +93,7 @@ pub async fn aggregate(
         tasks.push(tokio::spawn(async move {
             search_engine
                 .results(
-                    query,
+                    &query,
                     page,
                     user_agent.clone(),
                     request_timeout,
@@ -162,13 +162,13 @@ pub async fn aggregate(
         filter_with_lists(
             &mut result_map,
             &mut blacklist_map,
-            &file_path(FileType::BlockList)?,
+            file_path(FileType::BlockList)?,
         )?;
 
         filter_with_lists(
             &mut blacklist_map,
             &mut result_map,
-            &file_path(FileType::AllowList)?,
+            file_path(FileType::AllowList)?,
         )?;
 
         drop(blacklist_map);

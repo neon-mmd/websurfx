@@ -19,8 +19,8 @@ serde_json = {version="1.0.105"}
 fake-useragent = {version="0.1.3"}
 env_logger = {version="0.10.0"}
 log = {version="0.4.20"}
-rlua = {version="0.19.7"}
-redis = {version="0.23.3"}
+mlua = {version="0.8.10", features=["luajit"]}
+redis = {version="0.23.3", features=["tokio-comp","connection-manager"]}
 md5 = {version="0.7.0"}
 rand={version="0.8.5"}
 once_cell = {version="1.18.0"}

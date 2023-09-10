@@ -132,9 +132,9 @@ impl SearchResults {
     ) -> Self {
         Self {
             results,
-            page_query,
+            page_query: page_query.to_owned(),
             style: Style::default(),
-            engine_errors_info,
+            engine_errors_info: engine_errors_info.to_owned(),
             disallowed: Default::default(),
             filtered: Default::default(),
         }

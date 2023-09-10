@@ -22,7 +22,7 @@ use tokio::join;
 
 // ---- Constants ----
 /// Initialize redis cache connection once and store it on the heap.
-const REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
+static REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 ///
@@ -184,7 +184,7 @@ async fn results(
     req: HttpRequest,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    let redis_cache: RedisCache = REDIS_CACHE
+    let mut redis_cache: RedisCache = REDIS_CACHE
         .get_or_init(async {
             // Initialize redis cache connection pool only one and store it in the heap.
             RedisCache::new(&config.redis_url, 5).await.unwrap()
@@ -203,14 +203,16 @@ async fn results(
             if safe_search == 4 {
                 let mut results: SearchResults = SearchResults::default();
                 let mut _flag: bool =
-                    is_match_from_filter_list(&file_path(FileType::BlockList)?, &query)?;
-                _flag = !is_match_from_filter_list(&file_path(FileType::AllowList)?, &query)?;
+                    is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
+                _flag = !is_match_from_filter_list(file_path(FileType::AllowList)?, query)?;
 
                 if _flag {
                     results.set_disallowed();
                     results.add_style(&config.style);
-                    results.set_page_query(&query);
-                    redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+                    results.set_page_query(query);
+                    redis_cache
+                        .cache_results(&serde_json::to_string(&results)?, &url)
+                        .await?;
                     return Ok(results);
                 }
             }
@@ -257,7 +259,9 @@ async fn results(
                 results.set_filtered();
             }
             results.add_style(&config.style);
-            redis_cache.cache_results(serde_json::to_string(&results)?, &url)?;
+            redis_cache
+                .cache_results(&serde_json::to_string(&results)?, &url)
+                .await?;
             Ok(results)
         }
     }

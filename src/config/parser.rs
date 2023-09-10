@@ -117,7 +117,7 @@ impl Config {
                 .get::<_, HashMap<String, bool>>("upstream_search_engines")?
                 .into_iter()
                 .filter_map(|(key, value)| value.then_some(key))
-                .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(engine))
+                .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(&engine))
                 .collect(),
             request_timeout: globals.get::<_, u8>("request_timeout")?,
             threads,
