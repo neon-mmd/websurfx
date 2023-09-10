@@ -214,6 +214,7 @@ async fn results(
                     .await?
                 }
             };
+
             results.add_style(&config.style);
             redis_cache
                 .clone()
