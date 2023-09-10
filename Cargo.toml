@@ -8,7 +8,7 @@ license = "AGPL-3.0"
 
 [dependencies]
 reqwest = {version="0.11.20",features=["json"]}
-tokio = {version="1.32.0",features=["full"]}
+tokio = {version="1.32.0",features=["rt-multi-thread","macros"]}
 serde = {version="1.0.188",features=["derive"]}
 handlebars = { version = "4.4.0", features = ["dir_source"] }
 scraper = {version="0.17.1"}
@@ -48,13 +48,17 @@ rpath = false
 
 [profile.release]
 opt-level = 3
-debug = false
+debug = false # This should only be commented when testing with dhat profiler
+# debug = 1 # This should only be uncommented when testing with dhat profiler
 split-debuginfo = '...'
 debug-assertions = false
 overflow-checks = false
-lto = 'thin'
+lto = true
 panic = 'abort'
 incremental = false
-codegen-units = 16
+codegen-units = 1
 rpath = false
 strip = "debuginfo"
+
+[features]
+dhat-heap = ["dep:dhat"] 
