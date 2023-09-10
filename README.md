@@ -51,7 +51,7 @@
 - **Getting Started**
     - [🔭 Preview](#preview-)
     - [🚀 Features](#features-)
-    - [🛠️ Installation and Testing](#installation-and-testing-)
+    - [🛠️ Installation and Testing](#installation-and-testing-%EF%B8%8F)
     - [🔧 Configuration](#configuration-)
 - **Feature Overview**
     - [🎨 Theming](#theming-)
