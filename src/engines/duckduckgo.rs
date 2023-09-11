@@ -43,6 +43,7 @@ impl SearchEngine for DuckDuckGo {
         page: u32,
         user_agent: &str,
         request_timeout: u8,
+        _safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
