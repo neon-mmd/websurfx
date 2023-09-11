@@ -102,13 +102,15 @@ impl EngineErrorInfo {
 /// and the type of error that caused it.
 /// * `empty_result_set` - Stores a boolean which indicates that no engines gave a result for the
 /// given search query.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub results: Vec<SearchResult>,
     pub page_query: String,
     pub style: Style,
-    pub engine_errors_info: SmallVec<[EngineErrorInfo; 0]>,
+    pub engine_errors_info: Vec<EngineErrorInfo>,
+    pub disallowed: bool,
+    pub filtered: bool,
 }
 
 impl SearchResults {
@@ -122,6 +124,7 @@ impl SearchResults {
     /// the search url.
     /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
     /// given search query.
+    /// * ``
     pub fn new(
         results: Vec<SearchResult>,
         page_query: &str,
@@ -131,12 +134,38 @@ impl SearchResults {
             results,
             page_query: page_query.to_owned(),
             style: Style::default(),
-            engine_errors_info: SmallVec::from(engine_errors_info),
+            engine_errors_info: engine_errors_info.to_owned(),
+            disallowed: Default::default(),
+            filtered: Default::default(),
         }
     }
 
     /// A setter function to add website style to the return search results.
     pub fn add_style(&mut self, style: &Style) {
-        self.style = style.to_owned();
+        self.style = style.clone();
+    }
+
+    /// A setter function that sets disallowed to true.
+    pub fn set_disallowed(&mut self) {
+        self.disallowed = true;
+    }
+
+    /// A setter function to set the current page search query.
+    pub fn set_page_query(&mut self, page: &str) {
+        self.page_query = page.to_owned();
+    }
+
+    /// A setter function that sets the filtered to true.
+    pub fn set_filtered(&mut self) {
+        self.filtered = true;
+    }
+
+    /// A getter function that gets the value of `engine_errors_info`.
+    pub fn engine_errors_info(&mut self) -> Vec<EngineErrorInfo> {
+        std::mem::take(&mut self.engine_errors_info)
+    }
+    /// A getter function that gets the value of `results`.
+    pub fn results(&mut self) -> Vec<SearchResult> {
+        self.results.clone()
     }
 }

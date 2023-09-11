@@ -15,6 +15,17 @@ rate_limiter = {
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
 }
 
+-- ### Search ###
+-- Filter results based on different levels. The levels provided are:
+-- {{
+-- 0 - None
+-- 1 - Low
+-- 2 - Moderate
+-- 3 - High
+-- 4 - Aggressive
+-- }}
+safe_search = 2
+
 -- ### Website ###
 -- The different colorschemes provided are:
 -- {{
