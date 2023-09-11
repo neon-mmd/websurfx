@@ -102,9 +102,9 @@ impl Config {
                     .collect(),
                 request_timeout: globals.get::<_, u8>("request_timeout")?,
                 threads,
-                rate_limter: RateLimiter {
-                    number_of_requests: rate_limter["number_of_requests"], 
-                    time_limit: rate_limter["time_limit"], 
+                rate_limiter: RateLimiter {
+                    number_of_requests: rate_limiter["number_of_requests"], 
+                    time_limit: rate_limiter["time_limit"], 
                 }
             })
         })
