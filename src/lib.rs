@@ -71,8 +71,8 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()
-                    .per_second(config.rate_limter.time_limit as u64)
-                    .burst_size(config.rate_limter.number_of_requests as u32)
+                    .per_second(config.rate_limiter.time_limit as u64)
+                    .burst_size(config.rate_limiter.number_of_requests as u32)
                     .finish()
                     .unwrap(),
             ))

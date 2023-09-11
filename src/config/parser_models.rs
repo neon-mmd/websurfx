@@ -48,7 +48,7 @@ pub struct AggregatorConfig {
     pub random_delay: bool,
 }
 
-/// Configuration options for the rate limter middleware.
+/// Configuration options for the rate limiter middleware.
 ///
 /// # Fields
 ///
