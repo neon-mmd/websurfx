@@ -79,7 +79,7 @@ impl Config {
             parsed_threads
         };
 
-            let rate_limter = globals.get::<_,HashMap<String, u8>>("rate_limiter")?;
+            let rate_limiter = globals.get::<_,HashMap<String, u8>>("rate_limiter")?;
 
             Ok(Config {
                 port: globals.get::<_, u16>("port")?,
