@@ -35,7 +35,7 @@ pub struct Config {
     pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
-    pub rate_limter: RateLimiter,
+    pub rate_limiter: RateLimiter,
 }
 
 impl Config {
