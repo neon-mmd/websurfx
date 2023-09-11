@@ -44,7 +44,8 @@ use handler::paths::{file_path, FileType};
 ///
 /// let config = Config::parse(true).unwrap();
 /// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
-/// let server = run(listener,config).expect("Failed to start server");
+/// let cache = Cache::new_in_memory();
+/// let server = run(listener,config,cache).expect("Failed to start server");
 /// ```
 pub fn run(listener: TcpListener, config: Config, cache: Cache) -> std::io::Result<Server> {
     let mut handlebars: Handlebars<'_> = Handlebars::new();

@@ -192,12 +192,12 @@ async fn results(
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     // fetch the cached results json.
-    let cached_results_json = cache.cached_json(&url).await.ok();
+    let cached_results = cache.cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
-    match cached_results_json {
-        Some(results) => Ok(serde_json::from_str::<SearchResults>(&results)?),
-        None => {
+    match cached_results {
+        Ok(results) => Ok(results),
+        Err(_) => {
             if safe_search == 4 {
                 let mut results: SearchResults = SearchResults::default();
                 let mut _flag: bool =
@@ -208,9 +208,7 @@ async fn results(
                     results.set_disallowed();
                     results.add_style(&config.style);
                     results.set_page_query(query);
-                    cache
-                        .cache_results(serde_json::to_string(&results)?, &url)
-                        .await?;
+                    cache.cache_results(results.clone(), &url).await?;
                     return Ok(results);
                 }
             }
@@ -258,8 +256,7 @@ async fn results(
                 results.set_filtered();
             }
             results.add_style(&config.style);
-            let json_results = serde_json::to_string(&results)?;
-            cache.cache_results(json_results, &url).await?;
+            cache.cache_results(results.clone(), &url).await?;
             Ok(results)
         }
     }

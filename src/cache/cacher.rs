@@ -6,6 +6,8 @@ use mini_moka::sync::Cache as MokaCache;
 use std::time::Duration;
 use tokio::sync::Mutex;
 
+use crate::results::aggregation_models::SearchResults;
+
 use super::{error::PoolError, redis_cacher::RedisCache};
 
 /// Different implementations for caching, currently it is possible to cache in-memory or in Redis.
@@ -14,7 +16,7 @@ pub enum Cache {
     /// Encapsulates the Redis based cache
     Redis(RedisCache),
     /// Contains the in-memory cache.
-    InMemory(MokaCache<String, String>),
+    InMemory(MokaCache<String, SearchResults>),
 }
 
 impl Cache {
@@ -37,9 +39,13 @@ impl Cache {
     /// # Arguments
     ///
     /// * `url` - It takes an url as a string.
-    pub async fn cached_json(&mut self, url: &str) -> Result<String, Report<PoolError>> {
+    pub async fn cached_json(&mut self, url: &str) -> Result<SearchResults, Report<PoolError>> {
         match self {
-            Cache::Redis(redis_cache) => redis_cache.cached_json(url).await,
+            Cache::Redis(redis_cache) => {
+                let json = redis_cache.cached_json(url).await?;
+                Ok(serde_json::from_str::<SearchResults>(&json)
+                    .map_err(|_| PoolError::SerializationError)?)
+            }
             Cache::InMemory(in_memory) => match in_memory.get(&url.to_string()) {
                 Some(res) => Ok(res),
                 None => Err(Report::new(PoolError::MissingValue)),
@@ -56,13 +62,17 @@ impl Cache {
     /// * `url` - It takes the url as a String.
     pub async fn cache_results(
         &mut self,
-        json_results: String,
+        search_results: SearchResults,
         url: &str,
     ) -> Result<(), Report<PoolError>> {
         match self {
-            Cache::Redis(redis_cache) => redis_cache.cache_results(&json_results, url).await,
+            Cache::Redis(redis_cache) => {
+                let json = serde_json::to_string(&search_results)
+                    .map_err(|_| PoolError::SerializationError)?;
+                redis_cache.cache_results(&json, url).await
+            }
             Cache::InMemory(cache) => {
-                cache.insert(url.to_string(), json_results);
+                cache.insert(url.to_string(), search_results);
                 Ok(())
             }
         }
@@ -82,20 +92,20 @@ impl SharedCache {
         }
     }
 
-    /// A function which fetches the cached json results as json string.
-    pub async fn cached_json(&self, url: &str) -> Result<String, Report<PoolError>> {
+    /// A function which retrieves the cached SearchResulsts from the internal cache.
+    pub async fn cached_json(&self, url: &str) -> Result<SearchResults, Report<PoolError>> {
         let mut mut_cache = self.cache.lock().await;
         mut_cache.cached_json(url).await
     }
 
     /// A function which caches the results by using the `url` as the key and
-    /// `json results` as the value and stores it in the cache
+    /// `SearchResults` as the value.
     pub async fn cache_results(
         &self,
-        json_results: String,
+        search_results: SearchResults,
         url: &str,
     ) -> Result<(), Report<PoolError>> {
         let mut mut_cache = self.cache.lock().await;
-        mut_cache.cache_results(json_results, url).await
+        mut_cache.cache_results(search_results, url).await
     }
 }
