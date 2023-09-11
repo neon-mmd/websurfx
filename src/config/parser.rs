@@ -105,8 +105,7 @@ impl Config {
                 rate_limiter: RateLimiter {
                     number_of_requests: rate_limiter["number_of_requests"], 
                     time_limit: rate_limiter["time_limit"], 
-                }
-            })
+            }
         })
     }
 }
