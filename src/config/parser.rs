@@ -36,6 +36,7 @@ pub struct Config {
     pub request_timeout: u8,
     pub threads: u8,
     pub rate_limiter: RateLimiter,
+    pub safe_search: u8,
 }
 
 impl Config {
@@ -79,33 +80,44 @@ impl Config {
             parsed_threads
         };
 
-            let rate_limiter = globals.get::<_,HashMap<String, u8>>("rate_limiter")?;
+        let rate_limiter = globals.get::<_, HashMap<String, u8>>("rate_limiter")?;
 
-            Ok(Config {
-                port: globals.get::<_, u16>("port")?,
-                binding_ip: globals.get::<_, String>("binding_ip")?,
-                style: Style::new(
-                    globals.get::<_, String>("theme")?,
-                    globals.get::<_, String>("colorscheme")?,
-                ),
-                redis_url: globals.get::<_, String>("redis_url")?,
-                aggregator: AggregatorConfig {
-                    random_delay: globals.get::<_, bool>("production_use")?,
-                },
-                logging,
-                debug,
-                upstream_search_engines: globals
-                    .get::<_, HashMap<String, bool>>("upstream_search_engines")?
-                    .into_iter()
-                    .filter_map(|(key, value)| value.then_some(key))
-                    .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(&engine))
-                    .collect(),
-                request_timeout: globals.get::<_, u8>("request_timeout")?,
-                threads,
-                rate_limiter: RateLimiter {
-                    number_of_requests: rate_limiter["number_of_requests"], 
-                    time_limit: rate_limiter["time_limit"], 
+        let parsed_safe_search: u8 = globals.get::<_, u8>("safe_search")?;
+        let safe_search: u8 = match parsed_safe_search {
+            0..=4 => parsed_safe_search,
+            _ => {
+                log::error!("Config Error: The value of `safe_search` option should be a non zero positive integer from 0 to 4.");
+                log::error!("Falling back to using the value `1` for the option");
+                1
             }
+        };
+
+        Ok(Config {
+            port: globals.get::<_, u16>("port")?,
+            binding_ip: globals.get::<_, String>("binding_ip")?,
+            style: Style::new(
+                globals.get::<_, String>("theme")?,
+                globals.get::<_, String>("colorscheme")?,
+            ),
+            redis_url: globals.get::<_, String>("redis_url")?,
+            aggregator: AggregatorConfig {
+                random_delay: globals.get::<_, bool>("production_use")?,
+            },
+            logging,
+            debug,
+            upstream_search_engines: globals
+                .get::<_, HashMap<String, bool>>("upstream_search_engines")?
+                .into_iter()
+                .filter_map(|(key, value)| value.then_some(key))
+                .filter_map(|engine| crate::engines::engine_models::EngineHandler::new(&engine))
+                .collect(),
+            request_timeout: globals.get::<_, u8>("request_timeout")?,
+            threads,
+            rate_limiter: RateLimiter {
+                number_of_requests: rate_limiter["number_of_requests"],
+                time_limit: rate_limiter["time_limit"],
+            },
+            safe_search,
         })
     }
 }
