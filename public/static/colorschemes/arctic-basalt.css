@@ -1,0 +1,21 @@
+:root {
+    --background-color: #111216;
+    --foreground-color: #cdd6f4;
+    --search_bar_border: grey;
+    --search_bar_color: white;
+    --font_primary: white;
+    --font_secondary: #919193;
+    --gradient_left: #00509d;
+    --gradient_right: #006ad0;
+    --url_gradient_left: #00509d;
+    --url_gradient_right: #006ad0;
+    --darkmode_icon: #0074cc;
+}
+
+
+/*--gradient_left: #8E12ED;
+	--gradient_right: #A442F0;*/
+
+
+/*--gradient_left: #36cf30;
+	--gradient_right: #5ED85A;*/
