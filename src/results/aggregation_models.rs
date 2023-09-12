@@ -114,12 +114,12 @@ pub struct SearchResults {
     /// Stores the information on which engines failed with their engine name
     /// and the type of error that caused it.
     pub engine_errors_info: Vec<EngineErrorInfo>,
-    /// Stores the flag option which holds the check value that the following 
-    /// search query was disallowed when the safe search level set to 4 and it 
+    /// Stores the flag option which holds the check value that the following
+    /// search query was disallowed when the safe search level set to 4 and it
     /// was present in the `Blocklist` file.
     pub disallowed: bool,
-    /// Stores the flag option which holds the check value that the following 
-    /// search query was filtered when the safe search level set to 3 and it 
+    /// Stores the flag option which holds the check value that the following
+    /// search query was filtered when the safe search level set to 3 and it
     /// was present in the `Blocklist` file.
     pub filtered: bool,
 }
@@ -133,9 +133,8 @@ impl SearchResults {
     /// and stores it into a vector of `SearchResult` structs.
     /// * `page_query` - Takes an argument of current page`s search query `q` provided in
     /// the search url.
-    /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
-    /// given search query.
-    /// * ``
+    /// * `engine_errors_info` - Takes an array of structs which contains information regarding
+    /// which engines failed with their names, reason and their severity color name.
     pub fn new(
         results: Vec<SearchResult>,
         page_query: &str,

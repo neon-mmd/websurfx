@@ -230,7 +230,8 @@ async fn results(
             // UI and use that.
             let mut results: SearchResults = match req.cookie("appCookie") {
                 Some(cookie_value) => {
-                    let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+                    let cookie_value: Cookie<'_> =
+                        serde_json::from_str(cookie_value.name_value().1)?;
 
                     let engines: Vec<EngineHandler> = cookie_value
                         .engines
