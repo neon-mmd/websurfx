@@ -1,62 +1,132 @@
-{{>header this.style}}
+{{>header_search this.style}}
 <main class="results">
-    {{>search_bar this}}
-    <div class="results_aggregated">
-        {{#if results}} {{#each results}}
-        <div class="result">
-            <h1><a href="{{{this.url}}}">{{{this.title}}}</a></h1>
-            <small>{{{this.url}}}</small>
-            <p>{{{this.description}}}</p>
-            <div class="upstream_engines">
-                {{#each engine}}
-                <span>{{{this}}}</span>
-                {{/each}}
+    <!--{{>search_bar this}}-->
+    <!--<div class="results_aggregated">-->
+    <div id="pure_outer_result_container">
+        <div id="grid_center_keeper">
+            <div class="results_aggregated">
+                <!-------------------------------------------->
+                {{#if results}} {{#each results}}
+
+                <!-------------------->
+                <div class="single_result">
+                    <div style="display: flex; align-items: center;">
+                        <img id="icon" src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={{{this.url}}}&size=32">
+                        <div>
+                            <a href={{{this.url}}}>
+                                <p id="no_text_overflow">{{{this.title}}}</p>
+                            </a>
+                            <p class="url" id="no_text_overflow">{{{this.url}}}</p>
+                        </div>
+                    </div>
+
+                    <p id="engine"><span style="color: #747474">
+						{{#each engine}}
+							{{{this}}}
+						{{/each}}
+					-</span> {{{this.description}}}</p>
+                </div>
+                <!-------------------->
+
+                {{/each}} {{else}} {{#if disallowed}}
+                <div class="result_disallowed">
+                    <div class="description">
+                        <p>
+                            Your search - <span class="user_query">{{{this.pageQuery}}}</span> - has been disallowed.
+                        </p>
+                        <p class="description_paragraph">Dear user,</p>
+                        <p class="description_paragraph">
+                            The query - <span class="user_query">{{{this.pageQuery}}}</span> - has been blacklisted via server configuration and hence disallowed by the server. Henceforth no results could be displayed for your query.
+                        </p>
+                    </div>
+                    <img src="./images/barricade.png" alt="Image of a Barricade" />
+                </div>
+                {{else}} {{#if filtered}}
+                <div class="result_filtered">
+                    <div class="description">
+                        <p>
+                            Your search - <span class="user_query">{{{this.pageQuery}}}</span> - has been filtered.
+                        </p>
+                        <p class="description_paragraph">Dear user,</p>
+                        <p class="description_paragraph">
+                            All the search results contain results that has been configured to be filtered out via server configuration and henceforth has been completely filtered out.
+                        </p>
+                    </div>
+                    <img src="./images/filter.png" alt="Image of a paper inside a funnel" />
+                </div>
+                {{else}}
+                <!-------------------------------------------->
+
+                <div class="result_not_found">
+                    <p>Your search - {{{this.pageQuery}}} - did not match any documents.</p>
+                    <p class="suggestions">Suggestions:</p>
+                    <ul>
+                        <li>Make sure that all words are spelled correctly.</li>
+                        <li>Try different keywords.</li>
+                        <li>Try more general keywords.</li>
+                    </ul>
+                    <img src="./images/no_results.gif" alt="Man fishing gif" />
+                </div>
+                {{/if}} {{/if}} {{/if}}
+            </div>
+
+            <div>
+                <div style="width: 350xp;"></div>
+
+                <!--<div style="border: 1px solid #919193; height: 500px; width: 350px; border-radius: 5px; padding: 15px; box-sizing: border-box; position: relative;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <p style="font-size: 25px; margin: 0px">Lorem ipsum</p>
+
+                            <div style="display: flex; align-items: center;">
+                                <p style="font-size: 17.5px; margin: 0px; color: #919193;">Subtitle</p>
+                                <i class='bx bx-dots-vertical-rounded' style="color: #919193; margin-bottom: 1px; margin-left: -3px;"></i>
+                            </div>
+                        </div>
+
+                        <img src="vertical-placeholder-image.jpg" style="height: 50px;" alt="">
+                    </div>
+
+                    <hr style="margin: 5px 0;">
+
+                    <p style="color: #919193; margin-bottom: 1px; margin-left: -3px;">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
+                        no sea takimata sanctus est Lorem ipsum dolor sit amet. <span class="url" style="cursor: pointer;">Wikipedia</span></p>-->
+
+                <!-- spacing is missing, migration issue. do later -->
+                <!--<p>Extra Information: <span style="color: #919193;">Lorem ipsum</span></p>
+                <p>More Stuff: <span style="color: #919193;">Lorem ipsum</span></p>
+                <p>Also interesting: <span style="color: #919193;">Lorem ipsum</span></p>
+
+                <div style="position: absolute; bottom: 10px; width: 325px;">
+                    <p style="margin-bottom: 10px;">Other examples</p>
+
+                    <div class="more_examples" style="display: flex; justify-content: space-between;">
+                        <div style="width: 65px;">
+                            <img src="vertical-placeholder-image.jpg" style="height: 60px; width: 60px; border-radius: 5px;" alt="">
+                            <p class="url" style="margin: 0;">Lorem</p>
+                        </div>
+
+                        <div style="width: 65px;">
+                            <img src="vertical-placeholder-image.jpg" style="height: 60px; width: 60px; border-radius: 5px;" alt="">
+                            <p class="url" style="margin: 0;">Lorem</p>
+                        </div>
+
+                        <div style="width: 65px;">
+                            <img src="vertical-placeholder-image.jpg" style="height: 60px; width: 60px; border-radius: 5px;" alt="">
+                            <p class="url" style="margin: 0;">Lorem</p>
+                    	</div>
+
+                        <div style="width: 65px;">
+                            <img src="vertical-placeholder-image.jpg" style="height: 60px; width: 60px; border-radius: 5px;" alt="">
+                            <p class="url" style="margin: 0;">Lorem</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <p style="float: right; margin-top: 5px; color: #919193; font-size: 12.5px;">give feedback</p>-->
             </div>
         </div>
-        {{/each}} {{else}} {{#if disallowed}}
-        <div class="result_disallowed">
-            <div class="description">
-                <p>
-                    Your search - <span class="user_query">{{{this.pageQuery}}}</span> -
-                    has been disallowed.
-                </p>
-                <p class="description_paragraph">Dear user,</p>
-                <p class="description_paragraph">
-                    The query - <span class="user_query">{{{this.pageQuery}}}</span> - has
-                    been blacklisted via server configuration and hence disallowed by the
-                    server. Henceforth no results could be displayed for your query.
-                </p>
-            </div>
-            <img src="./images/barricade.png" alt="Image of a Barricade" />
-        </div>
-        {{else}} {{#if filtered}}
-        <div class="result_filtered">
-            <div class="description">
-                <p>
-                    Your search - <span class="user_query">{{{this.pageQuery}}}</span> -
-                    has been filtered.
-                </p>
-                <p class="description_paragraph">Dear user,</p>
-                <p class="description_paragraph">
-                    All the search results contain results that has been configured to be
-                    filtered out via server configuration and henceforth has been
-                    completely filtered out.
-                </p>
-            </div>
-            <img src="./images/filter.png" alt="Image of a paper inside a funnel" />
-        </div>
-        {{else}}
-        <div class="result_not_found">
-            <p>Your search - {{{this.pageQuery}}} - did not match any documents.</p>
-            <p class="suggestions">Suggestions:</p>
-            <ul>
-                <li>Make sure that all words are spelled correctly.</li>
-                <li>Try different keywords.</li>
-                <li>Try more general keywords.</li>
-            </ul>
-            <img src="./images/no_results.gif" alt="Man fishing gif" />
-        </div>
-        {{/if}} {{/if}} {{/if}}
     </div>
     <div class="page_navigation">
         <button type="button" onclick="navigate_backward()">

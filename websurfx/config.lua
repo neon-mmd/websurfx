@@ -42,7 +42,7 @@ safe_search = 2
 -- tokyo-night
 -- tomorrow-night
 -- }}
-colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
+colorscheme = "arctic-basalt" -- the colorscheme name which should be used for the website theme
 theme = "simple" -- the theme name which should be used for the website
 
 -- ### Caching ###
