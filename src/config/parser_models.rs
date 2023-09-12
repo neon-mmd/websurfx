@@ -36,3 +36,26 @@ impl Style {
         Style { theme, colorscheme }
     }
 }
+
+/// Configuration options for the aggregator.
+///
+/// # Fields
+///
+/// * `random_delay` - It stores the option to whether enable or disable random delays between
+/// requests.
+#[derive(Clone)]
+pub struct AggregatorConfig {
+    pub random_delay: bool,
+}
+
+/// Configuration options for the rate limiter middleware.
+///
+/// # Fields
+///
+/// * `number_of_requests` - The number of request that are allowed within a provided time limit.
+/// * `time_limit` - The time limit in which the quantity of requests that should be accepted.
+#[derive(Clone)]
+pub struct RateLimiter {
+    pub number_of_requests: u8,
+    pub time_limit: u8,
+}

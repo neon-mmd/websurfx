@@ -3,7 +3,7 @@
 
 use crate::handler::paths::{file_path, FileType};
 
-use super::parser_models::Style;
+use super::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
 use mlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
@@ -35,18 +35,8 @@ pub struct Config {
     pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
     pub request_timeout: u8,
     pub threads: u8,
+    pub rate_limiter: RateLimiter,
     pub safe_search: u8,
-}
-
-/// Configuration options for the aggregator.
-///
-/// # Fields
-///
-/// * `random_delay` - It stores the option to whether enable or disable random delays between
-/// requests.
-#[derive(Clone)]
-pub struct AggregatorConfig {
-    pub random_delay: bool,
 }
 
 impl Config {
@@ -90,6 +80,8 @@ impl Config {
             parsed_threads
         };
 
+        let rate_limiter = globals.get::<_, HashMap<String, u8>>("rate_limiter")?;
+
         let parsed_safe_search: u8 = globals.get::<_, u8>("safe_search")?;
         let safe_search: u8 = match parsed_safe_search {
             0..=4 => parsed_safe_search,
@@ -121,6 +113,10 @@ impl Config {
                 .collect(),
             request_timeout: globals.get::<_, u8>("request_timeout")?,
             threads,
+            rate_limiter: RateLimiter {
+                number_of_requests: rate_limiter["number_of_requests"],
+                time_limit: rate_limiter["time_limit"],
+            },
             safe_search,
         })
     }
