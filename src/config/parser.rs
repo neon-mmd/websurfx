@@ -34,7 +34,7 @@ pub struct Config {
     pub threads: u8,
     /// It stores configuration options for the ratelimiting middleware.
     pub rate_limiter: RateLimiter,
-    /// It stores the level of safe search to be used for restricting content in the 
+    /// It stores the level of safe search to be used for restricting content in the
     /// search results.
     pub safe_search: u8,
 }

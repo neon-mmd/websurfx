@@ -33,6 +33,8 @@ struct SearchParams {
     /// It stores the search parameter `page` (or pageno in simple words)
     /// of the search url.
     page: Option<u32>,
+    /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
+    /// search url.
     safesearch: Option<u8>,
 }
 
@@ -275,6 +277,8 @@ async fn results(
     }
 }
 
+/// A helper function which checks whether the search query contains any keywords which should be
+/// disallowed/allowed based on the regex based rules present in the blocklist and allowlist files.
 fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
