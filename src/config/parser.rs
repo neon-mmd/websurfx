@@ -20,6 +20,8 @@ pub struct Config {
     /// It stores the redis connection url address on which the redis
     /// client should connect.
     pub redis_url: Option<String>,
+    /// enable/disable the in-memory cache. Only checked, when no redis_url is provided.
+    pub in_memory_cache: bool,
     /// It stores the option to whether enable or disable production use.
     pub aggregator: AggregatorConfig,
     /// It stores the option to whether enable or disable logs.
@@ -100,6 +102,10 @@ impl Config {
                 globals.get::<_, String>("colorscheme")?,
             ),
             redis_url: globals.get::<_, String>("redis_url").ok(),
+            in_memory_cache: globals
+                .get::<_, bool>("in_memory_cache")
+                .ok()
+                .unwrap_or(false),
             aggregator: AggregatorConfig {
                 random_delay: globals.get::<_, bool>("production_use")?,
             },

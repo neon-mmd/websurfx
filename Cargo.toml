@@ -20,7 +20,7 @@ fake-useragent = {version="0.1.3"}
 env_logger = {version="0.10.0"}
 log = {version="0.4.20"}
 mlua = {version="0.8.10", features=["luajit"]}
-redis = {version="0.23.3", features=["tokio-comp","connection-manager"]}
+redis = {version="0.23.3", features=["tokio-comp","connection-manager"], optional = true}
 md5 = {version="0.7.0"}
 rand={version="0.8.5"}
 once_cell = {version="1.18.0"}
@@ -33,7 +33,7 @@ dhat = {version="0.3.2", optional = true}
 mimalloc = { version = "0.1.38", default-features = false }
 async-once-cell = {version="0.5.3"}
 actix-governor = {version="0.4.1"}
-mini-moka = "0.10"
+mini-moka = { version="0.10", optional = true}
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
@@ -67,4 +67,7 @@ rpath = false
 strip = "debuginfo"
 
 [features]
+default = ["in_memory_cache", "redis"]
 dhat-heap = ["dep:dhat"] 
+in_memory_cache = ["dep:mini-moka"]
+redis = ["dep:redis"]

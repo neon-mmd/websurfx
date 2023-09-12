@@ -3,4 +3,5 @@
 
 pub mod cacher;
 pub mod error;
+#[cfg(feature = "redis")]
 pub mod redis_cacher;
