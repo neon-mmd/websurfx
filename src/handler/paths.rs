@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 use std::io::Error;
 use std::path::Path;
+use std::sync::OnceLock;
 
 // ------- Constants --------
 /// The constant holding the name of the theme folder.
@@ -31,57 +32,7 @@ pub enum FileType {
 }
 
 /// A static variable which stores the different filesystem paths for various file/folder types.
-static FILE_PATHS_FOR_DIFF_FILE_TYPES: once_cell::sync::Lazy<HashMap<FileType, Vec<String>>> =
-    once_cell::sync::Lazy::new(|| {
-        HashMap::from([
-            (
-                FileType::Config,
-                vec![
-                    format!(
-                        "{}/.config/{}/{}",
-                        std::env::var("HOME").unwrap(),
-                        COMMON_DIRECTORY_NAME,
-                        CONFIG_FILE_NAME
-                    ),
-                    format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME),
-                    format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME),
-                ],
-            ),
-            (
-                FileType::Theme,
-                vec![
-                    format!("/opt/websurfx/{}/", PUBLIC_DIRECTORY_NAME),
-                    format!("./{}/", PUBLIC_DIRECTORY_NAME),
-                ],
-            ),
-            (
-                FileType::AllowList,
-                vec![
-                    format!(
-                        "{}/.config/{}/{}",
-                        std::env::var("HOME").unwrap(),
-                        COMMON_DIRECTORY_NAME,
-                        ALLOWLIST_FILE_NAME
-                    ),
-                    format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, ALLOWLIST_FILE_NAME),
-                    format!("./{}/{}", COMMON_DIRECTORY_NAME, ALLOWLIST_FILE_NAME),
-                ],
-            ),
-            (
-                FileType::BlockList,
-                vec![
-                    format!(
-                        "{}/.config/{}/{}",
-                        std::env::var("HOME").unwrap(),
-                        COMMON_DIRECTORY_NAME,
-                        BLOCKLIST_FILE_NAME
-                    ),
-                    format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, BLOCKLIST_FILE_NAME),
-                    format!("./{}/{}", COMMON_DIRECTORY_NAME, BLOCKLIST_FILE_NAME),
-                ],
-            ),
-        ])
-    });
+static FILE_PATHS_FOR_DIFF_FILE_TYPES: OnceLock<HashMap<FileType, Vec<String>>> = OnceLock::new();
 
 /// A function which returns an appropriate path for thr provided file type by checking if the path
 /// for the given file type exists on that path.
@@ -99,11 +50,64 @@ static FILE_PATHS_FOR_DIFF_FILE_TYPES: once_cell::sync::Lazy<HashMap<FileType, V
 /// 1. `/opt/websurfx` if it not present here then it fallbacks to the next one (2)
 /// 2. Under project folder ( or codebase in other words) if it is not present
 ///    here then it returns an error as mentioned above.
-pub fn file_path(file_type: FileType) -> Result<String, Error> {
-    let file_path = FILE_PATHS_FOR_DIFF_FILE_TYPES.get(&file_type).unwrap();
+pub fn file_path(file_type: FileType) -> Result<&'static str, Error> {
+    let file_path: &Vec<String> = FILE_PATHS_FOR_DIFF_FILE_TYPES
+        .get_or_init(|| {
+            HashMap::from([
+                (
+                    FileType::Config,
+                    vec![
+                        format!(
+                            "{}/.config/{}/{}",
+                            std::env::var("HOME").unwrap(),
+                            COMMON_DIRECTORY_NAME,
+                            CONFIG_FILE_NAME
+                        ),
+                        format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME),
+                        format!("./{}/{}", COMMON_DIRECTORY_NAME, CONFIG_FILE_NAME),
+                    ],
+                ),
+                (
+                    FileType::Theme,
+                    vec![
+                        format!("/opt/websurfx/{}/", PUBLIC_DIRECTORY_NAME),
+                        format!("./{}/", PUBLIC_DIRECTORY_NAME),
+                    ],
+                ),
+                (
+                    FileType::AllowList,
+                    vec![
+                        format!(
+                            "{}/.config/{}/{}",
+                            std::env::var("HOME").unwrap(),
+                            COMMON_DIRECTORY_NAME,
+                            ALLOWLIST_FILE_NAME
+                        ),
+                        format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, ALLOWLIST_FILE_NAME),
+                        format!("./{}/{}", COMMON_DIRECTORY_NAME, ALLOWLIST_FILE_NAME),
+                    ],
+                ),
+                (
+                    FileType::BlockList,
+                    vec![
+                        format!(
+                            "{}/.config/{}/{}",
+                            std::env::var("HOME").unwrap(),
+                            COMMON_DIRECTORY_NAME,
+                            BLOCKLIST_FILE_NAME
+                        ),
+                        format!("/etc/xdg/{}/{}", COMMON_DIRECTORY_NAME, BLOCKLIST_FILE_NAME),
+                        format!("./{}/{}", COMMON_DIRECTORY_NAME, BLOCKLIST_FILE_NAME),
+                    ],
+                ),
+            ])
+        })
+        .get(&file_type)
+        .unwrap();
+
     for (idx, _) in file_path.iter().enumerate() {
         if Path::new(file_path[idx].as_str()).exists() {
-            return Ok(file_path[idx].clone());
+            return Ok(std::mem::take(&mut &*file_path[idx]));
         }
     }
 

@@ -1,37 +1,69 @@
 {{>header this.style}}
 <main class="results">
-  {{>search_bar this}}
-  <div class="results_aggregated">
-    {{#if results}} {{#each results}}
-    <div class="result">
-      <h1><a href="{{{this.url}}}">{{{this.title}}}</a></h1>
-      <small>{{{this.url}}}</small>
-      <p>{{{this.description}}}</p>
-      <div class="upstream_engines">
-        {{#each engine}}
-        <span>{{{this}}}</span>
-        {{/each}}
-      </div>
+    {{>search_bar this}}
+    <div class="results_aggregated">
+        {{#if results}} {{#each results}}
+        <div class="result">
+            <h1><a href="{{{this.url}}}">{{{this.title}}}</a></h1>
+            <small>{{{this.url}}}</small>
+            <p>{{{this.description}}}</p>
+            <div class="upstream_engines">
+                {{#each engine}}
+                <span>{{{this}}}</span>
+                {{/each}}
+            </div>
+        </div>
+        {{/each}} {{else}} {{#if disallowed}}
+        <div class="result_disallowed">
+            <div class="description">
+                <p>
+                    Your search - <span class="user_query">{{{this.pageQuery}}}</span> -
+                    has been disallowed.
+                </p>
+                <p class="description_paragraph">Dear user,</p>
+                <p class="description_paragraph">
+                    The query - <span class="user_query">{{{this.pageQuery}}}</span> - has
+                    been blacklisted via server configuration and hence disallowed by the
+                    server. Henceforth no results could be displayed for your query.
+                </p>
+            </div>
+            <img src="./images/barricade.png" alt="Image of a Barricade" />
+        </div>
+        {{else}} {{#if filtered}}
+        <div class="result_filtered">
+            <div class="description">
+                <p>
+                    Your search - <span class="user_query">{{{this.pageQuery}}}</span> -
+                    has been filtered.
+                </p>
+                <p class="description_paragraph">Dear user,</p>
+                <p class="description_paragraph">
+                    All the search results contain results that has been configured to be
+                    filtered out via server configuration and henceforth has been
+                    completely filtered out.
+                </p>
+            </div>
+            <img src="./images/filter.png" alt="Image of a paper inside a funnel" />
+        </div>
+        {{else}}
+        <div class="result_not_found">
+            <p>Your search - {{{this.pageQuery}}} - did not match any documents.</p>
+            <p class="suggestions">Suggestions:</p>
+            <ul>
+                <li>Make sure that all words are spelled correctly.</li>
+                <li>Try different keywords.</li>
+                <li>Try more general keywords.</li>
+            </ul>
+            <img src="./images/no_results.gif" alt="Man fishing gif" />
+        </div>
+        {{/if}} {{/if}} {{/if}}
     </div>
-    {{/each}} {{else}}
-    <div class="result_not_found">
-      <p>Your search - {{{this.pageQuery}}} - did not match any documents.</p>
-      <p class="suggestions">Suggestions:</p>
-      <ul>
-        <li>Make sure that all words are spelled correctly.</li>
-        <li>Try different keywords.</li>
-        <li>Try more general keywords.</li>
-      </ul>
-      <img src="./images/no_results.gif" alt="Man fishing gif" />
+    <div class="page_navigation">
+        <button type="button" onclick="navigate_backward()">
+            &#8592; previous
+        </button>
+        <button type="button" onclick="navigate_forward()">next &#8594;</button>
     </div>
-    {{/if}}
-  </div>
-  <div class="page_navigation">
-    <button type="button" onclick="navigate_backward()">
-      &#8592; previous
-    </button>
-    <button type="button" onclick="navigate_forward()">next &#8594;</button>
-  </div>
 </main>
 <script src="static/index.js"></script>
 <script src="static/pagination.js"></script>

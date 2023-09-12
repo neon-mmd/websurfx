@@ -2,3 +2,4 @@
 //! results fetched and aggregated from the upstream search engines in a json format.
 
 pub mod cacher;
+pub mod error;

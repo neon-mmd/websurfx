@@ -18,6 +18,7 @@ use crate::server::routes;
 
 use actix_cors::Cors;
 use actix_files as fs;
+use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
 use config::parser::Config;
 use handlebars::Handlebars;
@@ -46,7 +47,7 @@ use handler::paths::{file_path, FileType};
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
     let mut handlebars: Handlebars<'_> = Handlebars::new();
 
-    let public_folder_path: String = file_path(FileType::Theme)?;
+    let public_folder_path: &str = file_path(FileType::Theme)?;
 
     handlebars
         .register_templates_directory(".html", format!("{}/templates", public_folder_path))
@@ -68,10 +69,17 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
             ]);
 
         App::new()
+            .wrap(Logger::default()) // added logging middleware for logging.
             .app_data(handlebars_ref.clone())
             .app_data(web::Data::new(config.clone()))
             .wrap(cors)
-            .wrap(Logger::default()) // added logging middleware for logging.
+            .wrap(Governor::new(
+                &GovernorConfigBuilder::default()
+                    .per_second(config.rate_limiter.time_limit as u64)
+                    .burst_size(config.rate_limiter.number_of_requests as u32)
+                    .finish()
+                    .unwrap(),
+            ))
             // Serve images and static files (css and js files).
             .service(
                 fs::Files::new("/static", format!("{}/static", public_folder_path))

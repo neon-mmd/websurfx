@@ -4,14 +4,14 @@
 
 use std::collections::HashMap;
 
-use reqwest::header::{HeaderMap, CONTENT_TYPE, COOKIE, REFERER, USER_AGENT};
+use reqwest::header::HeaderMap;
 use scraper::{Html, Selector};
 
 use crate::results::aggregation_models::SearchResult;
 
 use super::engine_models::{EngineError, SearchEngine};
 
-use error_stack::{IntoReport, Report, Result, ResultExt};
+use error_stack::{Report, Result, ResultExt};
 
 /// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
@@ -21,10 +21,11 @@ pub struct DuckDuckGo;
 impl SearchEngine for DuckDuckGo {
     async fn results(
         &self,
-        query: String,
+        query: &str,
         page: u32,
-        user_agent: String,
+        user_agent: &str,
         request_timeout: u8,
+        _safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
@@ -43,38 +44,19 @@ impl SearchEngine for DuckDuckGo {
         };
 
         // initializing HeaderMap and adding appropriate headers.
-        let mut header_map = HeaderMap::new();
-        header_map.insert(
-            USER_AGENT,
-            user_agent
-                .parse()
-                .into_report()
-                .change_context(EngineError::UnexpectedError)?,
-        );
-        header_map.insert(
-            REFERER,
-            "https://google.com/"
-                .parse()
-                .into_report()
-                .change_context(EngineError::UnexpectedError)?,
-        );
-        header_map.insert(
-            CONTENT_TYPE,
-            "application/x-www-form-urlencoded"
-                .parse()
-                .into_report()
-                .change_context(EngineError::UnexpectedError)?,
-        );
-        header_map.insert(
-            COOKIE,
-            "kl=wt-wt"
-                .parse()
-                .into_report()
-                .change_context(EngineError::UnexpectedError)?,
-        );
+        let header_map = HeaderMap::try_from(&HashMap::from([
+            ("USER_AGENT".to_string(), user_agent.to_string()),
+            ("REFERER".to_string(), "https://google.com/".to_string()),
+            (
+                "CONTENT_TYPE".to_string(),
+                "application/x-www-form-urlencoded".to_string(),
+            ),
+            ("COOKIE".to_string(), "kl=wt-wt".to_string()),
+        ]))
+        .change_context(EngineError::UnexpectedError)?;
 
         let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(self, url, header_map, request_timeout).await?,
+            &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
         );
 
         let no_result: Selector = Selector::parse(".no-results")
@@ -108,8 +90,7 @@ impl SearchEngine for DuckDuckGo {
                         .next()
                         .unwrap()
                         .inner_html()
-                        .trim()
-                        .to_string(),
+                        .trim(),
                     format!(
                         "https://{}",
                         result
@@ -118,15 +99,15 @@ impl SearchEngine for DuckDuckGo {
                             .unwrap()
                             .inner_html()
                             .trim()
-                    ),
+                    )
+                    .as_str(),
                     result
                         .select(&result_desc)
                         .next()
                         .unwrap()
                         .inner_html()
-                        .trim()
-                        .to_string(),
-                    vec!["duckduckgo".to_string()],
+                        .trim(),
+                    &["duckduckgo"],
                 )
             })
             .map(|search_result| (search_result.url.clone(), search_result))
