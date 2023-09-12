@@ -208,7 +208,7 @@ async fn results(
                     results.set_disallowed();
                     results.add_style(&config.style);
                     results.set_page_query(query);
-                    cache.cache_results(results.clone(), &url).await?;
+                    cache.cache_results(&results, &url).await?;
                     return Ok(results);
                 }
             }
@@ -256,7 +256,7 @@ async fn results(
                 results.set_filtered();
             }
             results.add_style(&config.style);
-            cache.cache_results(results.clone(), &url).await?;
+            cache.cache_results(&results, &url).await?;
             Ok(results)
         }
     }

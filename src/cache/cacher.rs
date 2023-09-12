@@ -62,17 +62,17 @@ impl Cache {
     /// * `url` - It takes the url as a String.
     pub async fn cache_results(
         &mut self,
-        search_results: SearchResults,
+        search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<PoolError>> {
         match self {
             Cache::Redis(redis_cache) => {
-                let json = serde_json::to_string(&search_results)
+                let json = serde_json::to_string(search_results)
                     .map_err(|_| PoolError::SerializationError)?;
                 redis_cache.cache_results(&json, url).await
             }
             Cache::InMemory(cache) => {
-                cache.insert(url.to_string(), search_results);
+                cache.insert(url.to_string(), search_results.clone());
                 Ok(())
             }
         }
@@ -102,7 +102,7 @@ impl SharedCache {
     /// `SearchResults` as the value.
     pub async fn cache_results(
         &self,
-        search_results: SearchResults,
+        search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<PoolError>> {
         let mut mut_cache = self.cache.lock().await;
