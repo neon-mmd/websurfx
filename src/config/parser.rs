@@ -9,33 +9,33 @@ use mlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
-///
-/// # Fields
-//
-/// * `port` - It stores the parsed port number option on which the server should launch.
-/// * `binding_ip` - It stores the parsed ip address option on which the server should launch
-/// * `style` - It stores the theming options for the website.
-/// * `redis_url` - It stores the redis connection url address on which the redis
-/// client should connect.
-/// * `aggregator` -  It stores the option to whether enable or disable production use.
-/// * `logging` - It stores the option to whether enable or disable logs.
-/// * `debug` - It stores the option to whether enable or disable debug mode.
-/// * `upstream_search_engines` - It stores all the engine names that were enabled by the user.
-/// * `request_timeout` - It stores the time (secs) which controls the server request timeout.
-/// * `threads` - It stores the number of threads which controls the app will use to run.
 #[derive(Clone)]
 pub struct Config {
+    /// It stores the parsed port number option on which the server should launch.
     pub port: u16,
+    /// It stores the parsed ip address option on which the server should launch
     pub binding_ip: String,
+    /// It stores the theming options for the website.
     pub style: Style,
+    /// It stores the redis connection url address on which the redis
+    /// client should connect.
     pub redis_url: String,
+    /// It stores the option to whether enable or disable production use.
     pub aggregator: AggregatorConfig,
+    /// It stores the option to whether enable or disable logs.
     pub logging: bool,
+    /// It stores the option to whether enable or disable debug mode.
     pub debug: bool,
+    /// It stores all the engine names that were enabled by the user.
     pub upstream_search_engines: Vec<crate::engines::engine_models::EngineHandler>,
+    /// It stores the time (secs) which controls the server request timeout.
     pub request_timeout: u8,
+    /// It stores the number of threads which controls the app will use to run.
     pub threads: u8,
+    /// It stores configuration options for the ratelimiting middleware.
     pub rate_limiter: RateLimiter,
+    /// It stores the level of safe search to be used for restricting content in the
+    /// search results.
     pub safe_search: u8,
 }
 
@@ -123,6 +123,11 @@ impl Config {
 }
 
 /// a helper function that sets the proper logging level
+///
+/// # Arguments
+///
+/// * `debug` - It takes the option to whether enable or disable debug mode.
+/// * `logging` - It takes the option to whether enable or disable logs.
 fn set_logging_level(debug: bool, logging: bool) {
     if let Ok(pkg_env_var) = std::env::var("PKG_ENV") {
         if pkg_env_var.to_lowercase() == "dev" {

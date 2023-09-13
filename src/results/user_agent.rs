@@ -4,6 +4,8 @@ use std::sync::OnceLock;
 
 use fake_useragent::{Browsers, UserAgents, UserAgentsBuilder};
 
+/// A static variable which stores the initially build `UserAgents` struct. So as it can be resused
+/// again and again without the need of reinitializing the `UserAgents` struct.
 static USER_AGENTS: OnceLock<UserAgents> = OnceLock::new();
 
 /// A function to generate random user agent to improve privacy of the user.
