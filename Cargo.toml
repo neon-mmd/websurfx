@@ -67,7 +67,8 @@ rpath = false
 strip = "debuginfo"
 
 [features]
-default = ["in_memory_cache", "redis"]
+default = ["memory-cache"]
 dhat-heap = ["dep:dhat"] 
-in_memory_cache = ["dep:mini-moka"]
-redis = ["dep:redis"]
+memory-cache = ["dep:mini-moka"]
+redis-cache = ["dep:redis"]
+hybrid-cache = ["memory-cache", "redis-cache"]

@@ -2,15 +2,16 @@
 //! from the upstream search engines in a json format.
 
 use error_stack::Report;
-#[cfg(feature = "in_memory_cache")]
+#[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
+#[cfg(feature = "memory-cache")]
 use std::time::Duration;
 use tokio::sync::Mutex;
 
 use crate::{config::parser::Config, results::aggregation_models::SearchResults};
 
 use super::error::PoolError;
-#[cfg(feature = "redis")]
+#[cfg(feature = "redis-cache")]
 use super::redis_cacher::RedisCache;
 
 /// Different implementations for caching, currently it is possible to cache in-memory or in Redis.
@@ -18,10 +19,10 @@ use super::redis_cacher::RedisCache;
 pub enum Cache {
     /// Caching is disabled
     Disabled,
-    #[cfg(feature = "redis")]
+    #[cfg(feature = "redis-cache")]
     /// Encapsulates the Redis based cache
     Redis(RedisCache),
-    #[cfg(feature = "in_memory_cache")]
+    #[cfg(feature = "memory-cache")]
     /// Contains the in-memory cache.
     InMemory(MokaCache<String, SearchResults>),
 }
@@ -29,7 +30,7 @@ pub enum Cache {
 impl Cache {
     /// Builds the cache from the given configuration.
     pub async fn build(config: &Config) -> Self {
-        #[cfg(feature = "redis")]
+        #[cfg(feature = "redis-cache")]
         if let Some(url) = &config.redis_url {
             log::info!("Using Redis running at {} for caching", &url);
             return Cache::new(
@@ -38,7 +39,7 @@ impl Cache {
                     .expect("Redis cache configured"),
             );
         }
-        #[cfg(feature = "in_memory_cache")]
+        #[cfg(feature = "memory-cache")]
         if config.in_memory_cache {
             log::info!("Using an in-memory cache");
             return Cache::new_in_memory();
@@ -48,13 +49,13 @@ impl Cache {
     }
 
     /// Creates a new cache, which wraps the given RedisCache.
-    #[cfg(feature = "redis")]
+    #[cfg(feature = "redis-cache")]
     pub fn new(redis_cache: RedisCache) -> Self {
         Cache::Redis(redis_cache)
     }
 
     /// Creates an in-memory cache
-    #[cfg(feature = "in_memory_cache")]
+    #[cfg(feature = "memory-cache")]
     pub fn new_in_memory() -> Self {
         let cache = MokaCache::builder()
             .max_capacity(1000)
@@ -71,13 +72,13 @@ impl Cache {
     pub async fn cached_json(&mut self, url: &str) -> Result<SearchResults, Report<PoolError>> {
         match self {
             Cache::Disabled => Err(Report::new(PoolError::MissingValue)),
-            #[cfg(feature = "redis")]
+            #[cfg(feature = "redis-cache")]
             Cache::Redis(redis_cache) => {
                 let json = redis_cache.cached_json(url).await?;
                 Ok(serde_json::from_str::<SearchResults>(&json)
                     .map_err(|_| PoolError::SerializationError)?)
             }
-            #[cfg(feature = "in_memory_cache")]
+            #[cfg(feature = "memory-cache")]
             Cache::InMemory(in_memory) => match in_memory.get(&url.to_string()) {
                 Some(res) => Ok(res),
                 None => Err(Report::new(PoolError::MissingValue)),
@@ -99,13 +100,13 @@ impl Cache {
     ) -> Result<(), Report<PoolError>> {
         match self {
             Cache::Disabled => Ok(()),
-            #[cfg(feature = "redis")]
+            #[cfg(feature = "redis-cache")]
             Cache::Redis(redis_cache) => {
                 let json = serde_json::to_string(search_results)
                     .map_err(|_| PoolError::SerializationError)?;
                 redis_cache.cache_results(&json, url).await
             }
-            #[cfg(feature = "in_memory_cache")]
+            #[cfg(feature = "memory-cache")]
             Cache::InMemory(cache) => {
                 cache.insert(url.to_string(), search_results.clone());
                 Ok(())
