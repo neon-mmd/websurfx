@@ -1,6 +1,10 @@
 //! This main library module provides the functionality to provide and handle the Tcp server
 //! and register all the routes for the `websurfx` meta search engine website.
 
+#![forbid(unsafe_code, clippy::panic)]
+#![deny(missing_docs, clippy::missing_docs_in_private_items, clippy::perf)]
+#![warn(clippy::cognitive_complexity, rust_2018_idioms)]
+
 pub mod cache;
 pub mod config;
 pub mod engines;
@@ -41,7 +45,7 @@ use handler::paths::{file_path, FileType};
 /// let server = run(listener,config).expect("Failed to start server");
 /// ```
 pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
-    let mut handlebars: Handlebars = Handlebars::new();
+    let mut handlebars: Handlebars<'_> = Handlebars::new();
 
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
@@ -49,7 +53,7 @@ pub fn run(listener: TcpListener, config: Config) -> std::io::Result<Server> {
         .register_templates_directory(".html", format!("{}/templates", public_folder_path))
         .unwrap();
 
-    let handlebars_ref: web::Data<Handlebars> = web::Data::new(handlebars);
+    let handlebars_ref: web::Data<Handlebars<'_>> = web::Data::new(handlebars);
 
     let cloned_config_threads_opt: u8 = config.threads;
 
