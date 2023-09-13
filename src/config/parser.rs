@@ -3,9 +3,9 @@
 
 use crate::handler::paths::{file_path, FileType};
 
-use crate::models::parser_models::Style;
+use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
-use rlua::Lua;
+use mlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
@@ -32,14 +32,11 @@ pub struct Config {
     pub request_timeout: u8,
     /// It stores the number of threads which controls the app will use to run.
     pub threads: u8,
-}
-
-/// Configuration options for the aggregator.
-#[derive(Clone)]
-pub struct AggregatorConfig {
-    /// It stores the option to whether enable or disable random delays between
-    /// requests.
-    pub random_delay: bool,
+    /// It stores configuration options for the ratelimiting middleware.
+    pub rate_limiter: RateLimiter,
+    /// It stores the level of safe search to be used for restricting content in the
+    /// search results.
+    pub safe_search: u8,
 }
 
 impl Config {
@@ -57,53 +54,70 @@ impl Config {
     /// or io error if the config.lua file doesn't exists otherwise it returns a newly constructed
     /// Config struct with all the parsed config options from the parsed config file.
     pub fn parse(logging_initialized: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        Lua::new().context(|context| -> Result<Self, Box<dyn std::error::Error>> {
-            let globals = context.globals();
+        let lua = Lua::new();
+        let globals = lua.globals();
 
-            context
-                .load(&fs::read_to_string(file_path(FileType::Config)?)?)
-                .exec()?;
+        lua.load(&fs::read_to_string(file_path(FileType::Config)?)?)
+            .exec()?;
 
-            let parsed_threads: u8 = globals.get::<_, u8>("threads")?;
+        let parsed_threads: u8 = globals.get::<_, u8>("threads")?;
 
-            let debug: bool = globals.get::<_, bool>("debug")?;
-            let logging:bool= globals.get::<_, bool>("logging")?;
+        let debug: bool = globals.get::<_, bool>("debug")?;
+        let logging: bool = globals.get::<_, bool>("logging")?;
 
-            if !logging_initialized {
-                set_logging_level(debug, logging);
+        if !logging_initialized {
+            set_logging_level(debug, logging);
+        }
+
+        let threads: u8 = if parsed_threads == 0 {
+            let total_num_of_threads: usize = available_parallelism()?.get() / 2;
+            log::error!(
+                "Config Error: The value of `threads` option should be a non zero positive integer"
+            );
+            log::error!("Falling back to using {} threads", total_num_of_threads);
+            total_num_of_threads as u8
+        } else {
+            parsed_threads
+        };
+
+        let rate_limiter = globals.get::<_, HashMap<String, u8>>("rate_limiter")?;
+
+        let parsed_safe_search: u8 = globals.get::<_, u8>("safe_search")?;
+        let safe_search: u8 = match parsed_safe_search {
+            0..=4 => parsed_safe_search,
+            _ => {
+                log::error!("Config Error: The value of `safe_search` option should be a non zero positive integer from 0 to 4.");
+                log::error!("Falling back to using the value `1` for the option");
+                1
             }
+        };
 
-            let threads: u8 = if parsed_threads == 0 {
-                let total_num_of_threads: usize =  available_parallelism()?.get() / 2;
-                log::error!("Config Error: The value of `threads` option should be a non zero positive integer");
-                log::error!("Falling back to using {} threads", total_num_of_threads);
-                total_num_of_threads as u8
-            } else {
-                parsed_threads
-            };
-
-            Ok(Config {
-                port: globals.get::<_, u16>("port")?,
-                binding_ip: globals.get::<_, String>("binding_ip")?,
-                style: Style::new(
-                    globals.get::<_, String>("theme")?,
-                    globals.get::<_, String>("colorscheme")?,
-                ),
-                redis_url: globals.get::<_, String>("redis_url")?,
-                aggregator: AggregatorConfig {
-                    random_delay: globals.get::<_, bool>("production_use")?,
-                },
-                logging,
-                debug,
-                upstream_search_engines: globals
-                    .get::<_, HashMap<String, bool>>("upstream_search_engines")?
-                    .into_iter()
-                    .filter_map(|(key, value)| value.then_some(key))
-                    .filter_map(|engine| crate::models::engine_models::EngineHandler::new(&engine))
-                    .collect(),
-                request_timeout: globals.get::<_, u8>("request_timeout")?,
-                threads,
-            })
+        Ok(Config {
+            port: globals.get::<_, u16>("port")?,
+            binding_ip: globals.get::<_, String>("binding_ip")?,
+            style: Style::new(
+                globals.get::<_, String>("theme")?,
+                globals.get::<_, String>("colorscheme")?,
+            ),
+            redis_url: globals.get::<_, String>("redis_url")?,
+            aggregator: AggregatorConfig {
+                random_delay: globals.get::<_, bool>("production_use")?,
+            },
+            logging,
+            debug,
+            upstream_search_engines: globals
+                .get::<_, HashMap<String, bool>>("upstream_search_engines")?
+                .into_iter()
+                .filter_map(|(key, value)| value.then_some(key))
+                .filter_map(|engine| crate::models::engine_models::EngineHandler::new(&engine))
+                .collect(),
+            request_timeout: globals.get::<_, u8>("request_timeout")?,
+            threads,
+            rate_limiter: RateLimiter {
+                number_of_requests: rate_limiter["number_of_requests"],
+                time_limit: rate_limiter["time_limit"],
+            },
+            safe_search,
         })
     }
 }

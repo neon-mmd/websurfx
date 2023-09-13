@@ -10,6 +10,21 @@ production_use = false -- whether to use production mode or not (in other words 
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
+rate_limiter = {
+	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
+	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
+}
+
+-- ### Search ###
+-- Filter results based on different levels. The levels provided are:
+-- {{
+-- 0 - None
+-- 1 - Low
+-- 2 - Moderate
+-- 3 - High
+-- 4 - Aggressive
+-- }}
+safe_search = 2
 
 -- ### Website ###
 -- The different colorschemes provided are:
@@ -34,4 +49,7 @@ theme = "simple" -- the theme name which should be used for the website
 redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
 
 -- ### Search Engines ###
-upstream_search_engines = { DuckDuckGo = true, Searx = false } -- select the upstream search engines from which the results should be fetched.
+upstream_search_engines = {
+	DuckDuckGo = true,
+	Searx = false,
+} -- select the upstream search engines from which the results should be fetched.

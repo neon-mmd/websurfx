@@ -2,6 +2,7 @@
 //! data scraped from the upstream search engines.
 
 use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
 
 use super::{engine_models::EngineError, parser_models::Style};
 
@@ -19,7 +20,7 @@ pub struct SearchResult {
     /// The description of the search result.
     pub description: String,
     /// The names of the upstream engines from which this results were provided.
-    pub engine: Vec<String>,
+    pub engine: SmallVec<[String; 0]>,
 }
 
 impl SearchResult {
@@ -32,12 +33,12 @@ impl SearchResult {
     /// (href url in html in simple words).
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(title: String, url: String, description: String, engine: Vec<String>) -> Self {
+    pub fn new(title: &str, url: &str, description: &str, engine: &[&str]) -> Self {
         SearchResult {
-            title,
-            url,
-            description,
-            engine,
+            title: title.to_owned(),
+            url: url.to_owned(),
+            description: description.to_owned(),
+            engine: engine.iter().map(|name| name.to_string()).collect(),
         }
     }
 
@@ -46,8 +47,8 @@ impl SearchResult {
     /// # Arguments
     ///
     /// * `engine` - Takes an engine name provided as a String.
-    pub fn add_engines(&mut self, engine: String) {
-        self.engine.push(engine)
+    pub fn add_engines(&mut self, engine: &str) {
+        self.engine.push(engine.to_owned())
     }
 
     /// A function which returns the engine name stored from the struct as a string.
@@ -55,13 +56,13 @@ impl SearchResult {
     /// # Returns
     ///
     /// An engine name stored as a string from the struct.
-    pub fn engine(self) -> String {
-        self.engine.get(0).unwrap().to_string()
+    pub fn engine(&mut self) -> String {
+        std::mem::take(&mut self.engine[0])
     }
 }
 
 /// A named struct that stores the error info related to the upstream search engines.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EngineErrorInfo {
     /// It stores the error type which occured while fetching the result from a particular search
     /// engine.
@@ -81,18 +82,18 @@ impl EngineErrorInfo {
     /// * `error` - It takes the error type which occured while fetching the result from a particular
     /// search engine.
     /// * `engine` - It takes the name of the engine that failed to provide the requested search results.
-    pub fn new(error: &EngineError, engine: String) -> Self {
+    pub fn new(error: &EngineError, engine: &str) -> Self {
         Self {
             error: match error {
-                EngineError::RequestError => String::from("RequestError"),
-                EngineError::EmptyResultSet => String::from("EmptyResultSet"),
-                EngineError::UnexpectedError => String::from("UnexpectedError"),
+                EngineError::RequestError => "RequestError".to_owned(),
+                EngineError::EmptyResultSet => "EmptyResultSet".to_owned(),
+                EngineError::UnexpectedError => "UnexpectedError".to_owned(),
             },
-            engine,
+            engine: engine.to_owned(),
             severity_color: match error {
-                EngineError::RequestError => String::from("green"),
-                EngineError::EmptyResultSet => String::from("blue"),
-                EngineError::UnexpectedError => String::from("red"),
+                EngineError::RequestError => "green".to_owned(),
+                EngineError::EmptyResultSet => "blue".to_owned(),
+                EngineError::UnexpectedError => "red".to_owned(),
             },
         }
     }
@@ -101,7 +102,7 @@ impl EngineErrorInfo {
 /// A named struct to store, serialize, deserialize the all the search results scraped and
 /// aggregated from the upstream search engines.
 /// `SearchResult` structs.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     /// Stores the individual serializable `SearchResult` struct into a vector of
@@ -113,6 +114,14 @@ pub struct SearchResults {
     /// Stores the information on which engines failed with their engine name
     /// and the type of error that caused it.
     pub engine_errors_info: Vec<EngineErrorInfo>,
+    /// Stores the flag option which holds the check value that the following
+    /// search query was disallowed when the safe search level set to 4 and it
+    /// was present in the `Blocklist` file.
+    pub disallowed: bool,
+    /// Stores the flag option which holds the check value that the following
+    /// search query was filtered when the safe search level set to 3 and it
+    /// was present in the `Blocklist` file.
+    pub filtered: bool,
 }
 
 impl SearchResults {
@@ -124,23 +133,49 @@ impl SearchResults {
     /// and stores it into a vector of `SearchResult` structs.
     /// * `page_query` - Takes an argument of current page`s search query `q` provided in
     /// the search url.
-    /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
-    /// given search query.
+    /// * `engine_errors_info` - Takes an array of structs which contains information regarding
+    /// which engines failed with their names, reason and their severity color name.
     pub fn new(
         results: Vec<SearchResult>,
-        page_query: String,
-        engine_errors_info: Vec<EngineErrorInfo>,
+        page_query: &str,
+        engine_errors_info: &[EngineErrorInfo],
     ) -> Self {
-        SearchResults {
+        Self {
             results,
-            page_query,
-            style: Style::new("".to_string(), "".to_string()),
-            engine_errors_info,
+            page_query: page_query.to_owned(),
+            style: Style::default(),
+            engine_errors_info: engine_errors_info.to_owned(),
+            disallowed: Default::default(),
+            filtered: Default::default(),
         }
     }
 
     /// A setter function to add website style to the return search results.
-    pub fn add_style(&mut self, style: Style) {
-        self.style = style;
+    pub fn add_style(&mut self, style: &Style) {
+        self.style = style.clone();
+    }
+
+    /// A setter function that sets disallowed to true.
+    pub fn set_disallowed(&mut self) {
+        self.disallowed = true;
+    }
+
+    /// A setter function to set the current page search query.
+    pub fn set_page_query(&mut self, page: &str) {
+        self.page_query = page.to_owned();
+    }
+
+    /// A setter function that sets the filtered to true.
+    pub fn set_filtered(&mut self) {
+        self.filtered = true;
+    }
+
+    /// A getter function that gets the value of `engine_errors_info`.
+    pub fn engine_errors_info(&mut self) -> Vec<EngineErrorInfo> {
+        std::mem::take(&mut self.engine_errors_info)
+    }
+    /// A getter function that gets the value of `results`.
+    pub fn results(&mut self) -> Vec<SearchResult> {
+        self.results.clone()
     }
 }
