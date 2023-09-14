@@ -190,7 +190,7 @@ Several areas that we need a bit of help with at the moment are:
 # Documentation 📘
 
 > **Note**
-> We welcome any contributions to the [documentation](./docs/) as this will benefit everyone who uses this project. 
+> We welcome any contributions to the [documentation](../../tree/HEAD/docs/) as this will benefit everyone who uses this project. 
 
 **[⬆️ Back to Top](#--)**
 
