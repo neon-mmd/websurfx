@@ -4,25 +4,22 @@
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
-use crate::{config::parser_models::Style, engines::engine_models::EngineError};
+use super::{engine_models::EngineError, parser_models::Style};
 
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
 /// to write idiomatic rust using `Iterators`.
-///
-/// # Fields
-///
-/// * `title` - The title of the search result.
-/// * `url` - The url which is accessed when clicked on it
 /// (href url in html in simple words).
-/// * `description` - The description of the search result.
-/// * `engine` - The names of the upstream engines from which this results were provided.
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResult {
+    /// The title of the search result.
     pub title: String,
+    /// The url which is accessed when clicked on it
     pub url: String,
+    /// The description of the search result.
     pub description: String,
+    /// The names of the upstream engines from which this results were provided.
     pub engine: SmallVec<[String; 0]>,
 }
 
@@ -64,14 +61,27 @@ impl SearchResult {
     }
 }
 
+/// A named struct that stores the error info related to the upstream search engines.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct EngineErrorInfo {
+    /// It stores the error type which occured while fetching the result from a particular search
+    /// engine.
     pub error: String,
+    /// It stores the name of the engine that failed to provide the requested search results.
     pub engine: String,
+    /// It stores the name of the color to indicate whether how severe the particular error is (In
+    /// other words it indicates the severity of the error/issue).
     pub severity_color: String,
 }
 
 impl EngineErrorInfo {
+    /// Constructs a new `SearchResult` with the given arguments needed for the struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `error` - It takes the error type which occured while fetching the result from a particular
+    /// search engine.
+    /// * `engine` - It takes the name of the engine that failed to provide the requested search results.
     pub fn new(error: &EngineError, engine: &str) -> Self {
         Self {
             error: match error {
@@ -91,25 +101,26 @@ impl EngineErrorInfo {
 
 /// A named struct to store, serialize, deserialize the all the search results scraped and
 /// aggregated from the upstream search engines.
-///
-/// # Fields
-///
-/// * `results` - Stores the individual serializable `SearchResult` struct into a vector of
 /// `SearchResult` structs.
-/// * `page_query` - Stores the current pages search query `q` provided in the search url.
-/// * `style` - Stores the theming options for the website.
-/// * `engine_errors_info` - Stores the information on which engines failed with their engine name
-/// and the type of error that caused it.
-/// * `empty_result_set` - Stores a boolean which indicates that no engines gave a result for the
-/// given search query.
 #[derive(Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
+    /// Stores the individual serializable `SearchResult` struct into a vector of
     pub results: Vec<SearchResult>,
+    /// Stores the current pages search query `q` provided in the search url.
     pub page_query: String,
+    /// Stores the theming options for the website.
     pub style: Style,
+    /// Stores the information on which engines failed with their engine name
+    /// and the type of error that caused it.
     pub engine_errors_info: Vec<EngineErrorInfo>,
+    /// Stores the flag option which holds the check value that the following
+    /// search query was disallowed when the safe search level set to 4 and it
+    /// was present in the `Blocklist` file.
     pub disallowed: bool,
+    /// Stores the flag option which holds the check value that the following
+    /// search query was filtered when the safe search level set to 3 and it
+    /// was present in the `Blocklist` file.
     pub filtered: bool,
 }
 
@@ -122,9 +133,8 @@ impl SearchResults {
     /// and stores it into a vector of `SearchResult` structs.
     /// * `page_query` - Takes an argument of current page`s search query `q` provided in
     /// the search url.
-    /// * `empty_result_set` - Takes a boolean which indicates that no engines gave a result for the
-    /// given search query.
-    /// * ``
+    /// * `engine_errors_info` - Takes an array of structs which contains information regarding
+    /// which engines failed with their names, reason and their severity color name.
     pub fn new(
         results: Vec<SearchResult>,
         page_query: &str,

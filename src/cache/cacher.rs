@@ -10,17 +10,14 @@ use super::error::PoolError;
 
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
-///
-/// # Fields
-///
-/// * `connection_pool` - It stores a pool of connections ready to be used.
-/// * `pool_size` - It stores the size of the connection pool (in other words the number of
-/// connections that should be stored in the pool).
-/// * `current_connection` - It stores the index of which connection is being used at the moment.
 #[derive(Clone)]
 pub struct RedisCache {
+    /// It stores a pool of connections ready to be used.
     connection_pool: Vec<ConnectionManager>,
+    /// It stores the size of the connection pool (in other words the number of
+    /// connections that should be stored in the pool).
     pool_size: u8,
+    /// It stores the index of which connection is being used at the moment.
     current_connection: u8,
 }
 

@@ -1,23 +1,20 @@
-//! This module provides the functionality to handle different routes of the `websurfx`
-//! meta search engine website and provide appropriate response to each route/page
-//! when requested.
-
-use std::{
-    fs::{read_to_string, File},
-    io::{BufRead, BufReader, Read},
-};
+//! This module handles the search route of the search engine website.
 
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
-    engines::engine_models::EngineHandler,
     handler::paths::{file_path, FileType},
-    results::{aggregation_models::SearchResults, aggregator::aggregate},
+    models::{aggregation_models::SearchResults, engine_models::EngineHandler},
+    results::aggregator::aggregate,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use regex::Regex;
 use serde::Deserialize;
+use std::{
+    fs::{read_to_string, File},
+    io::{BufRead, BufReader, Read},
+};
 use tokio::join;
 
 // ---- Constants ----
@@ -25,17 +22,16 @@ use tokio::join;
 static REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::OnceCell::new();
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
-///
-/// # Fields
-///
-/// * `q` - It stores the search parameter option `q` (or query in simple words)
-/// of the search url.
-/// * `page` - It stores the search parameter `page` (or pageno in simple words)
-/// of the search url.
 #[derive(Deserialize)]
-struct SearchParams {
+pub struct SearchParams {
+    /// It stores the search parameter option `q` (or query in simple words)
+    /// of the search url.
     q: Option<String>,
+    /// It stores the search parameter `page` (or pageno in simple words)
+    /// of the search url.
     page: Option<u32>,
+    /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
+    /// search url.
     safesearch: Option<u8>,
 }
 
@@ -63,17 +59,14 @@ pub async fn not_found(
 }
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.
-///
-/// # Fields
-///
-/// * `theme` - It stores the theme name used in the website.
-/// * `colorscheme` - It stores the colorscheme name used for the website theme.
-/// * `engines` - It stores the user selected upstream search engines selected from the UI.
 #[allow(dead_code)]
 #[derive(Deserialize)]
 struct Cookie<'a> {
+    /// It stores the theme name used in the website.
     theme: &'a str,
+    /// It stores the colorscheme name used for the website theme.
     colorscheme: &'a str,
+    /// It stores the user selected upstream search engines selected from the UI.
     engines: Vec<&'a str>,
 }
 
@@ -174,8 +167,21 @@ pub async fn search(
     }
 }
 
-/// Fetches the results for a query and page.
-/// First checks the redis cache, if that fails it gets proper results
+/// Fetches the results for a query and page. It First checks the redis cache, if that
+/// fails it gets proper results by requesting from the upstream search engines.
+///
+/// # Arguments
+///
+/// * `url` - It takes the url of the current page that requested the search results for a
+/// particular search query.
+/// * `config` - It takes a parsed config struct.
+/// * `query` - It takes the page number as u32 value.
+/// * `req` - It takes the `HttpRequest` struct as a value.
+///
+/// # Error
+///
+/// It returns the `SearchResults` struct if the search results could be successfully fetched from
+/// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
     url: String,
     config: &Config,
@@ -184,6 +190,7 @@ async fn results(
     req: HttpRequest,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    // Initialize redis cache connection struct
     let mut redis_cache: RedisCache = REDIS_CACHE
         .get_or_init(async {
             // Initialize redis cache connection pool only one and store it in the heap.
@@ -191,7 +198,6 @@ async fn results(
         })
         .await
         .clone();
-
     // fetch the cached results json.
     let cached_results_json: Result<String, error_stack::Report<crate::cache::error::PoolError>> =
         redis_cache.clone().cached_json(&url).await;
@@ -223,7 +229,8 @@ async fn results(
             // UI and use that.
             let mut results: SearchResults = match req.cookie("appCookie") {
                 Some(cookie_value) => {
-                    let cookie_value: Cookie = serde_json::from_str(cookie_value.name_value().1)?;
+                    let cookie_value: Cookie<'_> =
+                        serde_json::from_str(cookie_value.name_value().1)?;
 
                     let engines: Vec<EngineHandler> = cookie_value
                         .engines
@@ -267,6 +274,8 @@ async fn results(
     }
 }
 
+/// A helper function which checks whether the search query contains any keywords which should be
+/// disallowed/allowed based on the regex based rules present in the blocklist and allowlist files.
 fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
