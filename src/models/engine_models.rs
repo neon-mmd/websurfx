@@ -1,7 +1,7 @@
 //! This module provides the error enum to handle different errors associated while requesting data from
 //! the upstream search engines with the search query provided by the user.
 
-use crate::results::aggregation_models::SearchResult;
+use super::aggregation_models::SearchResult;
 use error_stack::{Result, ResultExt};
 use std::{collections::HashMap, fmt, time::Duration};
 
@@ -137,8 +137,11 @@ impl EngineHandler {
     pub fn new(engine_name: &str) -> Option<Self> {
         let engine: (&'static str, Box<dyn SearchEngine>) =
             match engine_name.to_lowercase().as_str() {
-                "duckduckgo" => ("duckduckgo", Box::new(super::duckduckgo::DuckDuckGo)),
-                "searx" => ("searx", Box::new(super::searx::Searx)),
+                "duckduckgo" => (
+                    "duckduckgo",
+                    Box::new(crate::engines::duckduckgo::DuckDuckGo),
+                ),
+                "searx" => ("searx", Box::new(crate::engines::searx::Searx)),
                 _ => return None,
             };
 
