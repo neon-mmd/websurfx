@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "0.18.6"
+version = "0.20.7"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -8,9 +8,9 @@ license = "AGPL-3.0"
 
 [dependencies]
 reqwest = {version="0.11.20",features=["json"]}
-tokio = {version="1.32.0",features=["full"]}
+tokio = {version="1.32.0",features=["rt-multi-thread","macros"]}
 serde = {version="1.0.188",features=["derive"]}
-handlebars = { version = "4.3.7", features = ["dir_source"] }
+handlebars = { version = "4.4.0", features = ["dir_source"] }
 scraper = {version="0.17.1"}
 actix-web = {version="4.4.0", features = ["cookies"]}
 actix-files = {version="0.6.2"}
@@ -19,14 +19,20 @@ serde_json = {version="1.0.105"}
 fake-useragent = {version="0.1.3"}
 env_logger = {version="0.10.0"}
 log = {version="0.4.20"}
-rlua = {version="0.19.7"}
-redis = {version="0.23.2"}
+mlua = {version="0.8.10", features=["luajit"]}
+redis = {version="0.23.3", features=["tokio-comp","connection-manager"]}
 md5 = {version="0.7.0"}
 rand={version="0.8.5"}
 once_cell = {version="1.18.0"}
 error-stack = {version="0.4.0"}
 async-trait = {version="0.1.73"}
 regex = {version="1.9.4", features=["perf"]}
+smallvec = {version="1.11.0", features=["union", "serde"]}
+futures = {version="0.3.28"}
+dhat = {version="0.3.2", optional = true}
+mimalloc = { version = "0.1.38", default-features = false }
+async-once-cell = {version="0.5.3"}
+actix-governor = {version="0.4.1"}
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
@@ -47,13 +53,17 @@ rpath = false
 
 [profile.release]
 opt-level = 3
-debug = false
+debug = false # This should only be commented when testing with dhat profiler
+# debug = 1 # This should only be uncommented when testing with dhat profiler
 split-debuginfo = '...'
 debug-assertions = false
 overflow-checks = false
-lto = 'thin'
+lto = true
 panic = 'abort'
 incremental = false
-codegen-units = 16
+codegen-units = 1
 rpath = false
 strip = "debuginfo"
+
+[features]
+dhat-heap = ["dep:dhat"] 
