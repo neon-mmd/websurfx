@@ -8,7 +8,7 @@ use mini_moka::sync::Cache as MokaCache;
 use std::time::Duration;
 use tokio::sync::Mutex;
 
-use crate::{config::parser::Config, results::aggregation_models::SearchResults};
+use crate::{config::parser::Config, models::aggregation_models::SearchResults};
 
 use super::error::PoolError;
 #[cfg(feature = "redis-cache")]
@@ -29,9 +29,9 @@ pub enum Cache {
 
 impl Cache {
     /// Builds the cache from the given configuration.
-    pub async fn build(config: &Config) -> Self {
+    pub async fn build(_config: &Config) -> Self {
         #[cfg(feature = "redis-cache")]
-        if let Some(url) = &config.redis_url {
+        if let Some(url) = &_config.redis_url {
             log::info!("Using Redis running at {} for caching", &url);
             return Cache::new(
                 RedisCache::new(url, 5)
@@ -40,12 +40,15 @@ impl Cache {
             );
         }
         #[cfg(feature = "memory-cache")]
-        if config.in_memory_cache {
+        {
             log::info!("Using an in-memory cache");
             return Cache::new_in_memory();
         }
-        log::info!("Caching is disabled");
-        Cache::Disabled
+        #[cfg(not(feature = "memory-cache"))]
+        {
+            log::info!("Caching is disabled");
+            Cache::Disabled
+        }
     }
 
     /// Creates a new cache, which wraps the given RedisCache.
@@ -117,6 +120,7 @@ impl Cache {
 
 /// A structure to efficiently share the cache between threads - as it is protected by a Mutex.
 pub struct SharedCache {
+    /// The internal cache protected from concurrent access by a mutex
     cache: Mutex<Cache>,
 }
 

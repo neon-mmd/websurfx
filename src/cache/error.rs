@@ -16,7 +16,7 @@ pub enum PoolError {
     PoolExhaustionWithConnectionDropError,
     /// Whenever serialization or deserialization fails during communication with the cache.
     SerializationError,
-    /// Returned when the value is missing. 
+    /// Returned when the value is missing.
     MissingValue,
 }
 

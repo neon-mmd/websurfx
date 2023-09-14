@@ -47,7 +47,6 @@ theme = "simple" -- the theme name which should be used for the website
 
 -- ### Caching ###
 redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
-in_memory_cache = true
 
 -- ### Search Engines ###
 upstream_search_engines = {
