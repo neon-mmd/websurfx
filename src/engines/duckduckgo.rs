@@ -7,9 +7,9 @@ use std::collections::HashMap;
 use reqwest::header::HeaderMap;
 use scraper::{Html, Selector};
 
-use crate::results::aggregation_models::SearchResult;
+use crate::models::aggregation_models::SearchResult;
 
-use super::engine_models::{EngineError, SearchEngine};
+use crate::models::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{Report, Result, ResultExt};
 

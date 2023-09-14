@@ -1,26 +1,22 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
+use super::user_agent::random_user_agent;
+use crate::handler::paths::{file_path, FileType};
+use crate::models::{
+    aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
+    engine_models::{EngineError, EngineHandler},
+};
+use error_stack::Report;
+use rand::Rng;
+use regex::Regex;
 use std::{
     collections::HashMap,
     io::{BufReader, Read},
     time::Duration,
 };
-
-use super::{
-    aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
-    user_agent::random_user_agent,
-};
-use error_stack::Report;
-use rand::Rng;
-use regex::Regex;
 use std::{fs::File, io::BufRead};
 use tokio::task::JoinHandle;
-
-use crate::{
-    engines::engine_models::{EngineError, EngineHandler},
-    handler::paths::{file_path, FileType},
-};
 
 /// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;

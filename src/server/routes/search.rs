@@ -1,23 +1,20 @@
-//! This module provides the functionality to handle different routes of the `websurfx`
-//! meta search engine website and provide appropriate response to each route/page
-//! when requested.
-
-use std::{
-    fs::{read_to_string, File},
-    io::{BufRead, BufReader, Read},
-};
+//! This module handles the search route of the search engine website.
 
 use crate::{
     cache::cacher::RedisCache,
     config::parser::Config,
-    engines::engine_models::EngineHandler,
     handler::paths::{file_path, FileType},
-    results::{aggregation_models::SearchResults, aggregator::aggregate},
+    models::{aggregation_models::SearchResults, engine_models::EngineHandler},
+    results::aggregator::aggregate,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use regex::Regex;
 use serde::Deserialize;
+use std::{
+    fs::{read_to_string, File},
+    io::{BufRead, BufReader, Read},
+};
 use tokio::join;
 
 // ---- Constants ----
@@ -26,7 +23,7 @@ static REDIS_CACHE: async_once_cell::OnceCell<RedisCache> = async_once_cell::Onc
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 #[derive(Deserialize)]
-struct SearchParams {
+pub struct SearchParams {
     /// It stores the search parameter option `q` (or query in simple words)
     /// of the search url.
     q: Option<String>,
