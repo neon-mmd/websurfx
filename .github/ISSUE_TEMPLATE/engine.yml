@@ -1,0 +1,72 @@
+name: ✨ Engine
+description: Have a new engine to suggest for Websurfx? Please suggest!
+title: '✨ <your engine request title>'
+labels: ['⭐ goal: addition', '🚦 status: awaiting triage']
+body:
+  - type: textarea
+    id: workingUrl
+    attributes:
+      label: Working URL of the engine
+      description: Please check if the engine is responding correctly before submitting it.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why do you want to add this engine?
+      description: What's special about this engine? Is it open source or libre?
+    validations:
+      required: true
+  - type: textarea
+    id: features
+    attributes:
+      label: Features of this engine
+      description: Features of this engine: Doesn't track its users, fast, easy to integrate, or anything else that we can know about. 
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Please add screenshots if applicable
+    validations:
+      required: false
+  - type: dropdown
+    id: assignee
+    attributes:
+      label: Do you want to work on this issue?
+      multiple: true
+      options:
+        - 'General'
+        - 'Files' 
+        - 'Images' 
+        - 'IT' 
+        - 'Map' 
+        - 'Music' 
+        - 'News' 
+        - 'Science' 
+        - 'Social Media' 
+        - 'Videos'
+    validations:
+      required: true
+  - type: dropdown
+    id: assignee
+    attributes:
+      label: Do you want to work on this issue?
+      multiple: false
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: false
+  - type: textarea
+    id: extrainfo
+    attributes:
+      label: Additional information
+      description: Is there anything else we should know about this idea?
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        You can also join our Discord community [here](https://discord.gg/SWnda7Mw5u)

@@ -1,0 +1,27 @@
+'💻 aspect: code':
+- src/*
+- Cargo.toml
+- Cargo.lock
+- Dockerfile
+- docker-compose.yml
+- websurfx/*
+
+'🤖 aspect: dx':
+- '**/*.json'
+- .dockerignore
+- .gitignore
+- .gitpod.Dockerfile
+- .gitpod.yml
+- .rusty-hook.toml
+- PULL_REQUEST_TEMPLATE.md
+- SECURITY.md
+- .github/* 
+- .mega-linter.yml
+- tests/*
+
+'📄 aspect: text':
+- any: ['**/*.md', '!PULL_REQUEST_TEMPLATE.md', '!SECURITY.md']
+- LICENSE
+
+'🕹️ aspect: interface':
+- public/*
