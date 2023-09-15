@@ -1,0 +1,16 @@
+name: "lock/unlock issue"
+
+on:
+  issues:
+    types: labeled
+
+permissions:
+  issues: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/label-actions@v3
+        with:
+          process-only: issues
