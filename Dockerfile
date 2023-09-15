@@ -22,5 +22,7 @@ RUN cargo install --path .
 FROM gcr.io/distroless/cc-debian12
 COPY --from=builder /app/public/ /opt/websurfx/public/
 COPY --from=builder /app/websurfx/config.lua /etc/xdg/websurfx/config.lua
+COPY --from=builder /app/websurfx/allowlist.txt /etc/xdg/websurfx/allowlist.txt
+COPY --from=builder /app/websurfx/blocklist.txt /etc/xdg/websurfx/blocklist.txt
 COPY --from=builder /usr/local/cargo/bin/* /usr/local/bin/
 CMD ["websurfx"]
