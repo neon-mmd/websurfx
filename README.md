@@ -224,12 +224,22 @@ Websurfx is licensed under the [AGPLv3](LICENSE) license.
 
 We would like to thank the following people for their contributions and support:
 
+**Contributors**
+
 <p>
   <br />
   <a href="https://github.com/neon-mmd/websurfx/graphs/contributors">
     <img src="https://contrib.rocks/image?repo=neon-mmd/websurfx" />
   </a>
   <br />
+</p>
+
+**Stargazers**
+
+<p>
+  <a href="https://github.com/neon-mmd/websurfx/stargazers">
+    <img src="https://reporoster.com/stars/dark/neon-mmd/websurfx" />
+  </a>
 </p>
 
 **[⬆️ Back to Top](#--)**
