@@ -115,7 +115,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e01ed3140b2f8d422c68afa1ed2e85d996ea619c988ac834d255db32138655cb"
 dependencies = [
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -228,7 +228,7 @@ dependencies = [
  "actix-router",
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -326,7 +326,7 @@ checksum = "bc00ceb34980c03614e35a3a4e218276a0a824e911d07651cd0d858a51e8c0f0"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -863,7 +863,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13b588ba4ac1a99f7f2964d24b3d896ddc6bf847ee3855dbd4366f058cfcd331"
 dependencies = [
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -1218,7 +1218,7 @@ checksum = "89ca545a94061b6365f2c7355b4b32bd20df3ff95f02da9329b34ccc3bd6ee72"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -2093,7 +2093,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -2212,7 +2212,7 @@ dependencies = [
  "pest_meta",
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -2314,7 +2314,7 @@ dependencies = [
  "phf_shared 0.11.2",
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -2361,7 +2361,7 @@ checksum = "4359fd9c9171ec6e8c62926d6faaf553a8dc3f64e1507e76da7911b4f6a04405"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -3005,7 +3005,7 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -3262,9 +3262,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.33"
+version = "2.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9caece70c63bfba29ec2fed841a09851b14a235c60010fa4de58089b6c025668"
+checksum = "91e02e55d62894af2a08aca894c6577281f76769ba47c94d5756bec8ac6e7373"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
@@ -3349,7 +3349,7 @@ checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -3509,7 +3509,7 @@ checksum = "630bdcf245f78637c13ec01ffae6187cca34625e8c63150d424b59e55af2675e"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
 ]
 
 [[package]]
@@ -3678,9 +3678,9 @@ dependencies = [
 
 [[package]]
 name = "typenum"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
 name = "ucd-trie"
@@ -3848,7 +3848,7 @@ dependencies = [
  "once_cell",
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
  "wasm-bindgen-shared",
 ]
 
@@ -3882,7 +3882,7 @@ checksum = "54681b18a46765f095758388f2d0cf16eb8d4169b639ab575a8f5693af210c7b"
 dependencies = [
  "proc-macro2 1.0.67",
  "quote 1.0.33",
- "syn 2.0.33",
+ "syn 2.0.36",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -3905,7 +3905,7 @@ dependencies = [
 
 [[package]]
 name = "websurfx"
-version = "0.20.11"
+version = "0.21.1"
 dependencies = [
  "actix-cors",
  "actix-files",
