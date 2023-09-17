@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 
 use crate::{config::parser::Config, models::aggregation_models::SearchResults};
 
-use super::error::PoolError;
+use super::error::CacheError;
 #[cfg(feature = "redis-cache")]
 use super::redis_cacher::RedisCache;
 
@@ -42,25 +42,27 @@ impl Cache {
     /// It returns a newly initialized variant based on the feature enabled by the user.
     pub async fn build(_config: &Config) -> Self {
         #[cfg(all(feature = "redis-cache", feature = "memory-cache"))]
-        log::info!("Using a hybrid cache");
-        #[cfg(all(feature = "redis-cache", feature = "memory-cache"))]
-        return Cache::new_hybrid(
-            RedisCache::new(&_config.redis_url, 5)
-                .await
-                .expect("Redis cache configured"),
-        );
+        {
+            log::info!("Using a hybrid cache");
+            Cache::new_hybrid(
+                RedisCache::new(&_config.redis_url, 5)
+                    .await
+                    .expect("Redis cache configured"),
+            )
+        }
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
-        log::info!("Listening redis server on {}", &_config.redis_url);
-        #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
-        return Cache::new(
-            RedisCache::new(&_config.redis_url, 5)
-                .await
-                .expect("Redis cache configured"),
-        );
+        {
+            log::info!("Listening redis server on {}", &_config.redis_url);
+            Cache::new(
+                RedisCache::new(&_config.redis_url, 5)
+                    .await
+                    .expect("Redis cache configured"),
+            )
+        }
         #[cfg(all(feature = "memory-cache", not(feature = "redis-cache")))]
         {
             log::info!("Using an in-memory cache");
-            return Cache::new_in_memory();
+            Cache::new_in_memory()
         }
         #[cfg(not(any(feature = "memory-cache", feature = "redis-cache")))]
         {
@@ -131,27 +133,27 @@ impl Cache {
     ///
     /// Returns the `SearchResults` from the cache if the program executes normally otherwise
     /// returns a `CacheError` if the results cannot be retrieved from the cache.
-    pub async fn cached_json(&mut self, _url: &str) -> Result<SearchResults, Report<PoolError>> {
+    pub async fn cached_json(&mut self, _url: &str) -> Result<SearchResults, Report<CacheError>> {
         match self {
-            Cache::Disabled => Err(Report::new(PoolError::MissingValue)),
+            Cache::Disabled => Err(Report::new(CacheError::MissingValue)),
             #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
             Cache::Redis(redis_cache) => {
                 let json = redis_cache.cached_json(_url).await?;
                 Ok(serde_json::from_str::<SearchResults>(&json)
-                    .map_err(|_| PoolError::SerializationError)?)
+                    .map_err(|_| CacheError::SerializationError)?)
             }
             #[cfg(all(feature = "memory-cache", not(feature = "redis-cache")))]
             Cache::InMemory(in_memory) => match in_memory.get(&_url.to_string()) {
                 Some(res) => Ok(res),
-                None => Err(Report::new(PoolError::MissingValue)),
+                None => Err(Report::new(CacheError::MissingValue)),
             },
             #[cfg(all(feature = "redis-cache", feature = "memory-cache"))]
             Cache::Hybrid(redis_cache, in_memory) => match redis_cache.cached_json(_url).await {
                 Ok(res) => Ok(serde_json::from_str::<SearchResults>(&res)
-                    .map_err(|_| PoolError::SerializationError)?),
+                    .map_err(|_| CacheError::SerializationError)?),
                 Err(_) => match in_memory.get(&_url.to_string()) {
                     Some(res) => Ok(res),
-                    None => Err(Report::new(PoolError::MissingValue)),
+                    None => Err(Report::new(CacheError::MissingValue)),
                 },
             },
         }
@@ -174,13 +176,13 @@ impl Cache {
         &mut self,
         _search_results: &SearchResults,
         _url: &str,
-    ) -> Result<(), Report<PoolError>> {
+    ) -> Result<(), Report<CacheError>> {
         match self {
             Cache::Disabled => Ok(()),
             #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
             Cache::Redis(redis_cache) => {
                 let json = serde_json::to_string(_search_results)
-                    .map_err(|_| PoolError::SerializationError)?;
+                    .map_err(|_| CacheError::SerializationError)?;
                 redis_cache.cache_results(&json, _url).await
             }
             #[cfg(all(feature = "memory-cache", not(feature = "redis-cache")))]
@@ -191,7 +193,7 @@ impl Cache {
             #[cfg(all(feature = "memory-cache", feature = "redis-cache"))]
             Cache::Hybrid(redis_cache, cache) => {
                 let json = serde_json::to_string(_search_results)
-                    .map_err(|_| PoolError::SerializationError)?;
+                    .map_err(|_| CacheError::SerializationError)?;
                 match redis_cache.cache_results(&json, _url).await {
                     Ok(_) => Ok(()),
                     Err(_) => {
@@ -235,7 +237,7 @@ impl SharedCache {
     ///
     /// Returns a `SearchResults` struct containing the search results from the cache if nothing
     /// goes wrong otherwise returns a `CacheError`.
-    pub async fn cached_json(&self, url: &str) -> Result<SearchResults, Report<PoolError>> {
+    pub async fn cached_json(&self, url: &str) -> Result<SearchResults, Report<CacheError>> {
         let mut mut_cache = self.cache.lock().await;
         mut_cache.cached_json(url).await
     }
@@ -258,7 +260,7 @@ impl SharedCache {
         &self,
         search_results: &SearchResults,
         url: &str,
-    ) -> Result<(), Report<PoolError>> {
+    ) -> Result<(), Report<CacheError>> {
         let mut mut_cache = self.cache.lock().await;
         mut_cache.cache_results(search_results, url).await
     }

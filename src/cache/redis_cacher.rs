@@ -6,7 +6,7 @@ use futures::future::try_join_all;
 use md5::compute;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
-use super::error::PoolError;
+use super::error::CacheError;
 
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
@@ -72,7 +72,7 @@ impl RedisCache {
     ///
     /// Returns the results as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json(&mut self, url: &str) -> Result<String, Report<PoolError>> {
+    pub async fn cached_json(&mut self, url: &str) -> Result<String, Report<CacheError>> {
         self.current_connection = Default::default();
         let hashed_url_string: &str = &self.hash_url(url);
 
@@ -95,7 +95,7 @@ impl RedisCache {
                         self.current_connection += 1;
                         if self.current_connection == self.pool_size {
                             return Err(Report::new(
-                                PoolError::PoolExhaustionWithConnectionDropError,
+                                CacheError::PoolExhaustionWithConnectionDropError,
                             ));
                         }
                         result = self.connection_pool[self.current_connection as usize]
@@ -103,7 +103,7 @@ impl RedisCache {
                             .await;
                         continue;
                     }
-                    false => return Err(Report::new(PoolError::RedisError(error))),
+                    false => return Err(Report::new(CacheError::RedisError(error))),
                 },
                 Ok(res) => return Ok(res),
             }
@@ -127,7 +127,7 @@ impl RedisCache {
         &mut self,
         json_results: &str,
         url: &str,
-    ) -> Result<(), Report<PoolError>> {
+    ) -> Result<(), Report<CacheError>> {
         self.current_connection = Default::default();
         let hashed_url_string: &str = &self.hash_url(url);
 
@@ -150,7 +150,7 @@ impl RedisCache {
                         self.current_connection += 1;
                         if self.current_connection == self.pool_size {
                             return Err(Report::new(
-                                PoolError::PoolExhaustionWithConnectionDropError,
+                                CacheError::PoolExhaustionWithConnectionDropError,
                             ));
                         }
                         result = self.connection_pool[self.current_connection as usize]
@@ -158,7 +158,7 @@ impl RedisCache {
                             .await;
                         continue;
                     }
-                    false => return Err(Report::new(PoolError::RedisError(error))),
+                    false => return Err(Report::new(CacheError::RedisError(error))),
                 },
                 Ok(_) => return Ok(()),
             }

@@ -12,6 +12,7 @@ fn spawn_app() -> String {
     let server = run(
         listener,
         config,
+        #[cfg(all(feature = "memory-cache", not(feature = "redis-cache")))]
         websurfx::cache::cacher::Cache::new_in_memory(),
     )
     .expect("Failed to bind address");
