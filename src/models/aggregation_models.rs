@@ -102,7 +102,7 @@ impl EngineErrorInfo {
 /// A named struct to store, serialize, deserialize the all the search results scraped and
 /// aggregated from the upstream search engines.
 /// `SearchResult` structs.
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     /// Stores the individual serializable `SearchResult` struct into a vector of

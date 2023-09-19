@@ -2,107 +2,95 @@
 //! from the upstream search engines in a json format.
 
 use error_stack::Report;
-use futures::future::try_join_all;
-use md5::compute;
-use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
+#[cfg(feature = "memory-cache")]
+use mini_moka::sync::Cache as MokaCache;
+#[cfg(feature = "memory-cache")]
+use std::time::Duration;
+use tokio::sync::Mutex;
+
+use crate::{config::parser::Config, models::aggregation_models::SearchResults};
 
 use super::error::PoolError;
+#[cfg(feature = "redis-cache")]
+use super::redis_cacher::RedisCache;
 
-/// A named struct which stores the redis Connection url address to which the client will
-/// connect to.
+/// Different implementations for caching, currently it is possible to cache in-memory or in Redis.
 #[derive(Clone)]
-pub struct RedisCache {
-    /// It stores a pool of connections ready to be used.
-    connection_pool: Vec<ConnectionManager>,
-    /// It stores the size of the connection pool (in other words the number of
-    /// connections that should be stored in the pool).
-    pool_size: u8,
-    /// It stores the index of which connection is being used at the moment.
-    current_connection: u8,
+pub enum Cache {
+    /// Caching is disabled
+    Disabled,
+    #[cfg(feature = "redis-cache")]
+    /// Encapsulates the Redis based cache
+    Redis(RedisCache),
+    #[cfg(feature = "memory-cache")]
+    /// Contains the in-memory cache.
+    InMemory(MokaCache<String, SearchResults>),
 }
 
-impl RedisCache {
-    /// Constructs a new `SearchResult` with the given arguments needed for the struct.
-    ///
-    /// # Arguments
-    ///
-    /// * `redis_connection_url` - It takes the redis Connection url address.
-    /// * `pool_size` - It takes the size of the connection pool (in other words the number of
-    /// connections that should be stored in the pool).
-    pub async fn new(
-        redis_connection_url: &str,
-        pool_size: u8,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
-        let client = Client::open(redis_connection_url)?;
-        let mut tasks: Vec<_> = Vec::new();
-
-        for _ in 0..pool_size {
-            tasks.push(client.get_tokio_connection_manager());
+impl Cache {
+    /// Builds the cache from the given configuration.
+    pub async fn build(_config: &Config) -> Self {
+        #[cfg(feature = "redis-cache")]
+        if let Some(url) = &_config.redis_url {
+            log::info!("Using Redis running at {} for caching", &url);
+            return Cache::new(
+                RedisCache::new(url, 5)
+                    .await
+                    .expect("Redis cache configured"),
+            );
         }
-
-        let redis_cache = RedisCache {
-            connection_pool: try_join_all(tasks).await?,
-            pool_size,
-            current_connection: Default::default(),
-        };
-        Ok(redis_cache)
+        #[cfg(feature = "memory-cache")]
+        {
+            log::info!("Using an in-memory cache");
+            return Cache::new_in_memory();
+        }
+        #[cfg(not(feature = "memory-cache"))]
+        {
+            log::info!("Caching is disabled");
+            Cache::Disabled
+        }
     }
 
-    /// A helper function which computes the hash of the url and formats and returns it as string.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - It takes an url as string.
-    fn hash_url(&self, url: &str) -> String {
-        format!("{:?}", compute(url))
+    /// Creates a new cache, which wraps the given RedisCache.
+    #[cfg(feature = "redis-cache")]
+    pub fn new(redis_cache: RedisCache) -> Self {
+        Cache::Redis(redis_cache)
     }
 
-    /// A function which fetches the cached json results as json string from the redis server.
+    /// Creates an in-memory cache
+    #[cfg(feature = "memory-cache")]
+    pub fn new_in_memory() -> Self {
+        let cache = MokaCache::builder()
+            .max_capacity(1000)
+            .time_to_live(Duration::from_secs(60))
+            .build();
+        Cache::InMemory(cache)
+    }
+
+    /// A function which fetches the cached json results as json string.
     ///
     /// # Arguments
     ///
     /// * `url` - It takes an url as a string.
-    pub async fn cached_json(&mut self, url: &str) -> Result<String, Report<PoolError>> {
-        self.current_connection = Default::default();
-        let hashed_url_string: &str = &self.hash_url(url);
-
-        let mut result: Result<String, RedisError> = self.connection_pool
-            [self.current_connection as usize]
-            .get(hashed_url_string)
-            .await;
-
-        // Code to check whether the current connection being used is dropped with connection error
-        // or not. if it drops with the connection error then the current connection is replaced
-        // with a new connection from the pool which is then used to run the redis command then
-        // that connection is also checked whether it is dropped or not if it is not then the
-        // result is passed as a `Result` or else the same process repeats again and if all of the
-        // connections in the pool result in connection drop error then a custom pool error is
-        // returned.
-        loop {
-            match result {
-                Err(error) => match error.is_connection_dropped() {
-                    true => {
-                        self.current_connection += 1;
-                        if self.current_connection == self.pool_size {
-                            return Err(Report::new(
-                                PoolError::PoolExhaustionWithConnectionDropError,
-                            ));
-                        }
-                        result = self.connection_pool[self.current_connection as usize]
-                            .get(hashed_url_string)
-                            .await;
-                        continue;
-                    }
-                    false => return Err(Report::new(PoolError::RedisError(error))),
-                },
-                Ok(res) => return Ok(res),
+    pub async fn cached_json(&mut self, url: &str) -> Result<SearchResults, Report<PoolError>> {
+        match self {
+            Cache::Disabled => Err(Report::new(PoolError::MissingValue)),
+            #[cfg(feature = "redis-cache")]
+            Cache::Redis(redis_cache) => {
+                let json = redis_cache.cached_json(url).await?;
+                Ok(serde_json::from_str::<SearchResults>(&json)
+                    .map_err(|_| PoolError::SerializationError)?)
             }
+            #[cfg(feature = "memory-cache")]
+            Cache::InMemory(in_memory) => match in_memory.get(&url.to_string()) {
+                Some(res) => Ok(res),
+                None => Err(Report::new(PoolError::MissingValue)),
+            },
         }
     }
 
-    /// A function which caches the results by using the hashed `url` as the key and
-    /// `json results` as the value and stores it in redis server with ttl(time to live)
-    /// set to 60 seconds.
+    /// A function which caches the results by using the `url` as the key and
+    /// `json results` as the value and stores it in the cache
     ///
     /// # Arguments
     ///
@@ -110,43 +98,54 @@ impl RedisCache {
     /// * `url` - It takes the url as a String.
     pub async fn cache_results(
         &mut self,
-        json_results: &str,
+        search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<PoolError>> {
-        self.current_connection = Default::default();
-        let hashed_url_string: &str = &self.hash_url(url);
-
-        let mut result: Result<(), RedisError> = self.connection_pool
-            [self.current_connection as usize]
-            .set_ex(hashed_url_string, json_results, 60)
-            .await;
-
-        // Code to check whether the current connection being used is dropped with connection error
-        // or not. if it drops with the connection error then the current connection is replaced
-        // with a new connection from the pool which is then used to run the redis command then
-        // that connection is also checked whether it is dropped or not if it is not then the
-        // result is passed as a `Result` or else the same process repeats again and if all of the
-        // connections in the pool result in connection drop error then a custom pool error is
-        // returned.
-        loop {
-            match result {
-                Err(error) => match error.is_connection_dropped() {
-                    true => {
-                        self.current_connection += 1;
-                        if self.current_connection == self.pool_size {
-                            return Err(Report::new(
-                                PoolError::PoolExhaustionWithConnectionDropError,
-                            ));
-                        }
-                        result = self.connection_pool[self.current_connection as usize]
-                            .set_ex(hashed_url_string, json_results, 60)
-                            .await;
-                        continue;
-                    }
-                    false => return Err(Report::new(PoolError::RedisError(error))),
-                },
-                Ok(_) => return Ok(()),
+        match self {
+            Cache::Disabled => Ok(()),
+            #[cfg(feature = "redis-cache")]
+            Cache::Redis(redis_cache) => {
+                let json = serde_json::to_string(search_results)
+                    .map_err(|_| PoolError::SerializationError)?;
+                redis_cache.cache_results(&json, url).await
+            }
+            #[cfg(feature = "memory-cache")]
+            Cache::InMemory(cache) => {
+                cache.insert(url.to_string(), search_results.clone());
+                Ok(())
             }
         }
+    }
+}
+
+/// A structure to efficiently share the cache between threads - as it is protected by a Mutex.
+pub struct SharedCache {
+    /// The internal cache protected from concurrent access by a mutex
+    cache: Mutex<Cache>,
+}
+
+impl SharedCache {
+    /// Creates a new SharedCache from a Cache implementation
+    pub fn new(cache: Cache) -> Self {
+        Self {
+            cache: Mutex::new(cache),
+        }
+    }
+
+    /// A function which retrieves the cached SearchResulsts from the internal cache.
+    pub async fn cached_json(&self, url: &str) -> Result<SearchResults, Report<PoolError>> {
+        let mut mut_cache = self.cache.lock().await;
+        mut_cache.cached_json(url).await
+    }
+
+    /// A function which caches the results by using the `url` as the key and
+    /// `SearchResults` as the value.
+    pub async fn cache_results(
+        &self,
+        search_results: &SearchResults,
+        url: &str,
+    ) -> Result<(), Report<PoolError>> {
+        let mut mut_cache = self.cache.lock().await;
+        mut_cache.cache_results(search_results, url).await
     }
 }
