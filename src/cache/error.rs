@@ -7,7 +7,7 @@ use redis::RedisError;
 
 /// A custom error type used for handling redis async pool associated errors.
 #[derive(Debug)]
-pub enum PoolError {
+pub enum CacheError {
     /// This variant handles all errors related to `RedisError`,
     #[cfg(feature = "redis-cache")]
     RedisError(RedisError),
@@ -20,31 +20,31 @@ pub enum PoolError {
     MissingValue,
 }
 
-impl fmt::Display for PoolError {
+impl fmt::Display for CacheError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             #[cfg(feature = "redis-cache")]
-            PoolError::RedisError(redis_error) => {
+            CacheError::RedisError(redis_error) => {
                 if let Some(detail) = redis_error.detail() {
                     write!(f, "{}", detail)
                 } else {
                     write!(f, "")
                 }
             }
-            PoolError::PoolExhaustionWithConnectionDropError => {
+            CacheError::PoolExhaustionWithConnectionDropError => {
                 write!(
                     f,
                     "Error all connections from the pool dropped with connection error"
                 )
             }
-            PoolError::MissingValue => {
+            CacheError::MissingValue => {
                 write!(f, "The value is missing from the cache")
             }
-            PoolError::SerializationError => {
+            CacheError::SerializationError => {
                 write!(f, "Unable to serialize, deserialize from the cache")
             }
         }
     }
 }
 
-impl error_stack::Context for PoolError {}
+impl error_stack::Context for CacheError {}

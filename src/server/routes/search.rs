@@ -4,42 +4,21 @@ use crate::{
     cache::cacher::SharedCache,
     config::parser::Config,
     handler::paths::{file_path, FileType},
-    models::{aggregation_models::SearchResults, engine_models::EngineHandler},
+    models::{
+        aggregation_models::SearchResults,
+        engine_models::EngineHandler,
+        server_models::{Cookie, SearchParams},
+    },
     results::aggregator::aggregate,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use handlebars::Handlebars;
 use regex::Regex;
-use serde::Deserialize;
 use std::{
-    fs::{read_to_string, File},
+    fs::File,
     io::{BufRead, BufReader, Read},
 };
 use tokio::join;
-
-/// A named struct which deserializes all the user provided search parameters and stores them.
-#[derive(Deserialize)]
-pub struct SearchParams {
-    /// It stores the search parameter option `q` (or query in simple words)
-    /// of the search url.
-    q: Option<String>,
-    /// It stores the search parameter `page` (or pageno in simple words)
-    /// of the search url.
-    page: Option<u32>,
-    /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
-    /// search url.
-    safesearch: Option<u8>,
-}
-
-/// Handles the route of index page or main page of the `websurfx` meta search engine website.
-#[get("/")]
-pub async fn index(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("index", &config.style).unwrap();
-    Ok(HttpResponse::Ok().body(page_content))
-}
 
 /// Handles the route of any other accessed route/page which is not provided by the
 /// website essentially the 404 error page.
@@ -52,18 +31,6 @@ pub async fn not_found(
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(page_content))
-}
-
-/// A named struct which is used to deserialize the cookies fetched from the client side.
-#[allow(dead_code)]
-#[derive(Deserialize)]
-struct Cookie<'a> {
-    /// It stores the theme name used in the website.
-    theme: &'a str,
-    /// It stores the colorscheme name used for the website theme.
-    colorscheme: &'a str,
-    /// It stores the user selected upstream search engines selected from the UI.
-    engines: Vec<&'a str>,
 }
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
@@ -264,6 +231,16 @@ async fn results(
 
 /// A helper function which checks whether the search query contains any keywords which should be
 /// disallowed/allowed based on the regex based rules present in the blocklist and allowlist files.
+///
+/// # Arguments
+///
+/// * `file_path` - It takes the file path of the list as the argument.
+/// * `query` - It takes the search query to be checked against the list as an argument.
+///
+/// # Error
+///
+/// Returns a bool indicating whether the results were found in the list or not on success
+/// otherwise returns a standard error type on a failure.
 fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
@@ -278,34 +255,4 @@ fn is_match_from_filter_list(
         }
     }
     Ok(flag)
-}
-
-/// Handles the route of robots.txt page of the `websurfx` meta search engine website.
-#[get("/robots.txt")]
-pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String =
-        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
-    Ok(HttpResponse::Ok()
-        .content_type("text/plain; charset=ascii")
-        .body(page_content))
-}
-
-/// Handles the route of about page of the `websurfx` meta search engine website.
-#[get("/about")]
-pub async fn about(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("about", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
-}
-
-/// Handles the route of settings page of the `websurfx` meta search engine website.
-#[get("/settings")]
-pub async fn settings(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("settings", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
 }

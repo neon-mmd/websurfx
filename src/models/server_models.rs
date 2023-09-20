@@ -11,16 +11,19 @@ pub struct SearchParams {
     /// It stores the search parameter `page` (or pageno in simple words)
     /// of the search url.
     pub page: Option<u32>,
+    /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
+    /// search url.
+    pub safesearch: Option<u8>,
 }
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.
 #[allow(dead_code)]
 #[derive(Deserialize)]
-pub struct Cookie {
+pub struct Cookie<'a> {
     /// It stores the theme name used in the website.
-    pub theme: String,
+    pub theme: &'a str,
     /// It stores the colorscheme name used for the website theme.
-    pub colorscheme: String,
+    pub colorscheme: &'a str,
     /// It stores the user selected upstream search engines selected from the UI.
-    pub engines: Vec<String>,
+    pub engines: Vec<&'a str>,
 }

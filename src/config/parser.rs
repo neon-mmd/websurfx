@@ -17,9 +17,10 @@ pub struct Config {
     pub binding_ip: String,
     /// It stores the theming options for the website.
     pub style: Style,
+    #[cfg(feature = "redis-cache")]
     /// It stores the redis connection url address on which the redis
     /// client should connect.
-    pub redis_url: Option<String>,
+    pub redis_url: String,
     /// It stores the option to whether enable or disable production use.
     pub aggregator: AggregatorConfig,
     /// It stores the option to whether enable or disable logs.
@@ -99,7 +100,8 @@ impl Config {
                 globals.get::<_, String>("theme")?,
                 globals.get::<_, String>("colorscheme")?,
             ),
-            redis_url: globals.get::<_, String>("redis_url").ok(),
+            #[cfg(feature = "redis-cache")]
+            redis_url: globals.get::<_, String>("redis_url")?,
             aggregator: AggregatorConfig {
                 random_delay: globals.get::<_, bool>("production_use")?,
             },
