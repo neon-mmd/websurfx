@@ -1,12 +1,12 @@
 -- ### General ###
 logging = true -- an option to enable or disable logs.
-debug = false -- an option to enable or disable debug mode.
-threads = 10 -- the amount of threads that the app will use to run (the value should be greater than 0).
+debug = true -- an option to enable or disable debug mode.
+threads = 5 -- the amount of threads that the app will use to run (the value should be greater than 0).
 
 -- ### Server ###
 port = "8080" -- port on which server should be launched
 binding_ip = "127.0.0.1" --ip address on the which server should be launched.
-production_use = false -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
+production_use = true -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
@@ -24,7 +24,7 @@ rate_limiter = {
 -- 3 - High
 -- 4 - Aggressive
 -- }}
-safe_search = 2
+safe_search = 0
 
 -- ### Website ###
 -- The different colorschemes provided are:
