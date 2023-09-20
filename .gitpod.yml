@@ -8,7 +8,7 @@ tasks:
       command: redis-server --port 8082
     - name: Run The App
       init: cargo build
-      command: PKG_ENV=dev ./target/release/websurfx
+      command: PKG_ENV=dev ./target/debug/websurfx
     - name: Tests
       command: cargo test
     - name: Clippy Checks
