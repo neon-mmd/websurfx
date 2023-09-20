@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "0.21.3"
+version = "0.21.4"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -19,7 +19,7 @@ serde_json = {version="1.0.105"}
 fake-useragent = {version="0.1.3"}
 env_logger = {version="0.10.0"}
 log = {version="0.4.20"}
-mlua = {version="0.8.10", features=["luajit"]}
+mlua = {version="0.8.10", features=["luajit", "vendored"]}
 redis = {version="0.23.3", features=["tokio-comp","connection-manager"], optional = true}
 md5 = {version="0.7.0"}
 rand={version="0.8.5"}
