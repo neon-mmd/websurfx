@@ -1,6 +1,6 @@
 # Instances 
 
-> To contribute your server instance checkout the contributing guide [here](https://github.com/neon-mmd/websurfx/blob/HEAD/CONTRIBUTING.md).
+> To contribute your server instance, check out the contributing guide [here](https://github.com/neon-mmd/websurfx/blob/HEAD/CONTRIBUTING.md).
 
 This page provides a list of `Websurfx` instances provided by us and our community. 
 
