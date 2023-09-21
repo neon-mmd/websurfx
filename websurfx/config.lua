@@ -1,10 +1,10 @@
 -- ### General ###
 logging = true -- an option to enable or disable logs.
 debug = false -- an option to enable or disable debug mode.
-threads = 10 -- the amount of threads that the app will use to run (the value should be greater than 0).
+threads = 5 -- the amount of threads that the app will use to run (the value should be greater than 0).
 
 -- ### Server ###
-port = "8080" -- port on which server should be launched
+port = "10000" -- port on which server should be launched
 binding_ip = "0.0.0.0" --ip address on the which server should be launched.
 production_use = false -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
 -- if production_use is set to true
@@ -46,7 +46,7 @@ colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used fo
 theme = "simple" -- the theme name which should be used for the website
 
 -- ### Caching ###
-redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
+-- redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
 
 -- ### Search Engines ###
 upstream_search_engines = {
