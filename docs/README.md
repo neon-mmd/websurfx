@@ -7,6 +7,7 @@
 
 # Users
 
+- [Instances](./instances.md)
 - [Installation](./installation.md)
 - [Configuration](./configuration.md)
 - [Theming](./theming.md)
