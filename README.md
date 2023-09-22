@@ -31,14 +31,12 @@
       src="https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod"
     />
   </a>
-
   <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#search-engines">
     <img
       alt="Awesome Self-Hosted"
       src="https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg"
     />
   </a>
-  
   <br />
   <br />
   <i>
