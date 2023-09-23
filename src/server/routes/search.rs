@@ -195,16 +195,26 @@ async fn results(
                         .filter_map(|name| EngineHandler::new(name))
                         .collect();
 
-                    aggregate(
-                        query,
-                        page,
-                        config.aggregator.random_delay,
-                        config.debug,
-                        &engines,
-                        config.request_timeout,
-                        safe_search,
-                    )
-                    .await?
+                    match engines.is_empty() {
+                        false => {
+                            aggregate(
+                                query,
+                                page,
+                                config.aggregator.random_delay,
+                                config.debug,
+                                &engines,
+                                config.request_timeout,
+                                safe_search,
+                            )
+                            .await?
+                        }
+                        true => {
+                            let mut search_results = SearchResults::default();
+                            search_results.set_no_engines_selected();
+                            search_results.set_page_query(query);
+                            search_results
+                        }
+                    }
                 }
                 None => {
                     aggregate(
@@ -219,7 +229,10 @@ async fn results(
                     .await?
                 }
             };
-            if results.engine_errors_info().is_empty() && results.results().is_empty() {
+            if results.engine_errors_info().is_empty()
+                && results.results().is_empty()
+                && !results.no_engines_selected()
+            {
                 results.set_filtered();
             }
             results.add_style(&config.style);
