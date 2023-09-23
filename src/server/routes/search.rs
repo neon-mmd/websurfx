@@ -67,61 +67,48 @@ pub async fn search(
                 None => 1,
             };
 
-            let safe_search: u8 = match config.safe_search {
-                3..=4 => config.safe_search,
-                _ => match &params.safesearch {
-                    Some(safesearch) => match safesearch {
-                        0..=2 => *safesearch,
-                        _ => 1,
-                    },
-                    None => config.safe_search,
-                },
-            };
-
             let (_, results, _) = join!(
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch={}",
+                        "http://{}:{}/search?q={}&page={}&safesearch=",
                         config.binding_ip,
                         config.port,
                         query,
                         page - 1,
-                        safe_search
                     ),
                     &config,
                     &cache,
                     query,
                     page - 1,
                     req.clone(),
-                    safe_search
+                    &params.safesearch
                 ),
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch={}",
-                        config.binding_ip, config.port, query, page, safe_search
+                        "http://{}:{}/search?q={}&page={}&safesearch=",
+                        config.binding_ip, config.port, query, page
                     ),
                     &config,
                     &cache,
                     query,
                     page,
                     req.clone(),
-                    safe_search
+                    &params.safesearch
                 ),
                 results(
                     format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch={}",
+                        "http://{}:{}/search?q={}&page={}&safesearch=",
                         config.binding_ip,
                         config.port,
                         query,
                         page + 1,
-                        safe_search
                     ),
                     &config,
                     &cache,
                     query,
                     page + 1,
                     req.clone(),
-                    safe_search
+                    &params.safesearch
                 )
             );
 
@@ -156,7 +143,7 @@ async fn results(
     query: &str,
     page: u32,
     req: HttpRequest,
-    safe_search: u8,
+    safe_search: &Option<u8>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     // fetch the cached results json.
     let cached_results = cache.cached_json(&url).await;
@@ -165,7 +152,18 @@ async fn results(
     match cached_results {
         Ok(results) => Ok(results),
         Err(_) => {
-            if safe_search == 4 {
+            let mut safe_search_level: u8 = match config.safe_search {
+                3..=4 => config.safe_search,
+                _ => match safe_search {
+                    Some(safesearch) => match safesearch {
+                        0..=2 => *safesearch,
+                        _ => config.safe_search,
+                    },
+                    None => config.safe_search,
+                },
+            };
+
+            if safe_search_level == 4 {
                 let mut results: SearchResults = SearchResults::default();
                 let mut _flag: bool =
                     is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
@@ -176,6 +174,7 @@ async fn results(
                     results.add_style(&config.style);
                     results.set_page_query(query);
                     cache.cache_results(&results, &url).await?;
+                    results.set_safe_search_level(safe_search_level);
                     return Ok(results);
                 }
             }
@@ -194,6 +193,17 @@ async fn results(
                         .iter()
                         .filter_map(|name| EngineHandler::new(name))
                         .collect();
+
+                    safe_search_level = match config.safe_search {
+                        3..=4 => config.safe_search,
+                        _ => match safe_search {
+                            Some(safesearch) => match safesearch {
+                                0..=2 => *safesearch,
+                                _ => config.safe_search,
+                            },
+                            None => cookie_value.safe_search_level,
+                        },
+                    };
 
                     match engines.is_empty() {
                         false => {
@@ -224,7 +234,7 @@ async fn results(
                         config.debug,
                         &config.upstream_search_engines,
                         config.request_timeout,
-                        safe_search,
+                        safe_search_level,
                     )
                     .await?
                 }
@@ -236,7 +246,10 @@ async fn results(
                 results.set_filtered();
             }
             results.add_style(&config.style);
-            cache.cache_results(&results, &url).await?;
+            cache
+                .cache_results(&results, &(format!("{url}{safe_search_level}")))
+                .await?;
+            results.set_safe_search_level(safe_search_level);
             Ok(results)
         }
     }
