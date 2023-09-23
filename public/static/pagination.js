@@ -3,8 +3,8 @@
  * @returns {void}
  */
 function navigate_forward() {
-    const url = new URL(window.location);
-    const searchParams = url.searchParams;
+    let url = new URL(window.location);
+    let searchParams = url.searchParams;
 
     let q = searchParams.get('q');
     let page = parseInt(searchParams.get('page'));
@@ -23,8 +23,8 @@ function navigate_forward() {
  * @returns {void}
  */
 function navigate_backward() {
-    const url = new URL(window.location);
-    const searchParams = url.searchParams;
+    let url = new URL(window.location);
+    let searchParams = url.searchParams;
 
     let q = searchParams.get('q');
     let page = parseInt(searchParams.get('page'));

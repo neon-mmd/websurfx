@@ -4,6 +4,7 @@
 <p align="center">
   <b align="center"><a href="README.md">Readme</a></b> |
   <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
+  <b><a href="https://discord.gg/VKCAememnr">User Showcase</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
   <b><a href="../../tree/HEAD/docs/">Documentation</a></b>
   <br /><br />
@@ -57,28 +58,19 @@
   <p>
 
 - **Getting Started**
-    - [🔭 Preview](#preview-)
-    - [🚀 Features](#features-)
-    - [🛠️ Installation and Testing](#installation-and-testing-%EF%B8%8F)
-    - [🔧 Configuration](#configuration-)
+  - [🔭 Preview](#preview-)
+  - [🚀 Features](#features-)
+  - [🛠️ Installation and Testing](#installation-and-testing-%EF%B8%8F)
+  - [🔧 Configuration](#configuration-)
 - **Feature Overview**
-    - [🎨 Theming](#theming-)
-    - [🌍 Multi-Language Support](#multi-language-support-)
-- **Community**
-    - [📊 System Requirements](#system-requirements-)
-    - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
-    - [📣 More Contributors Wanted](#more-contributors-wanted-)
-    - [💖 Supporting Websurfx](#supporting-websurfx-)
-    - [📘 Documentation](#documentation-)
-    - [🛣️ Roadmap](#roadmap-)
-    - [🙋 Contributing](#contributing-)
-    - [📜 License](#license-)
-    - [🤝 Credits](#credits-)
+  - [🎨 Theming](#theming-)
+  - [🌍 Multi-Language Support](#multi-language-support-)
+- **Community** - [📊 System Requirements](#system-requirements-) - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-) - [📣 More Contributors Wanted](#more-contributors-wanted-) - [💖 Supporting Websurfx](#supporting-websurfx-) - [📘 Documentation](#documentation-) - [🛣️ Roadmap](#roadmap-) - [🙋 Contributing](#contributing-) - [📜 License](#license-) - [🤝 Credits](#credits-)
 
   </p>
 </details>
 
-# Preview 🔭 
+# Preview 🔭
 
 ## Home Page
 
@@ -94,7 +86,7 @@
 
 **[⬆️ Back to Top](#--)**
 
-# Features 🚀 
+# Features 🚀
 
 - 🎨 Make Websurfx uniquely yours with twelve color schemes provided by default. It also supports creation of custom themes and color schemes in a quick and easy way, so unleash your creativity!
 - 🔐 Fast, private, and secure
@@ -104,7 +96,7 @@
 
 **[⬆️ Back to Top](#--)**
 
-# Installation and Testing 🛠️ 
+# Installation and Testing 🛠️
 
 > For full setup instructions, see: [**Installation**](./docs/installation.md)
 
@@ -112,7 +104,7 @@ Before you can start building `websurfx`, you will need to have `Cargo` installe
 
 To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx/` directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
 
-``` shell
+```shell
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
 git checkout stable
@@ -128,7 +120,7 @@ Once you have started the server, open your preferred web browser and navigate t
 
 **[⬆️ Back to Top](#--)**
 
-# Configuration 🔧 
+# Configuration 🔧
 
 > For full configuration instructions, see: [**Configuration**](./docs/configuration.md)
 
@@ -136,7 +128,7 @@ Websurfx is configured through the config.lua file, located at `websurfx/config.
 
 **[⬆️ Back to Top](#--)**
 
-# Theming 🎨 
+# Theming 🎨
 
 > For full theming and customization instructions, see: [**Theming**](./docs/theming.md)
 
@@ -173,7 +165,7 @@ Websurfx is based on Rust due to its memory safety features, which prevents vuln
 
 **[⬆️ Back to Top](#--)**
 
-# More Contributors Wanted 📣  
+# More Contributors Wanted 📣
 
 We are looking for more willing contributors to help grow this project. For more information on how you can contribute, check out the [project board](https://github.com/neon-mmd/websurfx/projects?query=is%3Aopen) and the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines and rules for making contributions.
 
@@ -186,6 +178,7 @@ We are looking for more willing contributors to help grow this project. For more
 If you use Websurfx and would like to contribute to its development, we're glad to have you on board! Contributions of any size or type are always welcome, and we will always acknowledge your efforts.
 
 Several areas that we need a bit of help with at the moment are:
+
 - **Better and more color schemes**: Help fix color schemes and add other famous color schemes.
 - **Improve evasion code for bot detection** - Help improve code related to evading IP blocking and emulating human behaviors located in everyone's engine file.
 - **Logo** - Help create a logo for the project and website.
@@ -198,7 +191,7 @@ Several areas that we need a bit of help with at the moment are:
 # Documentation 📘
 
 > **Note**
-> We welcome any contributions to the [documentation](../../tree/HEAD/docs/) as this will benefit everyone who uses this project. 
+> We welcome any contributions to the [documentation](../../tree/HEAD/docs/) as this will benefit everyone who uses this project.
 
 **[⬆️ Back to Top](#--)**
 
@@ -208,7 +201,7 @@ Several areas that we need a bit of help with at the moment are:
 
 **[⬆️ Back to Top](#--)**
 
-# Contributing 🙋 
+# Contributing 🙋
 
 Contributions are welcome from anyone. It doesn't matter who you are; you can still contribute to the project in your own way.
 
@@ -222,13 +215,13 @@ If you are a developer, have a look at the [CONTRIBUTING.org](CONTRIBUTING.md) d
 
 **[⬆️ Back to Top](#--)**
 
-# License 📜 
+# License 📜
 
 Websurfx is licensed under the [AGPLv3](LICENSE) license.
 
 **[⬆️ Back to Top](#--)**
 
-# Credits 🤝 
+# Credits 🤝
 
 We would like to thank the following people for their contributions and support:
 
