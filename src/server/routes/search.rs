@@ -214,7 +214,7 @@ async fn results(
                                 config.debug,
                                 &engines,
                                 config.request_timeout,
-                                safe_search,
+                                safe_search_level,
                             )
                             .await?
                         }
