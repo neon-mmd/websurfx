@@ -144,6 +144,28 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
+.search_area .search_options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search_area .search_options select {
+  margin: 0.7rem 0;
+  width: 20rem;
+  background-color: var(--color-one);
+  color: var(--foreground-color);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  text-transform: capitalize;
+}
+
+.search_area .search_options option:hover {
+  background-color: var(--color-one);
+}
+
 .result_not_found {
     display: flex;
     flex-direction: column;
@@ -670,20 +692,22 @@ footer .privacy_section a {
     color: var(--foreground-color);
 }
 
-.settings_container .user_interface select {
-    margin: 0.7rem 0;
-    width: 20rem;
-    background-color: var(--background-color);
-    color: var(--foreground-color);
-    padding: 1rem 2rem;
-    border-radius: 0.5rem;
-    outline: none;
-    border: none;
-    text-transform: capitalize;
+.settings_container .user_interface select,
+.settings_container .general select {
+  margin: 0.7rem 0;
+  width: 20rem;
+  background-color: var(--background-color);
+  color: var(--foreground-color);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  text-transform: capitalize;
 }
 
-.settings_container .user_interface option:hover {
-    background-color: var(--color-one);
+.settings_container .user_interface option:hover,
+.settings_container .general option:hover {
+  background-color: var(--color-one);
 }
 
 .settings_container .engines .engine_selection {

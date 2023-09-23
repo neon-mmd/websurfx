@@ -122,6 +122,8 @@ pub struct SearchResults {
     /// search query was filtered when the safe search level set to 3 and it
     /// was present in the `Blocklist` file.
     pub filtered: bool,
+    /// Stores the safe search level `safesearch` provided in the search url.
+    pub safe_search_level: u8,
 }
 
 impl SearchResults {
@@ -147,6 +149,7 @@ impl SearchResults {
             engine_errors_info: engine_errors_info.to_owned(),
             disallowed: Default::default(),
             filtered: Default::default(),
+            safe_search_level: Default::default(),
         }
     }
 
@@ -177,5 +180,10 @@ impl SearchResults {
     /// A getter function that gets the value of `results`.
     pub fn results(&mut self) -> Vec<SearchResult> {
         self.results.clone()
+    }
+
+    /// A setter function to set the current page safe search level.
+    pub fn set_safe_search_level(&mut self, safe_search_level: u8) {
+        self.safe_search_level = safe_search_level;
     }
 }
