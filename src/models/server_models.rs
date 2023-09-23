@@ -26,4 +26,6 @@ pub struct Cookie<'a> {
     pub colorscheme: &'a str,
     /// It stores the user selected upstream search engines selected from the UI.
     pub engines: Vec<&'a str>,
+    /// It stores the user selected safe search level from the UI.
+    pub safe_search_level: u8,
 }
