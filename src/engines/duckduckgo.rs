@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 
 use reqwest::header::HeaderMap;
-use scraper::{Html, Selector};
+use scraper::Html;
 
 use crate::models::aggregation_models::SearchResult;
 
@@ -13,9 +13,27 @@ use crate::models::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{Report, Result, ResultExt};
 
+use super::search_result_parser::SearchResultParser;
+
 /// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
-pub struct DuckDuckGo;
+pub struct DuckDuckGo {
+    parser: SearchResultParser,
+}
+
+impl DuckDuckGo {
+    pub fn new() -> Result<Self, EngineError> {
+        Ok(Self {
+            parser: SearchResultParser::new(
+                ".no-results",
+                ".result",
+                ".result__a",
+                ".result__url",
+                ".result__snippet",
+            )?,
+        })
+    }
+}
 
 #[async_trait::async_trait]
 impl SearchEngine for DuckDuckGo {
@@ -59,34 +77,17 @@ impl SearchEngine for DuckDuckGo {
             &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
         );
 
-        let no_result: Selector = Selector::parse(".no-results")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".no-results"))?;
-
-        if document.select(&no_result).next().is_some() {
+        if document.select(&self.parser.no_result).next().is_some() {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
-        let results: Selector = Selector::parse(".result")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result"))?;
-        let result_title: Selector = Selector::parse(".result__a")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__a"))?;
-        let result_url: Selector = Selector::parse(".result__url")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__url"))?;
-        let result_desc: Selector = Selector::parse(".result__snippet")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result__snippet"))?;
-
         // scrape all the results from the html
         Ok(document
-            .select(&results)
+            .select(&self.parser.results)
             .map(|result| {
                 SearchResult::new(
                     result
-                        .select(&result_title)
+                        .select(&self.parser.result_title)
                         .next()
                         .unwrap()
                         .inner_html()
@@ -94,7 +95,7 @@ impl SearchEngine for DuckDuckGo {
                     format!(
                         "https://{}",
                         result
-                            .select(&result_url)
+                            .select(&self.parser.result_url)
                             .next()
                             .unwrap()
                             .inner_html()
@@ -102,7 +103,7 @@ impl SearchEngine for DuckDuckGo {
                     )
                     .as_str(),
                     result
-                        .select(&result_desc)
+                        .select(&self.parser.result_desc)
                         .next()
                         .unwrap()
                         .inner_html()

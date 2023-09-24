@@ -85,12 +85,14 @@ impl EngineErrorInfo {
     pub fn new(error: &EngineError, engine: &str) -> Self {
         Self {
             error: match error {
+                EngineError::EngineNotFound => "EngineNotFound".to_owned(),
                 EngineError::RequestError => "RequestError".to_owned(),
                 EngineError::EmptyResultSet => "EmptyResultSet".to_owned(),
                 EngineError::UnexpectedError => "UnexpectedError".to_owned(),
             },
             engine: engine.to_owned(),
             severity_color: match error {
+                EngineError::EngineNotFound => "red".to_owned(),
                 EngineError::RequestError => "green".to_owned(),
                 EngineError::EmptyResultSet => "blue".to_owned(),
                 EngineError::UnexpectedError => "red".to_owned(),

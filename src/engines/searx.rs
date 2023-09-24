@@ -3,16 +3,34 @@
 //! number if provided.
 
 use reqwest::header::HeaderMap;
-use scraper::{Html, Selector};
+use scraper::Html;
 use std::collections::HashMap;
 
+use super::search_result_parser::SearchResultParser;
 use crate::models::aggregation_models::SearchResult;
 use crate::models::engine_models::{EngineError, SearchEngine};
 use error_stack::{Report, Result, ResultExt};
 
 /// A new Searx engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
-pub struct Searx;
+pub struct Searx {
+    parser: SearchResultParser,
+}
+
+impl Searx {
+    // new Searchx engine
+    pub fn new() -> Result<Searx, EngineError> {
+        Ok(Self {
+            parser: SearchResultParser::new(
+                "#urls>.dialog-error>p",
+                ".result",
+                "h3>a",
+                "h3>a",
+                ".content",
+            )?,
+        })
+    }
+}
 
 #[async_trait::async_trait]
 impl SearchEngine for Searx {
@@ -52,13 +70,7 @@ impl SearchEngine for Searx {
             &Searx::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
         );
 
-        let no_result: Selector = Selector::parse("#urls>.dialog-error>p")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| {
-                format!("invalid CSS selector: {}", "#urls>.dialog-error>p")
-            })?;
-
-        if let Some(no_result_msg) = document.select(&no_result).nth(1) {
+        if let Some(no_result_msg) = document.select(&self.parser.no_result).nth(1) {
             if no_result_msg.inner_html()
             == "we didn't find any results. Please use another query or search in more categories"
         {
@@ -66,40 +78,26 @@ impl SearchEngine for Searx {
         }
         }
 
-        let results: Selector = Selector::parse(".result")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".result"))?;
-        let result_title: Selector = Selector::parse("h3>a")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", "h3>a"))?;
-        let result_url: Selector = Selector::parse("h3>a")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", "h3>a"))?;
-
-        let result_desc: Selector = Selector::parse(".content")
-            .map_err(|_| Report::new(EngineError::UnexpectedError))
-            .attach_printable_lazy(|| format!("invalid CSS selector: {}", ".content"))?;
-
         // scrape all the results from the html
         Ok(document
-            .select(&results)
+            .select(&self.parser.results)
             .map(|result| {
                 SearchResult::new(
                     result
-                        .select(&result_title)
+                        .select(&self.parser.result_title)
                         .next()
                         .unwrap()
                         .inner_html()
                         .trim(),
                     result
-                        .select(&result_url)
+                        .select(&self.parser.result_url)
                         .next()
                         .unwrap()
                         .value()
                         .attr("href")
                         .unwrap(),
                     result
-                        .select(&result_desc)
+                        .select(&self.parser.result_desc)
                         .next()
                         .unwrap()
                         .inner_html()
