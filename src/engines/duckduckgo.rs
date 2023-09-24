@@ -18,10 +18,12 @@ use super::search_result_parser::SearchResultParser;
 /// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
 pub struct DuckDuckGo {
+    // The parser, used to interpret the search result.
     parser: SearchResultParser,
 }
 
 impl DuckDuckGo {
+    /// Creates the DuckDuckGo parser.
     pub fn new() -> Result<Self, EngineError> {
         Ok(Self {
             parser: SearchResultParser::new(
@@ -77,41 +79,19 @@ impl SearchEngine for DuckDuckGo {
             &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
         );
 
-        if document.select(&self.parser.no_result).next().is_some() {
+        if self.parser.parse_for_no_results(&document).next().is_some() {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
         // scrape all the results from the html
-        Ok(document
-            .select(&self.parser.results)
-            .map(|result| {
-                SearchResult::new(
-                    result
-                        .select(&self.parser.result_title)
-                        .next()
-                        .unwrap()
-                        .inner_html()
-                        .trim(),
-                    format!(
-                        "https://{}",
-                        result
-                            .select(&self.parser.result_url)
-                            .next()
-                            .unwrap()
-                            .inner_html()
-                            .trim()
-                    )
-                    .as_str(),
-                    result
-                        .select(&self.parser.result_desc)
-                        .next()
-                        .unwrap()
-                        .inner_html()
-                        .trim(),
+        self.parser
+            .parse_for_results(&document, |title, url, desc| {
+                Some(SearchResult::new(
+                    title.inner_html().trim(),
+                    &format!("https://{}", url.inner_html().trim()),
+                    desc.inner_html().trim(),
                     &["duckduckgo"],
-                )
+                ))
             })
-            .map(|search_result| (search_result.url.clone(), search_result))
-            .collect())
     }
 }

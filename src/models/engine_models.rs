@@ -8,7 +8,7 @@ use std::{collections::HashMap, fmt, time::Duration};
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
 pub enum EngineError {
-    // No matching engine found
+    /// No matching engine found
     EngineNotFound,
     /// This variant handles all request related errors like forbidden, not found,
     /// etc.
