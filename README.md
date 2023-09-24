@@ -61,12 +61,22 @@
 - **Getting Started**
   - [🔭 Preview](#preview-)
   - [🚀 Features](#features-)
+  - [🔗 Instances](instances-)
   - [🛠️ Installation and Testing](#installation-and-testing-%EF%B8%8F)
   - [🔧 Configuration](#configuration-)
 - **Feature Overview**
   - [🎨 Theming](#theming-)
   - [🌍 Multi-Language Support](#multi-language-support-)
-- **Community** - [📊 System Requirements](#system-requirements-) - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-) - [📣 More Contributors Wanted](#more-contributors-wanted-) - [💖 Supporting Websurfx](#supporting-websurfx-) - [📘 Documentation](#documentation-) - [🛣️ Roadmap](#roadmap-) - [🙋 Contributing](#contributing-) - [📜 License](#license-) - [🤝 Credits](#credits-)
+- **Community**
+  - [📊 System Requirements](#system-requirements-)
+  - [🗨️ FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions-)
+  - [📣 More Contributors Wanted](#more-contributors-wanted-)
+  - [💖 Supporting Websurfx](#supporting-websurfx-)
+  - [📘 Documentation](#documentation-)
+  - [🛣️ Roadmap](#roadmap-)
+  - [🙋 Contributing](#contributing-)
+  - [📜 License](#license-)
+  - [🤝 Credits](#credits-)
 
   </p>
 </details>
@@ -84,6 +94,12 @@
 ## 404 Error Page
 
 <img align="center" src="./images/404_error_page.png" />
+
+**[⬆️ Back to Top](#--)**
+
+# Instances 🔗
+
+> For a full list of publicly available community driven `websurfx` instances to test or for daily use. see [**Instances**](./docs/instances.md)
 
 **[⬆️ Back to Top](#--)**
 
