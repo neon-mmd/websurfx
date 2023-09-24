@@ -14,7 +14,7 @@ use error_stack::{Report, Result, ResultExt};
 /// A new Searx engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
 pub struct Searx {
-    // The parser, used to interpret the search result.
+    /// The parser, used to interpret the search result.
     parser: SearchResultParser,
 }
 

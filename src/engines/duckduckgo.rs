@@ -18,7 +18,7 @@ use super::search_result_parser::SearchResultParser;
 /// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
 pub struct DuckDuckGo {
-    // The parser, used to interpret the search result.
+    /// The parser, used to interpret the search result.
     parser: SearchResultParser,
 }
 

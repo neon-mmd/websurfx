@@ -7,10 +7,15 @@ use scraper::{html::Select, ElementRef, Html, Selector};
 
 /// A html search result parser, based on a predefined CSS selectors.
 pub struct SearchResultParser {
+    /// selector to locate the element which is displayed, if there were nothing found.
     no_result: Selector,
+    /// selector to locate the element which contains one item from the search result.
     results: Selector,
+    /// selector to locate the title relative to the search result item.
     result_title: Selector,
+    /// selector to locate the url relative to the search result item.
     result_url: Selector,
+    /// selector to locate the description relative to the search result item.
     result_desc: Selector,
 }
 
