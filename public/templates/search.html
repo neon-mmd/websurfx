@@ -126,7 +126,34 @@
             </div>
             <p style="float: right; margin-top: 5px; color: #919193; font-size: 12.5px;">give feedback</p>-->
             </div>
+            <img src="./images/filter.png" alt="Image of a paper inside a funnel" />
         </div>
+        {{else}} {{#if noEnginesSelected}}
+        <div class="result_engine_not_selected">
+            <div class="description">
+                <p>
+                    No results could be fetched for your search "<span class="user_query">{{{this.pageQuery}}}</span>" .
+                </p>
+                <p class="description_paragraph">Dear user,</p>
+                <p class="description_paragraph">
+                    No results could be retrieved from the upstream search engines as no 
+                    upstream search engines were selected from the settings page. 
+                </p>
+            </div>
+            <img src="./images/no_selection.png" alt="Image of a white cross inside a red circle" />
+        </div>
+        {{else}}
+        <div class="result_not_found">
+            <p>Your search - {{{this.pageQuery}}} - did not match any documents.</p>
+            <p class="suggestions">Suggestions:</p>
+            <ul>
+                <li>Make sure that all words are spelled correctly.</li>
+                <li>Try different keywords.</li>
+                <li>Try more general keywords.</li>
+            </ul>
+            <img src="./images/no_results.gif" alt="Man fishing gif" />
+        </div>
+        {{/if}} {{/if}} {{/if}} {{/if}}
     </div>
     <div class="page_navigation">
         <button type="button" onclick="navigate_backward()">

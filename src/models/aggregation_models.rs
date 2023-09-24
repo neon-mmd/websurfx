@@ -124,6 +124,9 @@ pub struct SearchResults {
     pub filtered: bool,
     /// Stores the safe search level `safesearch` provided in the search url.
     pub safe_search_level: u8,
+    /// Stores the flag option which holds the check value that whether any search engines were
+    /// selected or not.
+    pub no_engines_selected: bool,
 }
 
 impl SearchResults {
@@ -150,6 +153,7 @@ impl SearchResults {
             disallowed: Default::default(),
             filtered: Default::default(),
             safe_search_level: Default::default(),
+            no_engines_selected: Default::default(),
         }
     }
 
@@ -185,5 +189,15 @@ impl SearchResults {
     /// A setter function to set the current page safe search level.
     pub fn set_safe_search_level(&mut self, safe_search_level: u8) {
         self.safe_search_level = safe_search_level;
+    }
+
+    /// A getter function that gets the value of `no_engines_selected`.
+    pub fn no_engines_selected(&self) -> bool {
+        self.no_engines_selected
+    }
+
+    /// A setter function to set the `no_engines_selected` to true.
+    pub fn set_no_engines_selected(&mut self) {
+        self.no_engines_selected = true;
     }
 }
