@@ -15,6 +15,7 @@ Some of the configuration options provided in the file are stated below. These a
 
 - General
 - Server
+- Search
 - Website
 - Cache
 - Search Engines
@@ -29,8 +30,21 @@ Some of the configuration options provided in the file are stated below. These a
 
 - **port:** Port number on which server should be launched.
 - **binding_ip_addr:** IP address on the which server should be launched.
-- **production_use:** Whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users). If production_use is set to true. There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests. This is newly added option and hence is only available in the **edge version**.
+- **production_use:** Whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users). If production_use is set to true. There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 - **request_timeout:** Timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
+- **rate_limiter:** The configuration option to configure rate limiting on the search engine website.
+
+## Search
+
+- **safe_search:** This option is used to configure the search filtering based on different safe search levels. (value a number between 0 to 4)
+
+> This option provides 4 levels of search filtering:
+>
+> - Level 0 - With this level no search filtering occurs.
+> - Level 1 - With this level some search filtering occurs.
+> - Level 2 - With this level the upstream search engines are restricted to send sensitive contents like NSFW search results, etc.
+> - Level 3 - With this level the regex based filter lists is used alongside level 2 to filter more search results that have slipped in or custom results that needs to be filtered using the filter lists.
+> - Level 4 - This level is similar to level 3 except in this level the regex based filter lists are used to disallow users to search sensitive or disallowed content. This level could be useful if you are parent or someone who wants to completely disallow their kids or yourself from watching sensitive content.
 
 ## Website
 
@@ -60,6 +74,9 @@ Some of the configuration options provided in the file are stated below. These a
 ## Cache
 
 - **redis_url:** Redis connection url address on which the client should connect on.
+
+> **Note**
+> This option can be commented out if you have compiled the app without the `redis-cache` feature. For more information, See [**building**](./building.md).
 
 ## Search Engines
 
