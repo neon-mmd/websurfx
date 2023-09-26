@@ -129,6 +129,126 @@ body {
 .search_bar button:hover {
   filter: brightness(1.2);
 }
+
+.search_area .search_options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search_area .search_options select {
+  margin: 0.7rem 0;
+  width: 20rem;
+  background-color: var(--color-one);
+  color: var(--foreground-color);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  outline: none;
+  border: none;
+  text-transform: capitalize;
+}
+
+.search_area .search_options option:hover {
+  background-color: var(--color-one);
+}
+
+.result_not_found {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.5rem;
+  color: var(--foreground-color);
+}
+
+.result_not_found p {
+  margin: 1rem 0;
+}
+
+.result_not_found ul {
+  margin: 1rem 0;
+}
+
+.result_not_found img {
+  width: 40rem;
+}
+```
+
+```css
+/* styles for the error box */
+.error_box .error_box_toggle_button {
+  background: var(--foreground-color);
+}
+
+.error_box .dropdown_error_box {
+  position: absolute;
+  display: none;
+  flex-direction: column;
+  background: var(--background-color);
+  border-radius: 0;
+  margin-left: 2rem;
+  min-height: 20rem;
+  min-width: 22rem;
+}
+.error_box .dropdown_error_box.show {
+  display: flex;
+}
+.error_box .dropdown_error_box .error_item,
+.error_box .dropdown_error_box .no_errors {
+  display: flex;
+  align-items: center;
+  color: var(--foreground-color);
+  letter-spacing: 0.1rem;
+  padding: 1rem;
+  font-size: 1.2rem;
+}
+.error_box .dropdown_error_box .error_item {
+  justify-content: space-between;
+}
+.error_box .dropdown_error_box .no_errors {
+  min-height: 18rem;
+  justify-content: center;
+}
+
+.error_box .dropdown_error_box .error_item:hover {
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+}
+
+.error_box .error_item .severity_color {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+.results .result_disallowed,
+.results .result_filtered,
+.results .result_engine_not_selected {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10rem;
+  font-size: 2rem;
+  color: var(--foreground-color);
+  margin: 0rem 7rem;
+}
+
+.results .result_disallowed .user_query,
+.results .result_filtered .user_query,
+.results .result_engine_not_selected .user_query {
+  color: var(--background-color);
+  font-weight: 300;
+}
+
+.results .result_disallowed img,
+.results .result_filtered img,
+.results .result_engine_not_selected img {
+  width: 30rem;
+}
+
+.results .result_disallowed div,
+.results .result_filtered div,
+.results .result_engine_not_selected div {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  line-break: strict;
+}
 ```
 
 ### Styles for the footer and header
@@ -499,7 +619,8 @@ This part is only available right now in the **rolling/edge/unstable** version
   color: var(--foreground-color);
 }
 
-.settings_container .user_interface select {
+.settings_container .user_interface select,
+.settings_container .general select {
   margin: 0.7rem 0;
   width: 20rem;
   background-color: var(--background-color);
@@ -511,7 +632,8 @@ This part is only available right now in the **rolling/edge/unstable** version
   text-transform: capitalize;
 }
 
-.settings_container .user_interface option:hover {
+.settings_container .user_interface option:hover,
+.settings_container .general option:hover {
   background-color: var(--color-one);
 }
 
