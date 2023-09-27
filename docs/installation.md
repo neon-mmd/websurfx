@@ -19,6 +19,40 @@ Once you have started the server, open your preferred web browser and navigate t
 
 If you want to change the port or the ip or any other configuration setting checkout the [configuration docs](./configuration.md).
 
+## NixOS
+
+A `flake.nix` has been provided to allow installing `websurfx` easily. It utilizes [nearsk](https://github.com/nix-community/naersk) to automatically generate a derivation based on `Cargo.toml` and `Cargo.lock`.
+
+The flake has several outputs, which may be consumed:
+
+```bash
+nix build .#websurfx
+nix run .#websurfx
+```
+
+You may include it in your own flake by adding this repo to its inputs and adding it to `environment.systemPackages` as follows:
+
+```nix
+{
+  description = "My awesome configuration";
+
+  inputs = {
+    websurfx.url = "github:neon-mmd/websurfx";
+  };
+
+  outputs = { nixpkgs, ... }@inputs: {
+    nixosConfigurations = {
+      hostname = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [{
+          environment.systemPackages = [inputs.websurfx.packages.x86_64-linux.websurfx];
+        }];
+      };
+    };
+  };
+}
+```
+
 ## Other Distros
 
 The package is currently not available on other Linux distros. With contribution and support it can be made available on other distros as well 🙂.
