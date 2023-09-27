@@ -1,7 +1,8 @@
-/target
-package.json
-package-lock.json
-dump.rdb
 .vscode
-megalinter-reports/
+/target
 dhat-heap.json
+dump.rdb
+megalinter-reports/
+package-lock.json
+package.json
+result
