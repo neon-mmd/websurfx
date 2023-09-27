@@ -18,7 +18,7 @@
       pkgs = import nixpkgs {inherit system;};
       naersk-lib = pkgs.callPackage naersk {};
     in rec {
-      # Build via nix build .#defaultPackage.x86_64-linux
+      # Build via "nix build .#default"
       packages.default = naersk-lib.buildPackage {
         # The build dependencies
         buildInputs = with pkgs; [pkg-config openssl];
@@ -37,7 +37,7 @@
             nodePackages_latest.eslint
             nodePackages_latest.markdownlint-cli2
             nodePackages_latest.stylelint
-            nodePackages_latest.stylelint
+            redis
             rustPackages.clippy
             rustc
             yamllint
@@ -45,7 +45,8 @@
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
 
-      # Build via "nix build .#websurfx.x86_64-linux"
+      # Build via "nix build .#websurfx", which is basically just
+      # calls the build function
       packages.websurfx = packages.default;
     });
 }
