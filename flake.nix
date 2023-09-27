@@ -19,7 +19,7 @@
       naersk-lib = pkgs.callPackage naersk {};
     in rec {
       # Build via nix build .#defaultPackage.x86_64-linux
-      defaultPackage = naersk-lib.buildPackage {
+      packages.default = naersk-lib.buildPackage {
         # The build dependencies
         buildInputs = with pkgs; [pkg-config openssl];
         src = ./.;
@@ -27,7 +27,7 @@
 
       # Enter devshell with all the tools via "nix develop"
       # or "nix-shell"
-      devShell = with pkgs;
+      devShells.default = with pkgs;
         mkShell {
           buildInputs = [
             actionlint
@@ -46,6 +46,6 @@
         };
 
       # Build via "nix build .#websurfx.x86_64-linux"
-      websurfx = defaultPackage;
+      packages.websurfx = packages.default;
     });
 }
