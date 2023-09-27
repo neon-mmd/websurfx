@@ -10,6 +10,9 @@ services:
       - redis
     links:
       - redis
+    volumes:
+      - ./websurfx/:/etc/xdg/websurfx/
+      - ./public/:/opt/websurfx/public/
   redis:
     image: redis:latest
     ports:
