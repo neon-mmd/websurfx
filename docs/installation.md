@@ -162,4 +162,41 @@ cd websurfx
 git checkout stable
 ```
 
+## NixOS
+
+A flake.nix has been provided to allow installing `Websurfx` easily. It utilizes [nearsk](https://github.com/nix-community/naersk) to automatically generate a derivation based on `Cargo.toml` and `Cargo.lock`.
+
+The flake has several outputs, which may be consumed:
+
+~~~bash
+nix build .#websurfx
+nix run .#websurfx
+~~~
+
+You may include it in your own flake by adding this repo to its inputs and adding it to `environment.systemPackages`
+
+~~~nix
+{
+  description = "My configuration";
+
+  inputs = {
+    websurfx.url = "github:neon-mmd/websurfx";
+  };
+
+  outputs = { nixpkgs, ... }@inputs: {
+    nixosConfigurations = {
+      hostname = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [{
+			environment.systemPackages = [
+				inputs.websurfx.websurfx
+			];
+		}];
+      };
+    };
+  };
+}
+
+~~~
+
 [⬅️ Go back to Home](./README.md)
