@@ -1,12 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <title>Websurfx</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="static/colorschemes/{{colorscheme}}.css" rel="stylesheet" type="text/css" />
     <link href="static/themes/{{theme}}.css" rel="stylesheet" type="text/css" />
-  </head>
+</head>
 
-  <body>
-    <header>{{>navbar}}</header>
+<body onload="getClientSettings()">
+    <header>
+        <h1><a href="/">Websurfx</a></h1>
+        {{>navbar}}
+    </header>

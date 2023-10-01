@@ -1,0 +1,50 @@
+---
+image:
+    file: .gitpod.Dockerfile
+
+# Commands that will run on workspace start 
+tasks: 
+    - name: Start Redis Server
+      command: redis-server --port 8082
+    - name: Run The App
+      init: cargo build
+      command: PKG_ENV=dev ./target/debug/websurfx
+    - name: Tests
+      command: cargo test
+    - name: Clippy Checks
+      command: cargo clippy
+
+# vscode IDE setup
+vscode: 
+   extensions: 
+    - vadimcn.vscode-lldb
+    - cschleiden.vscode-github-actions
+    - rust-lang.rust-analyzer
+    - bungcip.better-toml
+    - serayuzgur.crates
+    - usernamehw.errorlens
+    - DavidAnson.vscode-markdownlint
+    - esbenp.prettier-vscode
+    - stylelint.vscode-stylelint
+    - dbaeumer.vscode-eslint
+    - evgeniypeshkov.syntax-highlighter
+    - ms-azuretools.vscode-docker
+    - Catppuccin.catppuccin-vsc
+    - PKief.material-icon-theme
+    - oderwat.indent-rainbow
+    - formulahendry.auto-rename-tag
+    - swellaby.vscode-rust-test-adapter
+    - belfz.search-crates-io
+    - hbenl.test-adapter-converter
+    - hbenl.vscode-test-explorer
+    - eamodio.gitlens
+
+github: 
+   prebuilds: 
+      master: true 
+      branches: true 
+      pullRequests: true 
+      pullRequestsFromForks: true 
+      addCheck: true 
+      addComment: false
+      addBadge: true

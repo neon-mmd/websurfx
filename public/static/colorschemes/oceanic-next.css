@@ -1,11 +1,11 @@
 :root {
-  --bg: #1b2b34;
-  --fg: #d8dee9;
-  --1: #343d46;
-  --2: #ec5f67;
-  --3: #99c794;
-  --4: #fac863;
-  --5: #6699cc;
-  --6: #c594c5;
-  --7: #ffffff;
+  --background-color: #1b2b34;
+  --foreground-color: #d8dee9;
+  --color-one: #343d46;
+  --color-two: #5FB3B3ff;
+  --color-three: #69Cf;
+  --color-four: #99c794;
+  --color-five: #69c;
+  --color-six: #c594c5;
+  --color-seven: #D8DEE9ff;
 }
