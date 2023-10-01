@@ -132,8 +132,10 @@ redis-server --port 8082 &
 
 Once you have started the server, open your preferred web browser and navigate to <http://127.0.0.1:8080> to start using Websurfx.
 
-> **Warning**
-> This project is still in the testing phase and is **not** ready for production use.
+> **Note**
+>
+> 1. The project is no longer in the testing phase and is now ready for production use.
+> 2. There are many features still missing like `support for image search`, `different categories`, `quick apps`, etc but they will be added soon as part of future releases.
 
 **[⬆️ Back to Top](#--)**
 

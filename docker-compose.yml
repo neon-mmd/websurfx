@@ -6,14 +6,15 @@ services:
     build: .
     ports:
       - 8080:8080
-    depends_on:
-      - redis
-    links:
-      - redis
+    # Uncomment the following lines if you are using the `hybrid` or `redis` caching feature.
+    # depends_on:
+    #   - redis
+    # links:
+    #   - redis
     volumes:
       - ./websurfx/:/etc/xdg/websurfx/
-      - ./public/:/opt/websurfx/public/
-  redis:
-    image: redis:latest
-    ports:
-      - 6379:6379
+  # Uncomment the following lines if you are using the `hybrid` or `redis` caching feature.
+  # redis:
+  #   image: redis:latest
+  #   ports:
+  #     - 6379:6379
