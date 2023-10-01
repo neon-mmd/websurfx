@@ -9,7 +9,7 @@
 
 - [Instances](./instances.md)
 - [Installation](./installation.md)
-- [Building](./building.md)
+- [Features](./features.md)
 - [Configuration](./configuration.md)
 - [Theming](./theming.md)
 
