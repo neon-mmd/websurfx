@@ -1,13 +1,13 @@
 [package]
 name = "websurfx"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
 license = "AGPL-3.0"
 
 [dependencies]
-reqwest = {version="0.11.20",features=["json"]}
+reqwest = {version="0.11.21",features=["json"]}
 tokio = {version="1.32.0",features=["rt-multi-thread","macros"]}
 serde = {version="1.0.188",features=["derive"]}
 handlebars = { version = "4.4.0", features = ["dir_source"] }
