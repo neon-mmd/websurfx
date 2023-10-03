@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           
       - name: Update contributors list
-        uses: wow-actions/contributors-list@b9e91f91a51a55460fdcae64daad0cb8122cdd53 # v1.1.0
+        uses: wow-actions/contributors-list@242b53835016268d20e79eeff6f42193c02be8c8 # v1.2.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           svgPath: images/contributors_list.svg
