@@ -41,6 +41,12 @@
       src="https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod"
     />
   </a>
+  <a href="https://www.codefactor.io/repository/github/niloth-p/websurfx"
+    ><img
+      alt="CodeFactor"
+      src="https://www.codefactor.io/repository/github/niloth-p/websurfx/badge"
+    />
+  </a>
   <br />
   <br />
   <i>
