@@ -35,6 +35,12 @@
       src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
     />
   </a>
+  <a href="https://www.codefactor.io/repository/github/neon-mmd/websurfx">
+    <img
+      alt="CodeFactor"
+      src="https://www.codefactor.io/repository/github/neon-mmd/websurfx/badge"
+    />
+  </a>
   <a href="https://gitpod.io/#https://github.com/neon-mmd/websurfx">
     <img
       alt="Gitpod"
@@ -106,6 +112,9 @@
 # Features 🚀
 
 - 🎨 Make Websurfx uniquely yours with twelve color schemes provided by default. It also supports creation of custom themes and color schemes in a quick and easy way, so unleash your creativity!
+- 🚀 Easy to setup with docker or on bare metal with various installation/deployement options. 
+- ⛔ Search filtering to filter search results based on four different levels.
+- 💾 Different caching levels focusing on reliability, speed and resiliancy.
 - 🔐 Fast, private, and secure
 - 🆓 100% free and open source
 - 💨 Ad-free and clean results
