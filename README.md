@@ -35,6 +35,12 @@
       src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
     />
   </a>
+  <a href="https://www.codefactor.io/repository/github/neon-mmd/websurfx">
+    <img
+      alt="CodeFactor"
+      src="https://www.codefactor.io/repository/github/neon-mmd/websurfx/badge"
+    />
+  </a>
   <a href="https://gitpod.io/#https://github.com/neon-mmd/websurfx">
     <img
       alt="Gitpod"
