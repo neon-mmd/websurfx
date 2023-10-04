@@ -1,0 +1,18 @@
+pull_request_rules:
+  - name: Automatic merge on approval
+    conditions:
+      - "status-success=checks/approved"
+      - "#approved-reviews-by>=2"
+    actions:
+      queue:
+        method: squash
+  - name: automatic update of pull requests where more 5 commits behind
+    conditions:
+      - "#commits-behind>5"
+    actions:
+      update:
+  - name: delete head branch after merge
+    conditions:
+      - merged
+    actions:
+      delete_head_branch: {}
