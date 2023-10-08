@@ -9,7 +9,7 @@ use std::{collections::HashMap, fmt, time::Duration};
 #[derive(Debug)]
 pub enum EngineError {
     /// No matching engine found
-    EngineNotFound,
+    NoSuchEngineFound(String),
     /// This variant handles all request related errors like forbidden, not found,
     /// etc.
     EmptyResultSet,
@@ -26,8 +26,8 @@ pub enum EngineError {
 impl fmt::Display for EngineError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EngineError::EngineNotFound => {
-                write!(f, "Search engine not found")
+            EngineError::NoSuchEngineFound(engine) => {
+                write!(f, "No such engine with the name '{engine}' found")
             }
             EngineError::EmptyResultSet => {
                 write!(f, "The upstream search engine returned an empty result set")
@@ -150,7 +150,11 @@ impl EngineHandler {
                     let engine = crate::engines::searx::Searx::new()?;
                     ("searx", Box::new(engine))
                 }
-                _ => return Err(Report::from(EngineError::EngineNotFound)),
+                _ => {
+                    return Err(Report::from(EngineError::NoSuchEngineFound(
+                        engine_name.to_string(),
+                    )))
+                }
             };
 
         Ok(Self {
