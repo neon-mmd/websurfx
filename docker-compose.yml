@@ -16,5 +16,3 @@ services:
   # Uncomment the following lines if you are using the `hybrid` or `redis` caching feature.
   # redis:
   #   image: redis:latest
-  #   ports:
-  #     - 6379:6379
