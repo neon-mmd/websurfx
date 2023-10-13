@@ -2,12 +2,14 @@
 //! the upstream search engines with the search query provided by the user.
 
 use super::aggregation_models::SearchResult;
-use error_stack::{Result, ResultExt};
+use error_stack::{Report, Result, ResultExt};
 use std::{collections::HashMap, fmt, time::Duration};
 
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
 pub enum EngineError {
+    /// No matching engine found
+    NoSuchEngineFound(String),
     /// This variant handles all request related errors like forbidden, not found,
     /// etc.
     EmptyResultSet,
@@ -24,6 +26,9 @@ pub enum EngineError {
 impl fmt::Display for EngineError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            EngineError::NoSuchEngineFound(engine) => {
+                write!(f, "No such engine with the name '{engine}' found")
+            }
             EngineError::EmptyResultSet => {
                 write!(f, "The upstream search engine returned an empty result set")
             }
@@ -134,18 +139,25 @@ impl EngineHandler {
     /// # Returns
     ///
     /// It returns an option either containing the value or a none if the engine is unknown
-    pub fn new(engine_name: &str) -> Option<Self> {
+    pub fn new(engine_name: &str) -> Result<Self, EngineError> {
         let engine: (&'static str, Box<dyn SearchEngine>) =
             match engine_name.to_lowercase().as_str() {
-                "duckduckgo" => (
-                    "duckduckgo",
-                    Box::new(crate::engines::duckduckgo::DuckDuckGo),
-                ),
-                "searx" => ("searx", Box::new(crate::engines::searx::Searx)),
-                _ => return None,
+                "duckduckgo" => {
+                    let engine = crate::engines::duckduckgo::DuckDuckGo::new()?;
+                    ("duckduckgo", Box::new(engine))
+                }
+                "searx" => {
+                    let engine = crate::engines::searx::Searx::new()?;
+                    ("searx", Box::new(engine))
+                }
+                _ => {
+                    return Err(Report::from(EngineError::NoSuchEngineFound(
+                        engine_name.to_string(),
+                    )))
+                }
             };
 
-        Some(Self {
+        Ok(Self {
             engine: engine.1,
             name: engine.0,
         })
