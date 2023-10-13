@@ -217,8 +217,6 @@ services:
   # Uncomment the following lines if you are using the `hybrid/latest` or `redis` image.
   # redis:
   #   image: redis:latest
- 
-  
 ```
 
 Then make sure to edit the `docker-compose.yml` file as required. After that create a directory `websurfx` in the directory you have placed the `docker-compose.yml` file, and then in the new directory create two new empty files named `allowlist.txt` and `blocklist.txt`. Finally, create a new config file `config.lua` with the default configuration, which looks something like this:
