@@ -191,7 +191,7 @@ async fn results(
                     let engines: Vec<EngineHandler> = cookie_value
                         .engines
                         .iter()
-                        .filter_map(|name| EngineHandler::new(name))
+                        .filter_map(|name| EngineHandler::new(name).ok())
                         .collect();
 
                     safe_search_level = match config.safe_search {
