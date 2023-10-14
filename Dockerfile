@@ -1,7 +1,7 @@
 FROM --platform=$BUILDPLATFORM rust:1.73.0-alpine3.18 AS chef
 # We only pay the installation cost once,
 # it will be cached from the second build onwards
-RUN apk add --update alpine-sdk musl-dev g++ make libcrypto3 libressl-dev git upx perl build-base && rm -rf /var/cache/apk/*
+RUN apk add --no-cache alpine-sdk musl-dev g++ make libcrypto3 libressl-dev upx perl build-base
 RUN cargo install cargo-chef --locked
 
 WORKDIR /app
