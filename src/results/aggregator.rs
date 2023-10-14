@@ -88,13 +88,7 @@ pub async fn aggregate(
         let query: String = query.to_owned();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(
-                    &query,
-                    page,
-                    user_agent.clone(),
-                    request_timeout,
-                    safe_search,
-                )
+                .results(&query, page, user_agent, request_timeout, safe_search)
                 .await
         }));
     }
