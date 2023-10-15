@@ -150,6 +150,10 @@ impl EngineHandler {
                     let engine = crate::engines::searx::Searx::new()?;
                     ("searx", Box::new(engine))
                 }
+                "brave" => {
+                    let engine = crate::engines::brave::Brave::new()?;
+                    ("brave", Box::new(engine))
+                }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(
                         engine_name.to_string(),
