@@ -43,15 +43,26 @@ impl SearchEngine for Brave {
         page: u32,
         user_agent: &str,
         request_timeout: u8,
-        _safe_search: u8,
+        safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         let url = format!("https://search.brave.com/search?q={query}&offset={page}");
+
+        let safe_search_level = match safe_search {
+            0 => "off",
+            1 | 2 => "moderate",
+            _ => "strict",
+        };
 
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("USER_AGENT".to_string(), user_agent.to_string()),
             (
                 "CONTENT_TYPE".to_string(),
                 "application/x-www-form-urlencoded".to_string(),
+            ),
+            ("REFERER".to_string(), "https://google.com/".to_string()),
+            (
+                "COOKIE".to_string(),
+                format!("safe_search={}", safe_search_level),
             ),
         ]))
         .change_context(EngineError::UnexpectedError)?;
