@@ -49,7 +49,7 @@ impl SearchEngine for Brave {
 
         let safe_search_level = match safe_search {
             0 => "off",
-            1 | 2 => "moderate",
+            1 => "moderate",
             _ => "strict",
         };
 
