@@ -62,7 +62,7 @@ impl SearchEngine for Brave {
             ("REFERER".to_string(), "https://google.com/".to_string()),
             (
                 "COOKIE".to_string(),
-                format!("safe_search={}", safe_search_level),
+                format!("safe_search={safe_search_level}"),
             ),
         ]))
         .change_context(EngineError::UnexpectedError)?;
