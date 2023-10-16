@@ -126,8 +126,6 @@
 
 > For full setup instructions, see: [**Installation**](./docs/installation.md)
 
-## Using Rust/Cargo
-
 Before you can start building `websurfx`, you will need to have `Cargo` installed on your system. You can find the installation instructions [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
 To get started with Websurfx, clone the repository, edit the config file, which is located in the `websurfx/` directory, and install the Redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then run the websurfx server and redis server using the following commands:
@@ -142,14 +140,6 @@ redis-server --port 8082 &
 ```
 
 Once you have started the server, open your preferred web browser and navigate to <http://127.0.0.1:8080> to start using Websurfx.
-
-## Using docker
-
-If you are using docker you can quickly start the project for development purpose using docker compose.
-
-```sh
-docker compose up
-```
 
 > **Note**
 >
