@@ -3,4 +3,4 @@
 //! provides various models to aggregate search results into a standardized form.
 
 pub mod aggregator;
-pub mod user_agent;
+mod user_agent;

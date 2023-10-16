@@ -52,4 +52,5 @@ redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which th
 upstream_search_engines = {
 	DuckDuckGo = true,
 	Searx = false,
+	Brave = false,
 } -- select the upstream search engines from which the results should be fetched.
