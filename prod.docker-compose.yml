@@ -1,0 +1,18 @@
+---
+version: "3.9"
+services:
+  app:
+    image: websurfx:latest
+    build: .
+    ports:
+      - 8080:8080
+    # Uncomment the following lines if you are using the `hybrid` or `redis` caching feature.
+    # depends_on:
+    #   - redis
+    # links:
+    #   - redis
+    volumes:
+      - ./websurfx/:/etc/xdg/websurfx/
+  # Uncomment the following lines if you are using the `hybrid` or `redis` caching feature.
+  # redis:
+  #   image: redis:latest
