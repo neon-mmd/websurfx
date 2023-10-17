@@ -52,4 +52,5 @@ theme = "simple" -- the theme name which should be used for the website
 upstream_search_engines = {
 	DuckDuckGo = true,
 	Searx = false,
+	Brave = false,
 } -- select the upstream search engines from which the results should be fetched.
