@@ -1,0 +1,26 @@
+---
+version: "3.9"
+services:
+  redis:
+    container_name: redis
+    image: redis:6.2.5-alpine
+    tty: true
+    hostname: surfx-redis
+  websurx:
+    container_name: websurx-dev
+    image: websurfx:dev
+    working_dir: /project
+    tty: true
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - type: bind
+        source: .
+        target: /project
+    command:
+      - watch
+      - -x
+      - run
