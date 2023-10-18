@@ -1,8 +1,10 @@
 pull_request_rules:
   - name: Automatic merge on approval
     conditions:
-      - "status-success=checks/approved"
       - "#approved-reviews-by>=2"
+      - check-success=build (stable)
+      - check-success=CodeFactor
+      - check-success=Rust project
     actions:
       queue:
         method: squash
