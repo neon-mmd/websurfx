@@ -4042,7 +4042,7 @@ checksum = "14247bb57be4f377dfb94c72830b8ce8fc6beac03cf4bf7b9732eadd414123fc"
 
 [[package]]
 name = "websurfx"
-version = "1.2.1"
+version = "1.2.3"
 dependencies = [
  "actix-cors",
  "actix-files",
