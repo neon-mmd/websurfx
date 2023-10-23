@@ -12,7 +12,7 @@ This page of the docs outlines how to get **Websurfx** up and running in a devel
   - [NixOS Dev Shell using Nix Flake](#nixos-dev-shell-using-nix-flake-)
   - [Local Development with Docker Compose](#local-development-with-docker-compose-)
   - [Project Commands](#project-commands)
-  - [Environmental Variables](#environmental-variables)
++ - [Environment Variables](#environment-variables)
 - [Git Strategy](#git-strategy)
   - [Flow](#git-flow)
   - [Branches](#git-branch-naming)
@@ -367,8 +367,6 @@ Once you have finished running the above command, Websurfx should now be served 
 
 > **Note**
 > When you build the project first time with the above command it will require the app to compile every dependency in the project which will then be cached on your system. So when you compile the app next time it will only compile for the new changes.
-
-- `cargo run`: Starts the app and serves the project on http://127.0.0.1:8080.
 
 > **Important**
 > You must run the build command first.
