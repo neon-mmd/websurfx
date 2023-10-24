@@ -300,6 +300,9 @@ This section covers how to deploy the app with docker manually by manually build
 > **Note**
 > This section is provided for those who want to futher customize the docker image or for those who are extra cautious about security.
 
+> **Warning**
+> A note of caution the project currently only supports **x86-64** architecture and as such we do not recommend deploying the project on devices with other architectures. Though if you still want to do it then **do it at your own risk**.
+
 ### Unstable/Edge/Rolling
 
 First clone the the repository by running the following command:
