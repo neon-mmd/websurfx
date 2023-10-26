@@ -6,24 +6,24 @@ This page of the docs outlines how to get **Websurfx** up and running in a devel
   <summary><b>Table of Contents</b></summary>
   <p>
 
-\- [Setting up the Development Environment](#setting-up-the-development-environment)
+- [Setting up the Development Environment](#setting-up-the-development-environment)
   - [Local Development](#local-development-)
   - [Gitpod](#gitpod-)
   - [NixOS Dev Shell using Nix Flake](#nixos-dev-shell-using-nix-flake-)
   - [Local Development with Docker Compose](#local-development-with-docker-compose-)
   - [Project Commands](#project-commands)
-  - [Environment Variables](#environment-variables)
-\- [Git Strategy](#git-strategy)
++ - [Environment Variables](#environment-variables)
+- [Git Strategy](#git-strategy)
   - [Flow](#git-flow)
   - [Branches](#git-branch-naming)
   - [Commit emojis](#commit-emojis)
   - [PR Guidelines](#pr-guidelines)
-\- [Resources for Beginners](#resources-for-beginners)
-\- [App Info](#app-info)
-\- [Code Style Guide](#style-guide)
-\- [Application Structure](#application-structure)
-\- [Development Tools](#development-tools)
-\- [Misc / Notes](#notes)
+- [Resources for Beginners](#resources-for-beginners)
+- [App Info](#app-info)
+- [Code Style Guide](#style-guide)
+- [Application Structure](#application-structure)
+- [Development Tools](#development-tools)
+- [Misc / Notes](#notes)
 
   </p>
 </details>
@@ -32,10 +32,10 @@ This page of the docs outlines how to get **Websurfx** up and running in a devel
 
 By default, we provide four different ways to work on the project. Which are as follows:
 
-\- [Local Development](#local-development-)
-\- [Gitpod](#gitpod-)
-\- [NixOS Dev Shell using Nix Flake](#nixos-dev-shell-using-nix-flake-)
-\- [Local Development with Docker Compose](#local-development-with-docker-compose-)
+- [Local Development](#local-development-)
+- [Gitpod](#gitpod-)
+- [NixOS Dev Shell using Nix Flake](#nixos-dev-shell-using-nix-flake-)
+- [Local Development with Docker Compose](#local-development-with-docker-compose-)
 
 The diferent methods are explained in depth below.
 
@@ -47,56 +47,56 @@ This section covers how to setup the project for development on your local machi
 
 Before you start working on the project. You will need the following packages installed on your system:
 
-\- A latest version of `cargo` installed on your system which is required to manage building and running the project. The installation instruction for this can be found [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
-\- A latest version of `npm` installed on your system which is required to allow the installation of other tools necessary for the project. The installation for this can be found [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-\- A latest version of `redis` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation for this can be found [here](https://redis.io/docs/getting-started/installation/).
-\- A latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on you system. To install `stylelint` run the following command:
+- A latest version of `cargo` installed on your system which is required to manage building and running the project. The installation instruction for this can be found [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+- A latest version of `npm` installed on your system which is required to allow the installation of other tools necessary for the project. The installation for this can be found [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+- A latest version of `redis` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation for this can be found [here](https://redis.io/docs/getting-started/installation/).
+- A latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on you system. To install `stylelint` run the following command:
 
-\```shell
+```shell
 $ npm i -g stylelint
-\```
+```
 
-\> **Note**
-\> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> **Note**
+> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
 
-\- `Cargo-watch` installed on your system which will allow to auto build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
+- `Cargo-watch` installed on your system which will allow to auto build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
 
-\```shell
+```shell
 cargo install cargo-watch
-\```
+```
 
-\- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-\- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
+- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
 
-\> **Note**
-\> For **rolling release linux distributions (distros)**, the above mentioned all required packages except for `stylelint` and `cargo-watch` can also be installed via the distro specific package manager.
-\>
-\> **For Example:**
-\>
-\> On `arch linux` the following packages could be installed by following link to the installation instructions provided down below:
-\>
-\> - `Cargo`: https://wiki.archlinux.org/title/rust
-\> - `Npm`: https://wiki.archlinux.org/title/Node.js
-\> - `Redis`: https://wiki.archlinux.org/title/redis
-\> - `Git`: https://wiki.archlinux.org/title/git
-\> - `Docker`: https://wiki.archlinux.org/title/docker
-\>
-\> But we do not recommend this method for **stable release linux distros** as they tend to not provide very up to date versions of the required packages.
+> **Note**
+> For **rolling release linux distributions (distros)**, the above mentioned all required packages except for `stylelint` and `cargo-watch` can also be installed via the distro specific package manager.
+>
+> **For Example:**
+>
+> On `arch linux` the following packages could be installed by following link to the installation instructions provided down below:
+>
+> - `Cargo`: https://wiki.archlinux.org/title/rust
+> - `Npm`: https://wiki.archlinux.org/title/Node.js
+> - `Redis`: https://wiki.archlinux.org/title/redis
+> - `Git`: https://wiki.archlinux.org/title/git
+> - `Docker`: https://wiki.archlinux.org/title/docker
+>
+> But we do not recommend this method for **stable release linux distros** as they tend to not provide very up to date versions of the required packages.
 
 #### Setting up Pre-commit Checks
 
 Before you setup `pre-commit` checks, you will first need to clone **your fork of the project** and navigate into the cloned repository by running the following command:
 
-\```shell
+```shell
 git clone https://github.com/<your_github_username>/websurfx.git
 cd websurfx
-\```
+```
 
 Once you have done finished running the above commands then run the following command to setup the `pre-commit` checks:
 
-\```shell
+```shell
 cargo test
-\```
+```
 
 By the running the above mentioned command, it will automatically setup all the pre-commit checks in the project.
 
@@ -104,9 +104,9 @@ By the running the above mentioned command, it will automatically setup all the 
 
 If you have followed the above section then you should have a cloned repository folder present on your system. In the same directory run the following command to run the project:
 
-\```shell
+```shell
 cargo watch -q -x "run" -w "."
-\```
+```
 
 This will compile the app by default with the **In-Memory caching** feature. To compile, run and test the app with other features then follow the build options listed below:
 
@@ -114,54 +114,54 @@ This will compile the app by default with the **In-Memory caching** feature. To 
 
 To build and run the app with the `Hybrid caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --features redis-cache" -w .
-\```
+```
 
 ##### No Cache
 
 To build and run the search engine with the `No caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --no-default-features" -w .
-\```
+```
 
 ##### Redis Cache
 
 To build the search engine with the `Redis caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --no-default-features --features redis-cache" -w .
-\```
+```
 
-\> Optionally, If you have build and run the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then you will need to start the redis server alongside the app which can be done so by running the following command:
-\>
-\> ```shell
-\> redis-server --port 8082 &
-\> ```
+> Optionally, If you have build and run the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then you will need to start the redis server alongside the app which can be done so by running the following command:
+>
+> ```shell
+> redis-server --port 8082 &
+> ```
 
 Once you have finished running the above command, Websurfx should now be served on the address http://127.0.0.1:8080. Hot reload is enabled, so making changes to any of the files will trigger the project to being rebuilt.
 
-\> For more info on all the project commands. See: [**Project Commands**](#project-commands-)
+> For more info on all the project commands. See: [**Project Commands**](#project-commands-)
 
 ### Gitpod
 
 This section covers on how to use and setup the Gitpod development environment for working on the project.
 
-\> **Note**
-\> By default the project only supports the Vscode **IDE/Editor** for Gitpod.
+> **Note**
+> By default the project only supports the Vscode **IDE/Editor** for Gitpod.
 
 #### Launching Gitpod
 
-\> For a full guide on how to fork the project. See: [**Forking**](#)
+> For a full guide on how to fork the project. See: [**Forking**](#)
 
 To launch gitpod and start working on the project from your fork of the Websurfx, Just navigate to the following link:
 
-\```text
+```text
 https://gitpod.io/#https://github.com/<your_github_username>/websurfx
-\```
+```
 
-\> For a full guide on how to use it and how to use it in different ways. See [**Learn Gitpod**](https://piped.kavin.rocks/playlist?list=PL3TSF5whlprXVp-7Br2oKwQgU4bji1S7H)
+> For a full guide on how to use it and how to use it in different ways. See [**Learn Gitpod**](https://piped.kavin.rocks/playlist?list=PL3TSF5whlprXVp-7Br2oKwQgU4bji1S7H)
 
 #### Default Plugins
 
@@ -171,36 +171,36 @@ The list of all the pre-installed plugins are listed down below:
 
 **Productivity**
 
-\- [CodeLLDB](https://open-vsx.org/extension/vadimcn/vscode-lldb): Provides a native debugger for rust programming langauge.
-\- [GitHub Actions](https://open-vsx.org/extension/cschleiden/vscode-github-actions): Provides an easy to work with github actions.
-\- [rust-analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer): Provides a language server for rust programming langauge.
-\- [better-toml](https://open-vsx.org/extension/bungcip/better-toml): Provides support for toml files.
-\- [crates](https://open-vsx.org/extension/serayuzgur/crates): Makes managing rust dependencies easier.
-\- [Error Lens](https://open-vsx.org/extension/usernamehw/errorlens): Provides better highlighting of errors.
-\- [markdownlint](https://open-vsx.org/extension/DavidAnson/vscode-markdownlint): Provides a linter for linting markdown documents.
-\- [Prettier](https://open-vsx.org/extension/esbenp/prettier-vscode): Provides a code formatter.
-\- [Stylelint](https://open-vsx.org/extension/stylelint/vscode-stylelint): Provides a linter for CSS files.
-\- [ESLint](https://open-vsx.org/extension/dbaeumer/vscode-eslint): Provides a linter for JS files.
-\- [Syntax Highlighter](https://open-vsx.org/extension/evgeniypeshkov/syntax-highlighter): A better syntax highlighting for code.
-\- [Docker](https://open-vsx.org/extension/ms-azuretools/vscode-docker): Makes handling docker files easier.
-\- [indent-rainbow](https://open-vsx.org/extension/oderwat/indent-rainbow): Highlightes code idents for better visualization.
-\- [Auto Rename Tag](https://open-vsx.org/extension/formulahendry/auto-rename-tag): Provides a way to easily and quickly rename html tags.
-\- [Rust Test Explorer](https://open-vsx.org/extension/Swellaby/vscode-rust-test-adapter): View and run cargo tests easily from a convenient sidebar.
-\- [Search crates-io](https://open-vsx.org/extension/belfz/search-crates-io): Provides crates suggestions in the `cargo.toml` file.
-\- [Test Adapter Converter](https://open-vsx.org/extension/hbenl/test-adapter-converter): A vscode native way to view and run tests.
-\- [Test Explorer UI](https://open-vsx.org/extension/hbenl/vscode-test-explorer): Provides a way to run any test from a convenient sidebar.
-\- [GitLens](https://open-vsx.org/extension/eamodio/gitlens): Provides a better and more efficient way to manage common git workflows.
+- [CodeLLDB](https://open-vsx.org/extension/vadimcn/vscode-lldb): Provides a native debugger for rust programming langauge.
+- [GitHub Actions](https://open-vsx.org/extension/cschleiden/vscode-github-actions): Provides an easy to work with github actions.
+- [rust-analyzer](https://open-vsx.org/extension/rust-lang/rust-analyzer): Provides a language server for rust programming langauge.
+- [better-toml](https://open-vsx.org/extension/bungcip/better-toml): Provides support for toml files.
+- [crates](https://open-vsx.org/extension/serayuzgur/crates): Makes managing rust dependencies easier.
+- [Error Lens](https://open-vsx.org/extension/usernamehw/errorlens): Provides better highlighting of errors.
+- [markdownlint](https://open-vsx.org/extension/DavidAnson/vscode-markdownlint): Provides a linter for linting markdown documents.
+- [Prettier](https://open-vsx.org/extension/esbenp/prettier-vscode): Provides a code formatter.
+- [Stylelint](https://open-vsx.org/extension/stylelint/vscode-stylelint): Provides a linter for CSS files.
+- [ESLint](https://open-vsx.org/extension/dbaeumer/vscode-eslint): Provides a linter for JS files.
+- [Syntax Highlighter](https://open-vsx.org/extension/evgeniypeshkov/syntax-highlighter): A better syntax highlighting for code.
+- [Docker](https://open-vsx.org/extension/ms-azuretools/vscode-docker): Makes handling docker files easier.
+- [indent-rainbow](https://open-vsx.org/extension/oderwat/indent-rainbow): Highlightes code idents for better visualization.
+- [Auto Rename Tag](https://open-vsx.org/extension/formulahendry/auto-rename-tag): Provides a way to easily and quickly rename html tags.
+- [Rust Test Explorer](https://open-vsx.org/extension/Swellaby/vscode-rust-test-adapter): View and run cargo tests easily from a convenient sidebar.
+- [Search crates-io](https://open-vsx.org/extension/belfz/search-crates-io): Provides crates suggestions in the `cargo.toml` file.
+- [Test Adapter Converter](https://open-vsx.org/extension/hbenl/test-adapter-converter): A vscode native way to view and run tests.
+- [Test Explorer UI](https://open-vsx.org/extension/hbenl/vscode-test-explorer): Provides a way to run any test from a convenient sidebar.
+- [GitLens](https://open-vsx.org/extension/eamodio/gitlens): Provides a better and more efficient way to manage common git workflows.
 
-\> Optionally, if you prefer more keyboard centric workflow then we would recommend using the following extension:
-\>
-\> - [VSCode Neovim](https://open-vsx.org/extension/asvetliakov/vscode-neovim): Provides complete vim emulation for vscode.
+> Optionally, if you prefer more keyboard centric workflow then we would recommend using the following extension:
+>
+> - [VSCode Neovim](https://open-vsx.org/extension/asvetliakov/vscode-neovim): Provides complete vim emulation for vscode.
 
 **Theming**
 
-\- [Catppuccin for VSCode](https://open-vsx.org/extension/Catppuccin/catppuccin-vsc): Provides the catpuccin theme for vscode.
-\- [Material Icon Theme](https://open-vsx.org/extension/PKief/material-icon-theme): Provides material design icons for files dependening on the file extension.
+- [Catppuccin for VSCode](https://open-vsx.org/extension/Catppuccin/catppuccin-vsc): Provides the catpuccin theme for vscode.
+- [Material Icon Theme](https://open-vsx.org/extension/PKief/material-icon-theme): Provides material design icons for files dependening on the file extension.
 
-\> If you have more ideas and ways to improve Gitpod for development purposes then feel free to do so by contributing a PR to this project [**here**](https://github.com/neon-mmd/websurfx/pulls).
+> If you have more ideas and ways to improve Gitpod for development purposes then feel free to do so by contributing a PR to this project [**here**](https://github.com/neon-mmd/websurfx/pulls).
 
 ### NixOS Dev Shell using Nix Flake
 
@@ -210,34 +210,34 @@ This section covers on how to setup the project for development using the `NixOS
 
 Before you start working on the project. You will need the following packages installed on your system:
 
-\- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-\- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
+- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
 
-\> Optionally, On `NixOS` the above mentioned all required packages except for `stylelint` and `cargo-watch` could also be installed by following link to the installation instructions provided down below:
-\>
-\> - `Git`: https://search.nixos.org/packages?channel=23.05&show=git&from=0&size=50&sort=relevance&type=packages&query=git
-\> - `Docker`: https://search.nixos.org/packages?channel=23.05&show=docker&from=0&size=50&sort=relevance&type=packages&query=docker
+> Optionally, On `NixOS` the above mentioned all required packages except for `stylelint` and `cargo-watch` could also be installed by following link to the installation instructions provided down below:
+>
+> - `Git`: https://search.nixos.org/packages?channel=23.05&show=git&from=0&size=50&sort=relevance&type=packages&query=git
+> - `Docker`: https://search.nixos.org/packages?channel=23.05&show=docker&from=0&size=50&sort=relevance&type=packages&query=docker
 
 #### Setting up Pre-commit Checks
 
 Before you setup `pre-commit` checks, you will first need to clone **your fork of the project** and navigate into the cloned repository by running the following command:
 
-\```shell
+```shell
 git clone https://github.com/<your_github_username>/websurfx.git
 cd websurfx
-\```
+```
 
 Then run the following command to setup the `NixOS dev-shell`:
 
-\```shell
+```shell
 nix develop
-\```
+```
 
 Once you have done finished running the above commands then run the following command to setup the `pre-commit` checks:
 
-\```shell
+```shell
 cargo test
-\```
+```
 
 By the running the above mentioned command, it will automatically setup all the pre-commit checks in the project.
 
@@ -245,19 +245,19 @@ By the running the above mentioned command, it will automatically setup all the 
 
 After you have done setting up pre-commit checks, then you may need to fullfill a few more requirements to finish setting up the development environment with `NixOS dev-shell`. These include:
 
-\- `Cargo-watch` installed on your system which will allow to auto build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
+- `Cargo-watch` installed on your system which will allow to auto build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
 
-\```shell
+```shell
 cargo install cargo-watch
-\```
+```
 
 #### Running the Project
 
 If you have followed the above section then you should now be inside a `dev-shell` environment. In the same environment run the following command to run the project:
 
-\```shell
+```shell
 cargo watch -q -x "run" -w "."
-\```
+```
 
 This will compile the app by default with the **In-Memory caching** feature. To compile, run and test the app with other features then follow the build options listed below:
 
@@ -265,31 +265,31 @@ This will compile the app by default with the **In-Memory caching** feature. To 
 
 To build and run the app with the `Hybrid caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --features redis-cache" -w .
-\```
+```
 
 ##### No Cache
 
 To build and run the search engine with the `No caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --no-default-features" -w .
-\```
+```
 
 ##### Redis Cache
 
 To build the search engine with the `Redis caching` feature. Run the following command:
 
-\```shell
+```shell
 cargo watch -q -x "run --no-default-features --features redis-cache" -w .
-\```
+```
 
-\> Optionally, If you have build and run the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then you will need to start the redis server alongside the app which can be done so by running the following command:
-\>
-\> ```shell
-\> redis-server --port 8082 &
-\> ```
+> Optionally, If you have build and run the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then you will need to start the redis server alongside the app which can be done so by running the following command:
+>
+> ```shell
+> redis-server --port 8082 &
+> ```
 
 Once you have finished running the above command, Websurfx should now be served on the address http://127.0.0.1:8080. Hot reload is enabled, so making changes to any of the files will trigger the project to being rebuilt.
 
@@ -301,48 +301,48 @@ This section covers how to setup the project for development on your local machi
 
 Before you start working on the project. You will need the following packages installed on your system:
 
-\- A latest version of `cargo` installed on your system which is required to manage building and running the project. The installation instruction for this can be found [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
-\- A latest version of `npm` installed on your system which is required to allow the installation of other tools necessary for the project. The installation for this can be found [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-\- A latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on you system. To install `stylelint` run the following command:
+- A latest version of `cargo` installed on your system which is required to manage building and running the project. The installation instruction for this can be found [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+- A latest version of `npm` installed on your system which is required to allow the installation of other tools necessary for the project. The installation for this can be found [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+- A latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on you system. To install `stylelint` run the following command:
 
-\```shell
+```shell
 $ npm i -g stylelint
-\```
+```
 
-\> **Note**
-\> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> **Note**
+> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
 
-\- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-\- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
+- `Git` installed on your system. The installation instruction for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Finally, A latest version of `Docker` installed on your system which will be used to avoid introducing unexpected issue when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
 
-\> **Note**
-\> For **rolling release linux distributions (distros)**, the above mentioned all required packages can also be installed via the distro specific package manager.
-\>
-\> **For Example:**
-\>
-\> On `arch linux` the following packages could be installed by following link to the installation instructions provided down below:
-\>
-\> - `Cargo`: https://wiki.archlinux.org/title/rust
-\> - `Npm`: https://wiki.archlinux.org/title/Node.js
-\> - `Git`: https://wiki.archlinux.org/title/git
-\> - `Docker`: https://wiki.archlinux.org/title/docker
-\>
-\> But we do not recommend this method for **stable release linux distros** as they tend to not provide very up to date versions of the required packages.
+> **Note**
+> For **rolling release linux distributions (distros)**, the above mentioned all required packages can also be installed via the distro specific package manager.
+>
+> **For Example:**
+>
+> On `arch linux` the following packages could be installed by following link to the installation instructions provided down below:
+>
+> - `Cargo`: https://wiki.archlinux.org/title/rust
+> - `Npm`: https://wiki.archlinux.org/title/Node.js
+> - `Git`: https://wiki.archlinux.org/title/git
+> - `Docker`: https://wiki.archlinux.org/title/docker
+>
+> But we do not recommend this method for **stable release linux distros** as they tend to not provide very up to date versions of the required packages.
 
 #### Setting up Pre-commit Checks
 
 Before you setup `pre-commit` checks, you will first need to clone **your fork of the project** and navigate into the cloned repository by running the following command:
 
-\```shell
+```shell
 git clone https://github.com/<your_github_username>/websurfx.git
 cd websurfx
-\```
+```
 
 Once you have done finished running the above commands then run the following command to setup the `pre-commit` checks:
 
-\```shell
+```shell
 cargo test
-\```
+```
 
 By the running the above mentioned command, it will automatically setup all the pre-commit checks in the project.
 
@@ -350,12 +350,12 @@ By the running the above mentioned command, it will automatically setup all the 
 
 If you have followed the above section then you should have a cloned repository folder present on your system. In the same directory, edit the `dev.docker-compose.yml` file as required before running the following command to run the project:
 
-\```shell
+```shell
 $ docker compose -f dev.docker-compose.yml up
-\```
+```
 
-\> **Note**
-\> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> **Note**
+> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
 
 Once you have finished running the above command, Websurfx should now be served on the address http://127.0.0.1:8080. Hot reload is enabled, so making changes to any of the files will trigger the project to being rebuilt.
 
@@ -363,22 +363,23 @@ Once you have finished running the above command, Websurfx should now be served 
 
 #### Basics
 
-\- `cargo build`: Builds the project.
+- `cargo build`: Builds the project.
 
-\> **Note**
-\> When you build the project first time with the above command it will require the app to compile every dependency in the project which will then be cached on your system. So when you compile the app next time it will only compile for the new changes.
-+
+> **Note**
+> When you build the project first time with the above command it will require the app to compile every dependency in the project which will then be cached on your system. So when you compile the app next time it will only compile for the new changes.
+> +
 + - `cargo run`: Starts the app and serves the project on http://127.0.0.1:8080.
-+
-\> **Important**
-\> You must run the build command first.
+
+
+> **Important**
+> You must run the build command first.
 
 #### Development
 
-\- `cargo watch -q -x "run" -w .`: Starts the development server with hot reloading.
-\- `cargo fmt -- --check`: Checks the code for proper formatting.
-\- `cargo clippy`: Lints code to ensure it follows a consistent, neat style.
-\- `cargo test`: Runs unit tests, integrations tests and doc tests.
+- `cargo watch -q -x "run" -w .`: Starts the development server with hot reloading.
+- `cargo fmt -- --check`: Checks the code for proper formatting.
+- `cargo clippy`: Lints code to ensure it follows a consistent, neat style.
+- `cargo test`: Runs unit tests, integrations tests and doc tests.
 
 ### Environment Variables
 
@@ -386,8 +387,8 @@ All environmental variables are optional. Currently there are not many environme
 
 The list of all the available environment variables are listed down below:
 
-\- `PKG_ENV`: Sets the logging level for the app to **Trace** which can be useful for better debugging of the app. This environment variables accept two values `dev` or `prod` as strings.
-\- `RUST_BACKTRACE`: Rust specific environment variable useful for getting more elaborate error messages with an error stack to better diagnose the issue. This environment variable accepts three values `0` (off), `1` (on) and `full` (for long error stack to being printed out).
+- `PKG_ENV`: Sets the logging level for the app to **Trace** which can be useful for better debugging of the app. This environment variables accept two values `dev` or `prod` as strings.
+- `RUST_BACKTRACE`: Rust specific environment variable useful for getting more elaborate error messages with an error stack to better diagnose the issue. This environment variable accepts three values `0` (off), `1` (on) and `full` (for long error stack to being printed out).
 
 ## Git Strategy
 
@@ -412,30 +413,30 @@ For example, `FEATURE/420_Awesome-feature` or `FIX/690_login-server-error`
 
 Using a single emoji at the start of each commit message, issue title, and pull request title, to indicate the type task, makes the commit ledger, issue and pull request easier to understand, plus it looks cool.
 
-\- 🎨 `:art:` - Improve structure / format of the code.
-\- ⚡️ `:zap:` - Improve performance.
-\- 🔥 `:fire:` - Remove code or files.
-\- 🐛 `:bug:` - Fix a bug.
-\- 🚑️ `:ambulance:` - Critical hotfix
-\- ✨ `:sparkles:` - Introduce new features.
-\- 📝 `:memo:` - Add or update documentation.
-\- 🚀 `:rocket:` - Deploy stuff.
-\- 💄 `:lipstick:` - Add or update the UI and style files.
-\- 🎉 `:tada:` - Begin a project.
-\- ✅ `:white_check_mark:` - Add, update, or pass tests.
-\- 🔒️ `:lock:` - Fix security issues.
-\- 🔖 `:bookmark:` - Make a Release or Version tag.
-\- 🚨 `:rotating_light:` - Fix compiler / linter warnings.
-\- 🚧 `:construction:` - Work in progress.
-\- ⬆️ `:arrow_up:` - Upgrade dependencies.
-\- 👷 `:construction_worker:` - Add or update CI build system.
-\- ♻️ `:recycle:` - Refactor code.
-\- 🩹 `:adhesive_bandage:` - Simple fix for a non-critical issue.
-\- 🔧 `:wrench:` - Add or update configuration files.
-\- 🍱 `:bento:` - Add or update assets.
-\- 🗃️ `:card_file_box:` - Perform database schema related changes.
-\- ✏️ `:pencil2:` - Fix typos.
-\- 🌐 `:globe_with_meridians:` - Internationalization and translations.
+- 🎨 `:art:` - Improve structure / format of the code.
+- ⚡️ `:zap:` - Improve performance.
+- 🔥 `:fire:` - Remove code or files.
+- 🐛 `:bug:` - Fix a bug.
+- 🚑️ `:ambulance:` - Critical hotfix
+- ✨ `:sparkles:` - Introduce new features.
+- 📝 `:memo:` - Add or update documentation.
+- 🚀 `:rocket:` - Deploy stuff.
+- 💄 `:lipstick:` - Add or update the UI and style files.
+- 🎉 `:tada:` - Begin a project.
+- ✅ `:white_check_mark:` - Add, update, or pass tests.
+- 🔒️ `:lock:` - Fix security issues.
+- 🔖 `:bookmark:` - Make a Release or Version tag.
+- 🚨 `:rotating_light:` - Fix compiler / linter warnings.
+- 🚧 `:construction:` - Work in progress.
+- ⬆️ `:arrow_up:` - Upgrade dependencies.
+- 👷 `:construction_worker:` - Add or update CI build system.
+- ♻️ `:recycle:` - Refactor code.
+- 🩹 `:adhesive_bandage:` - Simple fix for a non-critical issue.
+- 🔧 `:wrench:` - Add or update configuration files.
+- 🍱 `:bento:` - Add or update assets.
+- 🗃️ `:card_file_box:` - Perform database schema related changes.
+- ✏️ `:pencil2:` - Fix typos.
+- 🌐 `:globe_with_meridians:` - Internationalization and translations.
 
 For a full list of options, see [gitmoji.dev](https://gitmoji.dev/)
 
@@ -445,22 +446,22 @@ Once you've made your changes, and pushed them to your fork or branch, you're re
 
 For a pull request to be merged, it must:
 
-\- The build, lint and tests (run by GH actions) must pass
-\- There must not be any merge conflicts
+- The build, lint and tests (run by GH actions) must pass
+- There must not be any merge conflicts
 
 When you submit your pull request, include the required info, by filling out the pull request template. Including:
 
-\- A brief description of your changes.
-\- The issue or ticket number (if applicable).
-\- For UI related updates include a screenshot.
-\- If any dependencies were added, explain why it was needed, state the cost. associated, and confirm it does not introduce any security, privacy or speed issues
-\- Optionally, provide a checklist of all the changes that was included in the pull request.
+- A brief description of your changes.
+- The issue or ticket number (if applicable).
+- For UI related updates include a screenshot.
+- If any dependencies were added, explain why it was needed, state the cost. associated, and confirm it does not introduce any security, privacy or speed issues
+- Optionally, provide a checklist of all the changes that was included in the pull request.
 
-\> **Important**
-\> Make sure to fill all the required/mandatory sections of the pull request as by filling them it helps us distinguish between spam pull requests and legitimate pull requests.
+> **Important**
+> Make sure to fill all the required/mandatory sections of the pull request as by filling them it helps us distinguish between spam pull requests and legitimate pull requests.
 
-\> **Note**
-\> The pull request template contains comments in the following form `<!-- -->` which are used to provide a guide on what should be provided under each heading of the template. These comments are never rendered when the pull request is either created or updated and hence anything provided in such comments is never displayed.
+> **Note**
+> The pull request template contains comments in the following form `<!-- -->` which are used to provide a guide on what should be provided under each heading of the template. These comments are never rendered when the pull request is either created or updated and hence anything provided in such comments is never displayed.
 
 ## Resources for Beginners
 
@@ -468,25 +469,25 @@ New to Web Development? Or New to GitHub? Glad to see you're here!! :slightly_sm
 
 **Development**
 
-\- [Basics of Rust](https://piped.kavin.rocks/playlist?list=PLai5B987bZ9CoVR-QEIN9foz4QCJ0H2Y8)
-\- [Introduction and deep dive into async/await in rust](https://piped.kavin.rocks/watch?v=ThjvMReOXYM)
-\- [Getting Started to Actix Guide](https://actix.rs/docs/getting-started)
-\- [Basics of Lua](https://learn.coregames.com/courses/intro-to-lua/)
-\- [Complete course on CSS](https://piped.kavin.rocks/watch?v=1Rs2ND1ryYc)
-\- [Complete course on JS](https://piped.kavin.rocks/playlist?list=PL_c9BZzLwBRLVh9OdCBYFEql6esA6aRsi)
-\- [Responsive web design](https://piped.kavin.rocks/watch?v=srvUrASNj0s)
-\- [Complete beginners guide to Docker](https://docker-curriculum.com/)
-\- [Docker Classroom - Interactive Tutorials](https://training.play-with-docker.com/)
-\- [Docker Compose Tutorial](https://docs.docker.com/compose/gettingstarted/)
-\- [ES6 Tutorial](https://piped.kavin.rocks/watch?v=nZ1DMMsyVyI)
-\- [Cargo Guide Book](https://doc.rust-lang.org/cargo/index.html)
+- [Basics of Rust](https://piped.kavin.rocks/playlist?list=PLai5B987bZ9CoVR-QEIN9foz4QCJ0H2Y8)
+- [Introduction and deep dive into async/await in rust](https://piped.kavin.rocks/watch?v=ThjvMReOXYM)
+- [Getting Started to Actix Guide](https://actix.rs/docs/getting-started)
+- [Basics of Lua](https://learn.coregames.com/courses/intro-to-lua/)
+- [Complete course on CSS](https://piped.kavin.rocks/watch?v=1Rs2ND1ryYc)
+- [Complete course on JS](https://piped.kavin.rocks/playlist?list=PL_c9BZzLwBRLVh9OdCBYFEql6esA6aRsi)
+- [Responsive web design](https://piped.kavin.rocks/watch?v=srvUrASNj0s)
+- [Complete beginners guide to Docker](https://docker-curriculum.com/)
+- [Docker Classroom - Interactive Tutorials](https://training.play-with-docker.com/)
+- [Docker Compose Tutorial](https://docs.docker.com/compose/gettingstarted/)
+- [ES6 Tutorial](https://piped.kavin.rocks/watch?v=nZ1DMMsyVyI)
+- [Cargo Guide Book](https://doc.rust-lang.org/cargo/index.html)
 
 **GitHub**
 
-\- [Complete Guide to Open Source - How to Contribute](https://piped.kavin.rocks/watch?v=yzeVMecydCE)
-\- [Forking a Project](https://piped.kavin.rocks/watch?v=FnxFwyzm4Z4)
-\- [A Tutorial on Git](https://piped.kavin.rocks/playlist?list=PL4lTrYcDuAfxAgSefXftJXbhw0qvjfOFo)
-\- [Git cheat sheet](http://git-cheatsheet.com/)
+- [Complete Guide to Open Source - How to Contribute](https://piped.kavin.rocks/watch?v=yzeVMecydCE)
+- [Forking a Project](https://piped.kavin.rocks/watch?v=FnxFwyzm4Z4)
+- [A Tutorial on Git](https://piped.kavin.rocks/playlist?list=PL4lTrYcDuAfxAgSefXftJXbhw0qvjfOFo)
+- [Git cheat sheet](http://git-cheatsheet.com/)
 
 For Rust, CSS, JS, Html, Git and Docker- you'll need an IDE (e.g. [VSCode](https://code.visualstudio.com/) or [Neovim](https://neovim.io/) and a terminal (Windows users may find [WSL](https://docs.microsoft.com/en-us/windows/wsl/) more convenient).
 
@@ -496,23 +497,23 @@ For Rust, CSS, JS, Html, Git and Docker- you'll need an IDE (e.g. [VSCode](https
 
 Linting is done using [Cargo Clippy](https://doc.rust-lang.org/clippy/) and [StyleLint](https://stylelint.io/) or [ESLint](https://eslint.org/). Also, linting is run as a git pre-commit hook.
 
-\> **Important**
-\> All lint checks must pass before any PR can be merged.
+> **Important**
+> All lint checks must pass before any PR can be merged.
 
 Styleguides to follow:
 
-\- [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html)
-\- [Airbnb JS Guidelines](https://github.com/airbnb/javascript)
-\- [Google's Html and CSS Guidelines](https://google.github.io/styleguide/htmlcssguide.html)
+- [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html)
+- [Airbnb JS Guidelines](https://github.com/airbnb/javascript)
+- [Google's Html and CSS Guidelines](https://google.github.io/styleguide/htmlcssguide.html)
 
 ## Application Structure
 
-\> **Important**
-\> We follow the unix style naming conventions for all the file and folders in the project (except for all files under the `themes` and `colorschemes` folder in the frontend's source code which requires that the names of the files and folders should be in lowercase and the words be seperated with a hyphen.) which includes the name of the files and folders should be in lowercase and every word should be seperated with an underscore.
+> **Important**
+> We follow the unix style naming conventions for all the file and folders in the project (except for all files under the `themes` and `colorschemes` folder in the frontend's source code which requires that the names of the files and folders should be in lowercase and the words be seperated with a hyphen.) which includes the name of the files and folders should be in lowercase and every word should be seperated with an underscore.
 
 **Files in the root of the codebase:** `./`
 
-\```
+```
 ./
 ├── .dockerignore                # Docker ignore file to ignore stuff being included in the file docker image.
 ├── .gitignore                   # Git ignore file to ignore stuff from being
@@ -531,11 +532,11 @@ Styleguides to follow:
 ├── src                          # Project back-end source code
 ├── tests                        # Project integration tests for the back-end source code.
 └── websurfx                     # Project folder containing config files for the app.
-\```
+```
 
-\**Frontend Source:** `./public/`
+**Frontend Source:** `./public/`
 
-\```
+```
 ./public/
 ├── robots.txt                    # Robots file for the Website.
 ├── images                        # Images for the Website.
@@ -563,11 +564,11 @@ Styleguides to follow:
     ├── search_bar.html           # A search bar template specifically for the search page.
     ├── settings.html             # A settings page template.
     └── user_interface_tab.html   # A template for the user interface tab for the settings page.
-\```
+```
 
 **Backend Source:** `./src/`
 
-\```
+```
 ./src/
 ├── lib.rs                        # A library file for the rust project.
 ├── bin                           # A folder containing the source code that would produce the binary file when compiled.
@@ -605,7 +606,7 @@ Styleguides to follow:
     └── routes                    # A folder that contains code to handle the bigger route for the website.
         ├── mod.rs                # A module file for the rust project.
         └── search.rs             # Provides the function to handle the search route.
-\```
+```
 
 ## Development Tools
 
@@ -619,10 +620,10 @@ The easiest method of checking performance is to use Chromium's build in auditin
 
 When running the build command, a warning appear. These is not an error, and do not affect the security or performance of the application. They will be addressed soon in a future update.
 
-\```shell
+```shell
 warning: the following packages contain code that will be rejected by a future version of Rust: html5ever v0.23.0
 note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
-\```
+```
 
 These warning just means that any dependencies or code using the `html5ever` code would be deprecated and rejected in the futures versions of the rust lanaguage. So right now these dependencies can be used as these has not happened yet.
 
