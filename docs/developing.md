@@ -383,7 +383,7 @@ Once you have finished running the above command, Websurfx should now be served 
 
 ### Environment Variables
 
-All environmental variables are optional. Currently there are not many environmental variables used, as most of the user preferences are stored under the `websurfx` folder (located under the codebase (`websurfx` directory)) in the `config.lua` file.
+All environment variables are optional. Currently there are not many environment variables used, as most of the user preferences are stored under the `websurfx` folder (located under the codebase (`websurfx` directory)) in the `config.lua` file.
 
 The list of all the available environment variables are listed down below:
 
