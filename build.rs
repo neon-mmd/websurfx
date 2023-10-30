@@ -14,9 +14,14 @@ use std::{
 };
 
 // ------- Constants -------
+/// A constant for the path to the public/theme folder in the codebase.
 const COMMON_STATIC_SOURCE_CODE_FOLDER: &str = "./public/static/";
+/// A constant for the names of the folders located in the "/public/static/"
+/// folder in the codebase which contains the css files to be minified.
 const STYLE_FOLDERS: [&str; 2] = ["themes", "colorschemes"];
+/// A constant for the environment variable name.
 const PACKAGE_ENVIRONMENT_VARIABLE: &str = "PKG_ENV";
+/// A constant for the `prod` value of the `pkg_env` environment variable.
 const PRODUCTION_PKG_ENV_VARIABLE_VALUE: &str = "prod";
 
 /// A main function which minifies both css and js files using `lightningcss` and `minify_js` when
