@@ -18,11 +18,11 @@ websurfx
 
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
 
-If you want to change the port or the ip or any other configuration setting checkout the [configuration docs](./configuration.md).
+If you want to change the port or the IP or any other configuration setting check out the [configuration docs](./configuration.md).
 
 ### Stable
 
-For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge` version) with the only difference being that the package to be installed for stable version is called `websurfx-git` instead of `websurfx-edge-git`.
+For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge` version) with the only difference being that the package to be installed for the stable version is called `websurfx-git` instead of `websurfx-edge-git`.
 
 ## NixOS
 
@@ -32,7 +32,7 @@ The Websurfx project provides 2 versions/flavours for the flake `stable` and `ro
 
 ### Rolling/Edge/Unstable
 
-To get started, First clone the repository, edit the config file which is located in the `websurfx` directory and then build and run the websurfx server by running the following commands:
+To get started, First, clone the repository, edit the config file which is located in the `websurfx` directory, and then build and run the websurfx server by running the following commands:
 
 ```shell
 git clone https://github.com/neon-mmd/websurfx.git
@@ -45,11 +45,11 @@ nix run .#websurfx
 ```
 
 > **Note**
-> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> In the above command the dollar sign(**$**) refers to running the command in Privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
-Once you have run the above set of commands, then open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
+Once you have run the above set of commands, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
 
-If you want to change the port or the ip or any other configuration setting checkout the [configuration docs](./configuration.md).
+If you want to change the port or the IP or any other configuration setting check out the [configuration docs](./configuration.md).
 
 > Optionally, you may include it in your own flake by adding this repo to its inputs and adding it to `environment.systemPackages` as follows:
 >
@@ -76,7 +76,7 @@ If you want to change the port or the ip or any other configuration setting chec
 
 ### Stable
 
-For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge version`) with an addition of one command which has to be performed after cloning and changing directory into the repository which makes the building step as follows:
+For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge version`) with an addition of one command which has to be performed after cloning and changing the directory into the repository which makes the building step as follows:
 
 ```shell
 git clone https://github.com/neon-mmd/websurfx.git
@@ -90,7 +90,7 @@ nix run .#websurfx
 ```
 
 > **Note**
-> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 ## Other Distros
 
@@ -102,7 +102,7 @@ Before you can start building `websurfx`, you will need to have `Cargo` installe
 
 ## Stable
 
-To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx` directory and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then build and run the websurfx server by running the following commands:
+To get started with Websurfx, clone the repository, edit the config file which is located in the `websurfx` directory, and install redis server by following the instructions located [here](https://redis.io/docs/getting-started/) and then build and run the websurfx server by running the following commands:
 
 ```shell
 git clone https://github.com/neon-mmd/websurfx.git
@@ -115,7 +115,7 @@ redis-server --port 8082 &
 
 Once you have started the server, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
 
-If you want to change the port or the ip or any other configuration setting checkout the [configuration docs](./configuration.md).
+If you want to change the port or the IP or any other configuration setting check out the [configuration docs](./configuration.md).
 
 ## Rolling/Edge/Unstable
 
@@ -138,7 +138,7 @@ To build the search engine with the `Hybrid caching` feature. Run the following 
 cargo build -r --features redis-cache
 ```
 
-### Memory Cache (Default Feature)
+### Memory Cache (Default Features)
 
 > For more information on the features and their pros and cons. see: [**Features**](./features.md)
 
@@ -168,7 +168,7 @@ To build the search engine with the `hybrid caching` feature. Run the following 
 cargo build -r --no-default-features --features redis-cache
 ```
 
-> Optionally, If you have build the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then before launching the search engine run the following command:
+> Optionally, If you have built the app with the `Redis cache`or `Hybrid cache` feature (as mentioned above) then before launching the search engine run the following command:
 >
 > ```shell
 > redis-server --port 8082 &
@@ -180,9 +180,9 @@ Once you have finished building the `search engine`. then run the following comm
 ./target/release/websurfx
 ```
 
-Once you have started the server, then launch your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
+Once you have started the server, launch your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
 
-If you want to change the port or the ip or any other configuration setting checkout the [configuration docs](./configuration.md).
+If you want to change the port or the IP or any other configuration setting check out the [configuration docs](./configuration.md).
 
 # Docker Deployment
 
@@ -190,7 +190,7 @@ Before you start, you will need [Docker](https://docs.docker.com/get-docker/) in
 
 ## Prebuild
 
-The Websurfx project provides several prebuild images based on the different features provided by the search engine. To get started using the prebuild image, you will first need to create a `docker-compose.yml` file with the following content:
+The Websurfx project provides several prebuilt images based on the different features provided by the search engine. To get started using the prebuild image, you will first need to create a `docker-compose.yml` file with the following content:
 
 ```yaml
 ---
@@ -235,8 +235,8 @@ production_use = false -- whether to use production mode or not (in other words 
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
 rate_limiter = {
-	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
-	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
+	number_of_requests = 20, -- The number of requests that are allowed within a provided time limit.
+	time_limit = 3, -- The time limit in which the number of requests that should be accepted.
 }
 
 -- ### Search ###
@@ -266,8 +266,8 @@ safe_search = 2
 -- tokyo-night
 -- tomorrow-night
 -- }}
-colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
-theme = "simple" -- the theme name which should be used for the website
+colorscheme = "catppuccin-mocha" -- the colorscheme name that should be used for the website theme
+theme = "simple" -- the theme name that should be used for the website
 
 -- ### Caching ###
 redis_url = "redis://redis:6379" -- redis connection url address on which the client should connect on.
@@ -286,33 +286,33 @@ $ docker compose up -d
 ```
 
 > **Note**
-> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privileged access methods.
 
 Then launch the browser of your choice and navigate to http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>.
 
 > **Note**
-> The official prebuild images only support `stable` versions of the app and will not support `rolling/edge/unstable` versions. But with support and contribution it could be made available for these versions as well 🙂.
+> The official prebuild images only support `stable` versions of the app and will not support `rolling/edge/unstable` versions. But with support and contribution, it could be made available for these versions as well 🙂.
 
 ## Manual Deployment
 
 This section covers how to deploy the app with docker manually by manually building the image and deploying it.
 
 > **Note**
-> This section is provided for those who want to futher customize the docker image or for those who are extra cautious about security.
+> This section is provided for those who want to further customize the docker image or for those who are extra cautious about security.
 
 > **Warning**
 > A note of caution the project currently only supports **x86-64** architecture and as such we do not recommend deploying the project on devices with other architectures. Though if you still want to do it then **do it at your own risk**.
 
 ### Unstable/Edge/Rolling
 
-First clone the the repository by running the following command:
+First, clone the repository by running the following command:
 
 ```bash
 git clone https://github.com/neon-mmd/websurfx.git
 cd websurfx
 ```
 
-After that edit the config.lua file located under `websurfx` directory. In the config file you will specifically need to change to values which is `binding_ip_addr` and `redis_connection_url` which should make the config look something like this:
+After that edit the config.lua file located under `websurfx` directory. In the config file, you will specifically need to change to values which are `binding_ip_addr` and `redis_connection_url` which should make the config look something like this:
 
 ```lua
 -- ### General ###
@@ -322,14 +322,14 @@ threads = 8 -- the amount of threads that the app will use to run (the value sho
 
 -- ### Server ###
 port = "8080" -- port on which server should be launched
-binding_ip = "0.0.0.0" --ip address on the which server should be launched.
+binding_ip = "0.0.0.0" --ip address on the server should be launched.
 production_use = false -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
 rate_limiter = {
-	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
-	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
+	number_of_requests = 20, -- The number of requests that are allowed within a provided time limit.
+	time_limit = 3, -- The time limit in which the number of requests that should be accepted.
 }
 
 -- ### Search ###
@@ -379,13 +379,13 @@ $ docker compose up -d --build
 ```
 
 > **Note**
-> In the above command the dollar sign(**$**) refers to running the command in privilaged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privilage access methods.
+> In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
-This will take around 5-10 mins for first deployment, afterwards the docker build stages will be cached so it will be faster to be build from next time onwards. After the above step finishes launch your preferred browser and then navigate to `http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>`.
+This will take around 5-10 mins for the first deployment, afterwards, the docker build stages will be cached so it will be faster to build from next time onwards. After the above step finishes launch your preferred browser and then navigate to `http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>`.
 
 ### Stable
 
-For the stable version, follow the same steps as above (as mentioned for the unstable/rolling/edge version) with an addition of one command which has to be performed after cloning and changing directory into the repository which makes the cloning step as follows:
+For the stable version, follow the same steps as above (as mentioned for the unstable/rolling/edge version) with an addition of one command which has to be performed after cloning and changing the directory into the repository which makes the cloning step as follows:
 
 ```bash
 git clone https://github.com/neon-mmd/websurfx.git
