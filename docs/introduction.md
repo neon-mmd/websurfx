@@ -4,7 +4,7 @@ A modern-looking, lightning-fast, privacy-respecting, secure [meta search engine
 
 # Motivation
 
-Most meta search engines tend to be slow, lack a high level of customization, and miss many features, and all of them like security as they are written in unsafe languages like Python, javascript, etc which tend to open a wide variety of vulnerabilities which can also sometimes pose a threat to privacy as sometimes this can be exploited and can be used to leveraged to leak out sensitive information which is never good.
+Most meta search engines tend to be slow, lack a high level of customization, and miss many features, and all of them lack security as they are written in unsafe languages like Python, JavaScript, etc., which tend to open a wide variety of vulnerabilities, which can also sometimes pose a threat to privacy as sometimes this can be exploited and can be used to leak out sensitive information, which is never good.
 
 # Solution 
 
