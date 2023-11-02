@@ -17,7 +17,7 @@ reqwest = {version="0.11.21",default-features = false,features = ["json", "rustl
 tokio = {version="1.32.0",features=["rt-multi-thread","macros"]}
 serde = {version="1.0.188",features=["derive"]}
 handlebars = { version = "4.4.0", features = ["dir_source"] }
-scraper = {version="0.17.1"}
+scraper = {version="0.18.1"}
 actix-web = {version="4.4.0", features = ["cookies"]}
 actix-files = {version="0.6.2"}
 actix-cors = {version="0.6.4"}
@@ -37,7 +37,7 @@ futures = {version="0.3.28"}
 dhat = {version="0.3.2", optional = true}
 mimalloc = { version = "0.1.38", default-features = false }
 async-once-cell = {version="0.5.3"}
-actix-governor = {version="0.4.1"}
+actix-governor = {version="0.5.0"}
 mini-moka = { version="0.10", optional = true}
 
 [dev-dependencies]
