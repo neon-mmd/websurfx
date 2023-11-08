@@ -50,10 +50,13 @@ Before you start working on the project. You will need the following packages in
 - The latest version of `cargo` installed on your system which is required to manage building and running the project. The installation instructions for this can be found [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 - The latest version of `npm` installed on your system which is required to allow the installation of other tools necessary for the project. The installation for this can be found [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 - The latest version of `redis` installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation for this can be found [here](https://redis.io/docs/getting-started/installation/).
-- The latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on your system. To install `stylelint` run the following command:
+- The latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on your system. To install `stylelint` and plugins run the following command:
 
 ```shell
 $ npm i -g stylelint
+```
+```shell
+$ npm i -g stylelint stylelint-config-standard postcss-lit
 ```
 
 > **Note**
