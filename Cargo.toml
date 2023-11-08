@@ -51,7 +51,7 @@ minify-js = {version="0.5.6", default-features=false}
 [profile.dev]
 opt-level = 0
 debug = true
-split-debuginfo = '...'
+split-debuginfo = 'unpacked'
 debug-assertions = true
 overflow-checks = true
 lto = false
