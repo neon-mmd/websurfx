@@ -52,12 +52,10 @@ Before you start working on the project. You will need the following packages in
 - The latest version of `redis` installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation for this can be found [here](https://redis.io/docs/getting-started/installation/).
 - The latest version of `stylelint` should be installed on your system which will be used by the pre-commit checks to lint the code before a commit can be made to ensure better code quality. Before you install `stylelint` on your system, make sure you have `npm` installed on your system. To install `stylelint` and plugins run the following command:
 
-```shell
+\```shell
 $ npm i -g stylelint
-```
-```shell
 $ npm i -g stylelint stylelint-config-standard postcss-lit
-```
+\```
 
 > **Note**
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
