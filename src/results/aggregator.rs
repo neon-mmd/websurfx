@@ -8,8 +8,8 @@ use crate::models::{
     engine_models::{EngineError, EngineHandler},
 };
 use error_stack::Report;
-use rand::Rng;
 use regex::Regex;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
     io::{BufReader, Read},
@@ -72,9 +72,9 @@ pub async fn aggregate(
 
     // Add a random delay before making the request.
     if random_delay || !debug {
-        let mut rng = rand::thread_rng();
-        let delay_secs = rng.gen_range(1..10);
-        tokio::time::sleep(Duration::from_secs(delay_secs)).await;
+        let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
+        let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
+        tokio::time::sleep(Duration::from_secs(delay)).await;
     }
 
     let mut names: Vec<&str> = Vec::with_capacity(0);
