@@ -7,30 +7,30 @@ use crate::{
     handler::paths::{file_path, FileType},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
-use handlebars::Handlebars;
 use std::fs::read_to_string;
 
 /// Handles the route of index page or main page of the `websurfx` meta search engine website.
 #[get("/")]
-pub async fn index(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("index", &config.style).unwrap();
-    Ok(HttpResponse::Ok().body(page_content))
+pub async fn index(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    Ok(HttpResponse::Ok().body(
+        crate::templates::views::index::index(&config.style.colorscheme, &config.style.theme, "").0,
+    ))
 }
 
 /// Handles the route of any other accessed route/page which is not provided by the
 /// website essentially the 404 error page.
 pub async fn not_found(
-    hbs: web::Data<Handlebars<'_>>,
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("404", &config.style)?;
-
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
-        .body(page_content))
+        .body(
+            crate::templates::views::not_found::not_found(
+                &config.style.colorscheme,
+                &config.style.theme,
+            )
+            .0,
+        ))
 }
 
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
@@ -45,20 +45,27 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
 
 /// Handles the route of about page of the `websurfx` meta search engine website.
 #[get("/about")]
-pub async fn about(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("about", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
+pub async fn about(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    Ok(HttpResponse::Ok().body(
+        crate::templates::views::about::about(&config.style.colorscheme, &config.style.theme).0,
+    ))
 }
 
 /// Handles the route of settings page of the `websurfx` meta search engine website.
 #[get("/settings")]
 pub async fn settings(
-    hbs: web::Data<Handlebars<'_>>,
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("settings", &config.style)?;
-    Ok(HttpResponse::Ok().body(page_content))
+    Ok(HttpResponse::Ok().body(
+        crate::templates::views::settings::settings(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config
+                .upstream_search_engines
+                .iter()
+                .map(|(engine, _)| engine)
+                .collect::<Vec<&String>>(),
+        )?
+        .0,
+    ))
 }
