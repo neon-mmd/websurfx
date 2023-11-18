@@ -142,7 +142,7 @@ async fn results(
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results {
-        Ok(results) => Ok(dbg!(results.clone())),
+        Ok(results) => Ok(results),
         Err(_) => {
             let mut safe_search_level: u8 = match config.safe_search {
                 3..=4 => config.safe_search,
