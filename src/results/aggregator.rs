@@ -166,7 +166,7 @@ pub async fn aggregate(
 
     let results: Vec<SearchResult> = result_map.into_values().collect();
 
-    Ok(SearchResults::new(results, query, &engine_errors_info))
+    Ok(SearchResults::new(results, &engine_errors_info))
 }
 
 /// Filters a map of search results using a list of regex patterns.
