@@ -1,4 +1,4 @@
-//!
+//! A module that handles the view for the settings page in the `websurfx` frontend.
 
 use maud::{html, Markup};
 
@@ -10,7 +10,18 @@ use crate::templates::partials::{
     },
 };
 
+/// A function that handles the html code for the settings page view in the search engine frontend.
 ///
+/// # Arguments
+///
+/// * `colorscheme` - It takes the colorscheme name as an argument.
+/// * `theme` - It takes the theme name as an argument.
+/// * `engine_names` - It takes a list of engine names as an argument.
+///
+/// # Error
+///
+/// This function returns a compiled html markup code on success otherwise returns a standard error
+/// message.
 pub fn settings(
     colorscheme: &str,
     theme: &str,

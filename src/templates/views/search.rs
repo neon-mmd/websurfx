@@ -1,4 +1,4 @@
-//!
+//! A module that handles the view for the search page in the `websurfx` frontend.
 
 use maud::{html, Markup, PreEscaped};
 
@@ -7,7 +7,18 @@ use crate::{
     templates::partials::{footer::footer, header::header, search_bar::search_bar},
 };
 
+/// A function that handles the html code for the search page view in the search engine frontend.
 ///
+/// # Arguments
+///
+/// * `colorscheme` - It takes the colorscheme name as an argument.
+/// * `theme` - It takes the theme name as an argument.
+/// * `query` - It takes the current search query provided by the user as an argument.
+/// * `search_results` - It takes the aggregated search results as an argument.
+///
+/// # Returns
+///
+/// It returns the compiled html markup code as a result.
 pub fn search(
     colorscheme: &str,
     theme: &str,

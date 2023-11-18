@@ -1,8 +1,16 @@
-//!
+//! A module that handles the engines tab for setting page view in the `websurfx` frontend.
 
 use maud::{html, Markup};
 
+/// A functions that handles the html code for the engines tab for the settings page for the search page.
 ///
+/// # Arguments
+///
+/// * `engine_names` - It takes the list of all available engine names as an argument.
+///
+/// # Returns
+///
+/// It returns the compiled html markup code for the engines tab.
 pub fn engines(engine_names: &[&String]) -> Markup {
     html!(
         div class="engines tab"{

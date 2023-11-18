@@ -1,8 +1,12 @@
-//!
+//! A module that handles the engines tab for setting page view in the `websurfx` frontend.
 
 use maud::{html, Markup};
 
+/// A functions that handles the html code for the cookies tab for the settings page for the search page.
 ///
+/// # Returns
+///
+/// It returns the compiled html markup code for the cookies tab.
 pub fn cookies() -> Markup {
     html!(
         div class="cookies tab"{

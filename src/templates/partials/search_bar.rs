@@ -1,12 +1,24 @@
-//!
+//! A module that handles `search bar` partial for the search page in the `websurfx` frontend.
 
 use maud::{html, Markup, PreEscaped};
 
 use crate::{models::aggregation_models::EngineErrorInfo, templates::partials::bar::bar};
 
+/// A constant holding the named safe search level options for the corresponding values 0, 1 and 2.
 const SAFE_SEARCH_LEVELS_NAME: [&str; 3] = ["None", "Low", "Moderate"];
 
+/// A functions that handles the html code for the search bar for the search page.
 ///
+/// # Arguments
+///
+/// * `engine_errors_info` - It takes the engine errors list containing errors for each upstream
+/// search engine which failed to provide results as an argument.
+/// * `safe_search_level` - It takes the safe search level with values from 0-2 as an argument.
+/// * `query` - It takes the current search query provided by user as an argument.
+///
+/// # Returns
+///
+/// It returns the compiled html code for the search bar as a result.
 pub fn search_bar(
     engine_errors_info: &[EngineErrorInfo],
     safe_search_level: u8,
