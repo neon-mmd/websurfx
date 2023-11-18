@@ -13,7 +13,7 @@ use std::fs::read_to_string;
 #[get("/")]
 pub async fn index(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     Ok(HttpResponse::Ok().body(
-        crate::templates::views::index::index(&config.style.colorscheme, &config.style.theme, "").0,
+        crate::templates::views::index::index(&config.style.colorscheme, &config.style.theme).0,
     ))
 }
 
@@ -62,8 +62,7 @@ pub async fn settings(
             &config.style.theme,
             &config
                 .upstream_search_engines
-                .iter()
-                .map(|(engine, _)| engine)
+                .keys()
                 .collect::<Vec<&String>>(),
         )?
         .0,
