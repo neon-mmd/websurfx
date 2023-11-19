@@ -3,7 +3,7 @@
 
 use error_stack::Report;
 use futures::future::try_join_all;
-use md5::compute;
+use sha256::digest;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
 use super::error::CacheError;
