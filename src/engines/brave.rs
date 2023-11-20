@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use reqwest::header::HeaderMap;
+use reqwest::{header::HeaderMap, Client};
 use scraper::Html;
 
 use crate::models::aggregation_models::SearchResult;
@@ -42,7 +42,7 @@ impl SearchEngine for Brave {
         query: &str,
         page: u32,
         user_agent: &str,
-        request_timeout: u8,
+        client: &Client,
         safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         let url = format!("https://search.brave.com/search?q={query}&offset={page}");
@@ -68,7 +68,7 @@ impl SearchEngine for Brave {
         .change_context(EngineError::UnexpectedError)?;
 
         let document: Html = Html::parse_document(
-            &Brave::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
+            &Brave::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
         if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0) {
