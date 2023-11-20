@@ -6,32 +6,18 @@ use crate::{
     handler::paths::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
-        engine_models::EngineHandler,
+        engine_models::{EngineError, EngineHandler},
         server_models::{Cookie, SearchParams},
     },
     results::aggregator::aggregate,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
-use handlebars::Handlebars;
 use regex::Regex;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Read},
 };
 use tokio::join;
-
-/// Handles the route of any other accessed route/page which is not provided by the
-/// website essentially the 404 error page.
-pub async fn not_found(
-    hbs: web::Data<Handlebars<'_>>,
-    config: web::Data<Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = hbs.render("404", &config.style)?;
-
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(page_content))
-}
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
@@ -49,7 +35,6 @@ pub async fn not_found(
 /// ```
 #[get("/search")]
 pub async fn search(
-    hbs: web::Data<Handlebars<'_>>,
     req: HttpRequest,
     config: web::Data<Config>,
     cache: web::Data<SharedCache>,
@@ -58,7 +43,7 @@ pub async fn search(
     match &params.q {
         Some(query) => {
             if query.trim().is_empty() {
-                return Ok(HttpResponse::Found()
+                return Ok(HttpResponse::TemporaryRedirect()
                     .insert_header(("location", "/"))
                     .finish());
             }
@@ -112,10 +97,17 @@ pub async fn search(
                 )
             );
 
-            let page_content: String = hbs.render("search", &results?)?;
-            Ok(HttpResponse::Ok().body(page_content))
+            Ok(HttpResponse::Ok().body(
+                crate::templates::views::search::search(
+                    &config.style.colorscheme,
+                    &config.style.theme,
+                    query,
+                    &results?,
+                )
+                .0,
+            ))
         }
-        None => Ok(HttpResponse::Found()
+        None => Ok(HttpResponse::TemporaryRedirect()
             .insert_header(("location", "/"))
             .finish()),
     }
@@ -171,8 +163,6 @@ async fn results(
 
                 if _flag {
                     results.set_disallowed();
-                    results.add_style(&config.style);
-                    results.set_page_query(query);
                     cache.cache_results(&results, &url).await?;
                     results.set_safe_search_level(safe_search_level);
                     return Ok(results);
@@ -221,23 +211,27 @@ async fn results(
                         true => {
                             let mut search_results = SearchResults::default();
                             search_results.set_no_engines_selected();
-                            search_results.set_page_query(query);
                             search_results
                         }
                     }
                 }
-                None => {
-                    aggregate(
-                        query,
-                        page,
-                        config.aggregator.random_delay,
-                        config.debug,
-                        &config.upstream_search_engines,
-                        config.request_timeout,
-                        safe_search_level,
-                    )
-                    .await?
-                }
+                None => aggregate(
+                    query,
+                    page,
+                    config.aggregator.random_delay,
+                    config.debug,
+                    &config
+                        .upstream_search_engines
+                        .clone()
+                        .into_iter()
+                        .filter_map(|(key, value)| value.then_some(key))
+                        .map(|engine| EngineHandler::new(&engine))
+                        .collect::<Result<Vec<EngineHandler>, error_stack::Report<EngineError>>>(
+                        )?,
+                    config.request_timeout,
+                    safe_search_level,
+                )
+                .await?,
             };
             if results.engine_errors_info().is_empty()
                 && results.results().is_empty()
@@ -245,7 +239,6 @@ async fn results(
             {
                 results.set_filtered();
             }
-            results.add_style(&config.style);
             cache
                 .cache_results(&results, &(format!("{url}{safe_search_level}")))
                 .await?;

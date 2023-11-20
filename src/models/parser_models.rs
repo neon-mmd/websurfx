@@ -1,8 +1,6 @@
 //! This module provides public models for handling, storing and serializing parsed config file
 //! options from config.lua by grouping them together.
 
-use serde::{Deserialize, Serialize};
-
 /// A named struct which stores,deserializes, serializes and groups the parsed config file options
 /// of theme and colorscheme names into the Style struct which derives the `Clone`, `Serialize`
 /// and Deserialize traits where the `Clone` trait is derived for allowing the struct to be
@@ -12,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// order to allow the deserializing the json back to struct in aggregate function in
 /// aggregator.rs and create a new struct out of it and then serialize it back to json and pass
 /// it to the template files.
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct Style {
     /// It stores the parsed theme option used to set a theme for the website.
     pub theme: String,
