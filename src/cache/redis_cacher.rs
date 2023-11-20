@@ -3,7 +3,7 @@
 
 use error_stack::Report;
 use futures::future::try_join_all;
-use sha256::digest;
+use blake3::hash;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
 use super::error::CacheError;
@@ -59,7 +59,7 @@ impl RedisCache {
     ///
     /// * `url` - It takes an url as string.
     fn hash_url(&self, url: &str) -> String {
-        digest(url)
+        format!("{:?}", blake3::hash(url.as_bytes()))
     }
 
     /// A function which fetches the cached json results as json string from the redis server.
