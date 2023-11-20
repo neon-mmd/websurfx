@@ -1,7 +1,6 @@
 use std::net::TcpListener;
 
-use handlebars::Handlebars;
-use websurfx::{config::parser::Config, run};
+use websurfx::{config::parser::Config, run, templates::views};
 
 // Starts a new instance of the HTTP server, bound to a random available port
 fn spawn_app() -> String {
@@ -21,18 +20,6 @@ fn spawn_app() -> String {
     format!("http://127.0.0.1:{}/", port)
 }
 
-// Creates a new instance of Handlebars and registers the templates directory.
-// This is used to compare the rendered template with the response body.
-fn handlebars() -> Handlebars<'static> {
-    let mut handlebars = Handlebars::new();
-
-    handlebars
-        .register_templates_directory(".html", "./public/templates")
-        .unwrap();
-
-    handlebars
-}
-
 #[tokio::test]
 async fn test_index() {
     let address = spawn_app();
@@ -41,9 +28,8 @@ async fn test_index() {
     let res = client.get(address).send().await.unwrap();
     assert_eq!(res.status(), 200);
 
-    let handlebars = handlebars();
     let config = Config::parse(true).unwrap();
-    let template = handlebars.render("index", &config.style).unwrap();
+    let template = views::index::index(&config.style.colorscheme, &config.style.theme).0;
     assert_eq!(res.text().await.unwrap(), template);
 }
 

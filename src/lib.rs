@@ -12,6 +12,7 @@ pub mod handler;
 pub mod models;
 pub mod results;
 pub mod server;
+pub mod templates;
 
 use std::net::TcpListener;
 
@@ -23,7 +24,6 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
 use cache::cacher::{Cache, SharedCache};
 use config::parser::Config;
-use handlebars::Handlebars;
 use handler::paths::{file_path, FileType};
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
@@ -48,15 +48,7 @@ use handler::paths::{file_path, FileType};
 /// let server = run(listener,config,cache).expect("Failed to start server");
 /// ```
 pub fn run(listener: TcpListener, config: Config, cache: Cache) -> std::io::Result<Server> {
-    let mut handlebars: Handlebars<'_> = Handlebars::new();
-
     let public_folder_path: &str = file_path(FileType::Theme)?;
-
-    handlebars
-        .register_templates_directory(".html", format!("{}/templates", public_folder_path))
-        .unwrap();
-
-    let handlebars_ref: web::Data<Handlebars<'_>> = web::Data::new(handlebars);
 
     let cloned_config_threads_opt: u8 = config.threads;
 
@@ -75,7 +67,6 @@ pub fn run(listener: TcpListener, config: Config, cache: Cache) -> std::io::Resu
 
         App::new()
             .wrap(Logger::default()) // added logging middleware for logging.
-            .app_data(handlebars_ref.clone())
             .app_data(web::Data::new(config.clone()))
             .app_data(cache.clone())
             .wrap(cors)
