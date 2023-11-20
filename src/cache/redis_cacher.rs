@@ -1,9 +1,9 @@
 //! This module provides the functionality to cache the aggregated results fetched and aggregated
 //! from the upstream search engines in a json format.
 
+use blake3::hash;
 use error_stack::Report;
 use futures::future::try_join_all;
-use blake3::hash;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
 use super::error::CacheError;
