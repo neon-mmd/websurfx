@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.2.25"
+version = "1.2.28"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -13,11 +13,11 @@ bench = false
 path = "src/bin/websurfx.rs"
 
 [dependencies]
-reqwest = {version="0.11.22", default-features=false, features=["rustls-tls"]}
+reqwest = {version="0.11.22", default-features=false, features=["rustls-tls","brotli", "gzip"]}
 tokio = {version="1.32.0",features=["rt-multi-thread","macros"], default-features = false}
 serde = {version="1.0.190", default-features=false, features=["derive"]}
 serde_json = {version="1.0.108", default-features=false}
-handlebars = { version = "4.4.0", features = ["dir_source"], default-features = false }
+maud = {version="0.25.0", default-features=false, features=["actix-web"]}
 scraper = {version="0.18.1", default-features = false}
 actix-web = {version="4.4.0", features = ["cookies", "macros"], default-features=false}
 actix-files = {version="0.6.2", default-features=false}
@@ -27,7 +27,7 @@ env_logger = {version="0.10.0", default-features=false}
 log = {version="0.4.20", default-features=false}
 mlua = {version="0.9.1", features=["luajit", "vendored"], default-features=false}
 redis = {version="0.23.3", features=["tokio-comp","connection-manager"], default-features = false, optional = true}
-md5 = {version="0.7.0", default-features=false}
+blake3 = {version="1.5.0", default-features=false}
 error-stack = {version="0.4.0", default-features=false, features=["std"]}
 async-trait = {version="0.1.73", default-features=false}
 regex = {version="1.9.4", features=["perf"], default-features = false}

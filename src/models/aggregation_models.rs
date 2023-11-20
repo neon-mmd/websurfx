@@ -1,10 +1,9 @@
 //! This module provides public models for handling, storing and serializing of search results
 //! data scraped from the upstream search engines.
 
+use super::engine_models::EngineError;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
-
-use super::{engine_models::EngineError, parser_models::Style};
 
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
@@ -109,10 +108,6 @@ impl EngineErrorInfo {
 pub struct SearchResults {
     /// Stores the individual serializable `SearchResult` struct into a vector of
     pub results: Vec<SearchResult>,
-    /// Stores the current pages search query `q` provided in the search url.
-    pub page_query: String,
-    /// Stores the theming options for the website.
-    pub style: Style,
     /// Stores the information on which engines failed with their engine name
     /// and the type of error that caused it.
     pub engine_errors_info: Vec<EngineErrorInfo>,
@@ -142,15 +137,9 @@ impl SearchResults {
     /// the search url.
     /// * `engine_errors_info` - Takes an array of structs which contains information regarding
     /// which engines failed with their names, reason and their severity color name.
-    pub fn new(
-        results: Vec<SearchResult>,
-        page_query: &str,
-        engine_errors_info: &[EngineErrorInfo],
-    ) -> Self {
+    pub fn new(results: Vec<SearchResult>, engine_errors_info: &[EngineErrorInfo]) -> Self {
         Self {
             results,
-            page_query: page_query.to_owned(),
-            style: Style::default(),
             engine_errors_info: engine_errors_info.to_owned(),
             disallowed: Default::default(),
             filtered: Default::default(),
@@ -159,19 +148,9 @@ impl SearchResults {
         }
     }
 
-    /// A setter function to add website style to the return search results.
-    pub fn add_style(&mut self, style: &Style) {
-        self.style = style.clone();
-    }
-
     /// A setter function that sets disallowed to true.
     pub fn set_disallowed(&mut self) {
         self.disallowed = true;
-    }
-
-    /// A setter function to set the current page search query.
-    pub fn set_page_query(&mut self, page: &str) {
-        self.page_query = page.to_owned();
     }
 
     /// A setter function that sets the filtered to true.
