@@ -3,7 +3,6 @@
 
 use crate::handler::paths::{file_path, FileType};
 
-use crate::models::engine_models::{EngineError, EngineHandler};
 use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
 use mlua::Lua;
@@ -29,7 +28,7 @@ pub struct Config {
     /// It stores the option to whether enable or disable debug mode.
     pub debug: bool,
     /// It stores all the engine names that were enabled by the user.
-    pub upstream_search_engines: Vec<EngineHandler>,
+    pub upstream_search_engines: HashMap<String, bool>,
     /// It stores the time (secs) which controls the server request timeout.
     pub request_timeout: u8,
     /// It stores the number of threads which controls the app will use to run.
@@ -109,11 +108,7 @@ impl Config {
             logging,
             debug,
             upstream_search_engines: globals
-                .get::<_, HashMap<String, bool>>("upstream_search_engines")?
-                .into_iter()
-                .filter_map(|(key, value)| value.then_some(key))
-                .map(|engine| EngineHandler::new(&engine))
-                .collect::<Result<Vec<EngineHandler>, error_stack::Report<EngineError>>>()?,
+                .get::<_, HashMap<String, bool>>("upstream_search_engines")?,
             request_timeout: globals.get::<_, u8>("request_timeout")?,
             threads,
             rate_limiter: RateLimiter {
