@@ -59,7 +59,7 @@ impl RedisCache {
     ///
     /// * `url` - It takes an url as string.
     fn hash_url(&self, url: &str) -> String {
-        format!("{:?}", compute(url))
+        digest(url)
     }
 
     /// A function which fetches the cached json results as json string from the redis server.
