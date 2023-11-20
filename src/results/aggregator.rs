@@ -9,6 +9,7 @@ use crate::models::{
 };
 use error_stack::Report;
 use regex::Regex;
+use reqwest::{Client, ClientBuilder};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
@@ -17,6 +18,9 @@ use std::{
 };
 use std::{fs::File, io::BufRead};
 use tokio::task::JoinHandle;
+
+/// A constant for holding the prebuilt Client globally in the app.
+static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
 /// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
@@ -68,6 +72,16 @@ pub async fn aggregate(
     request_timeout: u8,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    let client = CLIENT.get_or_init(|| {
+        ClientBuilder::new()
+            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .https_only(true)
+            .gzip(true)
+            .brotli(true)
+            .build()
+            .unwrap()
+    });
+
     let user_agent: &str = random_user_agent();
 
     // Add a random delay before making the request.
@@ -88,7 +102,7 @@ pub async fn aggregate(
         let query: String = query.to_owned();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(&query, page, user_agent, request_timeout, safe_search)
+                .results(&query, page, user_agent, client, safe_search)
                 .await
         }));
     }

@@ -3,7 +3,8 @@
 
 use super::aggregation_models::SearchResult;
 use error_stack::{Report, Result, ResultExt};
-use std::{collections::HashMap, fmt, time::Duration};
+use reqwest::Client;
+use std::{collections::HashMap, fmt};
 
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
@@ -71,12 +72,11 @@ pub trait SearchEngine: Sync + Send {
         &self,
         url: &str,
         header_map: reqwest::header::HeaderMap,
-        request_timeout: u8,
+        client: &Client,
     ) -> Result<String, EngineError> {
         // fetch the html from upstream search engine
-        Ok(reqwest::Client::new()
+        Ok(client
             .get(url)
-            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .headers(header_map) // add spoofed headers to emulate human behavior
             .send()
             .await
@@ -109,7 +109,7 @@ pub trait SearchEngine: Sync + Send {
         query: &str,
         page: u32,
         user_agent: &str,
-        request_timeout: u8,
+        client: &Client,
         safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError>;
 }
