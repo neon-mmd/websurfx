@@ -17,7 +17,7 @@ reqwest = {version="0.11.22", default-features=false, features=["rustls-tls","br
 tokio = {version="1.32.0",features=["rt-multi-thread","macros"], default-features = false}
 serde = {version="1.0.190", default-features=false, features=["derive"]}
 serde_json = {version="1.0.108", default-features=false}
-handlebars = { version = "4.4.0", features = ["dir_source"], default-features = false }
+maud = {version="0.25.0", default-features=false, features=["actix-web"]}
 scraper = {version="0.18.1", default-features = false}
 actix-web = {version="4.4.0", features = ["cookies", "macros"], default-features=false}
 actix-files = {version="0.6.2", default-features=false}
