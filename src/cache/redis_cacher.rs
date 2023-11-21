@@ -1,9 +1,9 @@
 //! This module provides the functionality to cache the aggregated results fetched and aggregated
 //! from the upstream search engines in a json format.
 
+use blake3::hash;
 use error_stack::Report;
 use futures::future::try_join_all;
-use md5::compute;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
 use super::error::CacheError;
@@ -59,7 +59,7 @@ impl RedisCache {
     ///
     /// * `url` - It takes an url as string.
     fn hash_url(&self, url: &str) -> String {
-        format!("{:?}", compute(url))
+        format!("{:?}", blake3::hash(url.as_bytes()))
     }
 
     /// A function which fetches the cached json results as json string from the redis server.

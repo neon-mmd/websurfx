@@ -1,9 +1,12 @@
-{  
+{
   "extends": "stylelint-config-standard",
   "rules": {
     "alpha-value-notation": "number",
-    "selector-class-pattern": null
+    "selector-class-pattern": null,
+    "no-descending-specificity": null
   },
+  "fix": true,
+  "cache": true,
   "overrides": [
     {
       "files": ["*.js"],

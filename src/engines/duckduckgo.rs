@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 
 use reqwest::header::HeaderMap;
+use reqwest::Client;
 use scraper::Html;
 
 use crate::models::aggregation_models::SearchResult;
@@ -44,7 +45,7 @@ impl SearchEngine for DuckDuckGo {
         query: &str,
         page: u32,
         user_agent: &str,
-        request_timeout: u8,
+        client: &Client,
         _safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
@@ -76,7 +77,7 @@ impl SearchEngine for DuckDuckGo {
         .change_context(EngineError::UnexpectedError)?;
 
         let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
+            &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
         if self.parser.parse_for_no_results(&document).next().is_some() {

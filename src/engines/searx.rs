@@ -3,6 +3,7 @@
 //! number if provided.
 
 use reqwest::header::HeaderMap;
+use reqwest::Client;
 use scraper::Html;
 use std::collections::HashMap;
 
@@ -40,7 +41,7 @@ impl SearchEngine for Searx {
         query: &str,
         page: u32,
         user_agent: &str,
-        request_timeout: u8,
+        client: &Client,
         mut safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
@@ -68,7 +69,7 @@ impl SearchEngine for Searx {
         .change_context(EngineError::UnexpectedError)?;
 
         let document: Html = Html::parse_document(
-            &Searx::fetch_html_from_upstream(self, &url, header_map, request_timeout).await?,
+            &Searx::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
         if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(1) {

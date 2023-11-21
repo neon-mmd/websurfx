@@ -8,8 +8,9 @@ use crate::models::{
     engine_models::{EngineError, EngineHandler},
 };
 use error_stack::Report;
-use rand::Rng;
 use regex::Regex;
+use reqwest::{Client, ClientBuilder};
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
     collections::HashMap,
     io::{BufReader, Read},
@@ -17,6 +18,9 @@ use std::{
 };
 use std::{fs::File, io::BufRead};
 use tokio::task::JoinHandle;
+
+/// A constant for holding the prebuilt Client globally in the app.
+static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
 /// Aliases for long type annotations
 type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
@@ -68,13 +72,23 @@ pub async fn aggregate(
     request_timeout: u8,
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    let client = CLIENT.get_or_init(|| {
+        ClientBuilder::new()
+            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .https_only(true)
+            .gzip(true)
+            .brotli(true)
+            .build()
+            .unwrap()
+    });
+
     let user_agent: &str = random_user_agent();
 
     // Add a random delay before making the request.
     if random_delay || !debug {
-        let mut rng = rand::thread_rng();
-        let delay_secs = rng.gen_range(1..10);
-        tokio::time::sleep(Duration::from_secs(delay_secs)).await;
+        let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
+        let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
+        tokio::time::sleep(Duration::from_secs(delay)).await;
     }
 
     let mut names: Vec<&str> = Vec::with_capacity(0);
@@ -88,7 +102,7 @@ pub async fn aggregate(
         let query: String = query.to_owned();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(&query, page, user_agent, request_timeout, safe_search)
+                .results(&query, page, user_agent, client, safe_search)
                 .await
         }));
     }
@@ -166,7 +180,7 @@ pub async fn aggregate(
 
     let results: Vec<SearchResult> = result_map.into_values().collect();
 
-    Ok(SearchResults::new(results, query, &engine_errors_info))
+    Ok(SearchResults::new(results, &engine_errors_info))
 }
 
 /// Filters a map of search results using a list of regex patterns.
