@@ -45,7 +45,7 @@ body {
   height: 3rem;
   outline: none;
   border: none;
-  box-shadow: rgba(0, 0, 0, 1);
+  box-shadow: rgb(0 0 0 / 1);
   background: var(--foreground-color);
 }
 
@@ -126,9 +126,11 @@ body {
   min-height: 20rem;
   min-width: 22rem;
 }
+
 .error_box .dropdown_error_box.show {
   display: flex;
 }
+
 .error_box .dropdown_error_box .error_item,
 .error_box .dropdown_error_box .no_errors {
   display: flex;
@@ -138,22 +140,25 @@ body {
   padding: 1rem;
   font-size: 1.2rem;
 }
+
 .error_box .dropdown_error_box .error_item {
   justify-content: space-between;
 }
+
 .error_box .dropdown_error_box .no_errors {
   min-height: 18rem;
   justify-content: center;
 }
 
 .error_box .dropdown_error_box .error_item:hover {
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 100px 100px rgb(255 255 255 / 0.1);
 }
 
 .error_box .error_item .severity_color {
   width: 1.2rem;
   height: 1.2rem;
 }
+
 .results .result_disallowed,
 .results .result_filtered,
 .results .result_engine_not_selected {
@@ -163,7 +168,7 @@ body {
   gap: 10rem;
   font-size: 2rem;
   color: var(--foreground-color);
-  margin: 0rem 7rem;
+  margin: 0 7rem;
 }
 
 .results .result_disallowed .user_query,
@@ -367,7 +372,7 @@ footer {
 }
 
 .page_navigation {
-  padding: 0 0 2rem 0;
+  padding: 0 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -441,7 +446,7 @@ footer {
 
 .settings hr {
   border-color: var(--color-three);
-  margin: 0.3rem 0 1rem 0;
+  margin: 0.3rem 0 1rem;
 }
 
 .settings_container .sidebar {
@@ -564,10 +569,11 @@ footer {
 }
 
 .settings_container .cookies input {
-  margin: 1rem 0rem;
+  margin: 1rem 0;
 }
 
 /* Styles for the toggle button */
+
 /* The switch - the box around the slider */
 .switch {
   position: relative;
@@ -587,16 +593,12 @@ footer {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: var(--background-color);
-  -webkit-transition: 0.4s;
   transition: 0.4s;
 }
 
-.slider:before {
+.slider::before {
   position: absolute;
   content: '';
   height: 2.6rem;
@@ -604,7 +606,6 @@ footer {
   left: 0.4rem;
   bottom: 0.4rem;
   background-color: var(--foreground-color);
-  -webkit-transition: 0.4s;
   transition: 0.4s;
 }
 
@@ -616,9 +617,7 @@ input:focus + .slider {
   box-shadow: 0 0 1px var(--color-three);
 }
 
-input:checked + .slider:before {
-  -webkit-transform: translateX(2.6rem);
-  -ms-transform: translateX(2.6rem);
+input:checked + .slider::before {
   transform: translateX(2.6rem);
 }
 
@@ -627,6 +626,6 @@ input:checked + .slider:before {
   border-radius: 3.4rem;
 }
 
-.slider.round:before {
+.slider.round::before {
   border-radius: 50%;
 }
