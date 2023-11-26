@@ -3,7 +3,7 @@
 use crate::{
     cache::cacher::SharedCache,
     config::parser::Config,
-    handler::paths::{file_path, FileType},
+    handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
         engine_models::{EngineError, EngineHandler},
