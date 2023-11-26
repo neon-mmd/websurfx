@@ -48,33 +48,24 @@ pub async fn search(
                     .finish());
             }
 
-            let page = params.page.unwrap_or(1);
-
-            let (_, results, _) = join!(
-                results(
-                    &config,
-                    &cache,
-                    query,
-                    page - 1,
-                    req.clone(),
-                    &params.safesearch
-                ),
+            let get_results = |page| {
                 results(
                     &config,
                     &cache,
                     query,
                     page,
                     req.clone(),
-                    &params.safesearch
-                ),
-                results(
-                    &config,
-                    &cache,
-                    query,
-                    page + 1,
-                    req.clone(),
-                    &params.safesearch
+                    &params.safesearch,
                 )
+            };
+
+            // .max(1) makes sure that the page > 0.
+            let page = params.page.unwrap_or(1).max(1);
+
+            let (_, results, _) = join!(
+                get_results(page - 1),
+                get_results(page),
+                get_results(page + 1)
             );
 
             Ok(HttpResponse::Ok().body(
@@ -144,11 +135,11 @@ async fn results(
 
             if safe_search_level == 4 {
                 let mut results: SearchResults = SearchResults::default();
-                let mut _flag: bool =
-                    is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
-                _flag = !is_match_from_filter_list(file_path(FileType::AllowList)?, query)?;
 
-                if _flag {
+                let flag: bool =
+                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
+
+                if flag {
                     results.set_disallowed();
                     cache.cache_results(&results, &url).await?;
                     results.set_safe_search_level(safe_search_level);
@@ -251,14 +242,13 @@ fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let mut flag = false;
     let mut reader = BufReader::new(File::open(file_path)?);
     for line in reader.by_ref().lines() {
         let re = Regex::new(&line?)?;
         if re.is_match(query) {
-            flag = true;
-            break;
+            return Ok(true);
         }
     }
-    Ok(flag)
+
+    Ok(false)
 }
