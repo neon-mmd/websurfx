@@ -47,20 +47,11 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish());
             }
-            let page = match &params.page {
-                Some(page) => *page,
-                None => 1,
-            };
+
+            let page = params.page.unwrap_or(1);
 
             let (_, results, _) = join!(
                 results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip,
-                        config.port,
-                        query,
-                        page - 1,
-                    ),
                     &config,
                     &cache,
                     query,
@@ -69,10 +60,6 @@ pub async fn search(
                     &params.safesearch
                 ),
                 results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip, config.port, query, page
-                    ),
                     &config,
                     &cache,
                     query,
@@ -81,13 +68,6 @@ pub async fn search(
                     &params.safesearch
                 ),
                 results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip,
-                        config.port,
-                        query,
-                        page + 1,
-                    ),
                     &config,
                     &cache,
                     query,
@@ -129,7 +109,6 @@ pub async fn search(
 /// It returns the `SearchResults` struct if the search results could be successfully fetched from
 /// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
-    url: String,
     config: &Config,
     cache: &web::Data<SharedCache>,
     query: &str,
@@ -137,6 +116,14 @@ async fn results(
     req: HttpRequest,
     safe_search: &Option<u8>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    let url = format!(
+        "http://{}:{}/search?q={}&page={}&safesearch=",
+        config.binding_ip,
+        config.port,
+        query,
+        page - 1,
+    );
+
     // fetch the cached results json.
     let cached_results = cache.cached_json(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
