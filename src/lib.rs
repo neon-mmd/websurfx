@@ -24,7 +24,7 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
 use cache::cacher::{Cache, SharedCache};
 use config::parser::Config;
-use handler::paths::{file_path, FileType};
+use handler::{file_path, FileType};
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///

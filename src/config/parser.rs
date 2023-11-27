@@ -1,7 +1,7 @@
 //! This module provides the functionality to parse the lua config and convert the config options
 //! into rust readable form.
 
-use crate::handler::paths::{file_path, FileType};
+use crate::handler::{file_path, FileType};
 
 use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;

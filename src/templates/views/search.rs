@@ -93,7 +93,7 @@ pub fn search(
                     img src="./images/no_selection.png" alt="Image of a white cross inside a red circle";
                  }
               }
-              @else{
+              @else {
                  .result_not_found {
                     p{"Your search - "{(query)}" - did not match any documents."}
                     p class="suggestions"{"Suggestions:"}
