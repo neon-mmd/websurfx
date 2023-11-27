@@ -1,0 +1,79 @@
+name: Release stable image
+
+on:
+  push:
+    branches:
+      - "release/stable/**"
+  pull_request:
+    branches:
+      - "release/stable/**"
+    types: [opened, synchronize]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release_image:
+    strategy:
+      fail-fast: false
+      matrix:
+        cache:
+          - memory
+          - redis
+          - hybrid
+          - no-cache
+
+    name: Release ${{ matrix.cache }} image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # Install buildx
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+      # Set buildx cache
+      - name: Cache register
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: buildx-cache
+      # Login to ghcr.io
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:          
+          username: neonmmd
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Extract branch info
+      - name: Set info
+        run: |
+          echo "VERSION=$(echo ${GITHUB_REF} | awk -F/ '{print $6}')" >> $GITHUB_ENV
+      # Print info for debug
+      - name: Print Info
+        run: |
+          echo $VERSION
+      # Create buildx multiarch
+      - name: Create buildx multiarch
+        run: docker buildx create --use --name=buildx-multi-arch --driver=docker-container --driver-opt=network=host
+      # Modify cache variable in the dockerfile.
+      - name: Modify Cache variable
+        run: | 
+          sed -i "s/ARG CACHE=[a-z]*/ARG CACHE=${{ matrix.cache }}/g" Dockerfile
+      # Publish image
+      - name: Publish image
+        run: docker buildx build --builder=buildx-multi-arch --platform=linux/amd64,linux/arm64 --build-arg CACHE=${{ matrix.cache }} --push -t neonmmd/websurfx:$VERSION-${{ matrix.cache }} -t neon-mmd/websurfx:${{matrix.cache}} -f Dockerfile .
+      - name: Publish latest
+        if: ${{ matrix.cache }} == 'hybrid'
+        run: docker buildx build --builder=buildx-multi-arch --platform=linux/amd64,linux/arm64 --build-arg CACHE=${{ matrix.cache }} --push -t neon-mmd/websurfx:latest -f Dockerfile .
+      # Upload it to release
+      - name: Test if release already exists
+        id: release-exists
+        continue-on-error: true
+        run: gh release view $BINARY_NAME-$VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create new draft release
+        if: steps.release-exists.outcome == 'failure' && steps.release-exists.conclusion == 'success'
+        run: gh release create -t $VERSION -d $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
