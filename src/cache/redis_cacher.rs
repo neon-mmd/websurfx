@@ -1,7 +1,6 @@
 //! This module provides the functionality to cache the aggregated results fetched and aggregated
 //! from the upstream search engines in a json format.
 
-use blake3::hash;
 use error_stack::Report;
 use futures::future::try_join_all;
 use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
@@ -53,32 +52,23 @@ impl RedisCache {
         Ok(redis_cache)
     }
 
-    /// A helper function which computes the hash of the url and formats and returns it as string.
+    /// A function which fetches the cached json as json string from the redis server.
     ///
     /// # Arguments
     ///
-    /// * `url` - It takes an url as string.
-    fn hash_url(&self, url: &str) -> String {
-        format!("{:?}", blake3::hash(url.as_bytes()))
-    }
-
-    /// A function which fetches the cached json results as json string from the redis server.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - It takes an url as a string.
+    /// * `key` - It takes a string as key.
     ///
     /// # Error
     ///
-    /// Returns the results as a String from the cache on success otherwise returns a `CacheError`
+    /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json(&mut self, url: &str) -> Result<String, Report<CacheError>> {
+    pub async fn cached_json(&mut self, key: &str) -> Result<String, Report<CacheError>> {
         self.current_connection = Default::default();
-        let hashed_url_string: &str = &self.hash_url(url);
+        // let hashed_url_string: &str = &self.hash_url(url);
 
         let mut result: Result<String, RedisError> = self.connection_pool
             [self.current_connection as usize]
-            .get(hashed_url_string)
+            .get(key)
             .await;
 
         // Code to check whether the current connection being used is dropped with connection error
@@ -99,7 +89,7 @@ impl RedisCache {
                             ));
                         }
                         result = self.connection_pool[self.current_connection as usize]
-                            .get(hashed_url_string)
+                            .get(key)
                             .await;
                         continue;
                     }
@@ -110,30 +100,29 @@ impl RedisCache {
         }
     }
 
-    /// A function which caches the results by using the hashed `url` as the key and
+    /// A function which caches the json by using the key and
     /// `json results` as the value and stores it in redis server with ttl(time to live)
     /// set to 60 seconds.
     ///
     /// # Arguments
     ///
     /// * `json_results` - It takes the json results string as an argument.
-    /// * `url` - It takes the url as a String.
+    /// * `key` - It takes the key as a String.
     ///
     /// # Error
     ///
     /// Returns an unit type if the results are cached succesfully otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cache_results(
+    pub async fn cache_json(
         &mut self,
         json_results: &str,
-        url: &str,
+        key: &str,
     ) -> Result<(), Report<CacheError>> {
         self.current_connection = Default::default();
-        let hashed_url_string: &str = &self.hash_url(url);
 
         let mut result: Result<(), RedisError> = self.connection_pool
             [self.current_connection as usize]
-            .set_ex(hashed_url_string, json_results, 60)
+            .set_ex(key, json_results, 60)
             .await;
 
         // Code to check whether the current connection being used is dropped with connection error
@@ -154,7 +143,7 @@ impl RedisCache {
                             ));
                         }
                         result = self.connection_pool[self.current_connection as usize]
-                            .set_ex(hashed_url_string, json_results, 60)
+                            .set_ex(key, json_results, 60)
                             .await;
                         continue;
                     }

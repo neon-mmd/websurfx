@@ -116,7 +116,7 @@ async fn results(
     );
 
     // fetch the cached results json.
-    let cached_results = cache.cached_json(&url).await;
+    let cached_results = cache.cached_results(&url).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results {
