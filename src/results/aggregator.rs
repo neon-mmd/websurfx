@@ -2,7 +2,7 @@
 //! search engines and then removes duplicate results.
 
 use super::user_agent::random_user_agent;
-use crate::handler::paths::{file_path, FileType};
+use crate::handler::{file_path, FileType};
 use crate::models::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
     engine_models::{EngineError, EngineHandler},

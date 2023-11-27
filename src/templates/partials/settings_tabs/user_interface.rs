@@ -1,6 +1,6 @@
 //! A module that handles the user interface tab for setting page view in the `websurfx` frontend.
 
-use crate::handler::paths::{file_path, FileType};
+use crate::handler::{file_path, FileType};
 use maud::{html, Markup};
 use std::fs::read_dir;
 
