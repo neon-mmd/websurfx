@@ -3,18 +3,13 @@ use std::net::TcpListener;
 use websurfx::{config::parser::Config, run, templates::views};
 
 // Starts a new instance of the HTTP server, bound to a random available port
-fn spawn_app() -> String {
+async fn spawn_app() -> String {
     // Binding to port 0 will trigger the OS to assign a port for us.
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let config = Config::parse(false).unwrap();
-    let server = run(
-        listener,
-        config,
-        #[cfg(all(feature = "memory-cache", not(feature = "redis-cache")))]
-        websurfx::cache::cacher::Cache::new_in_memory(),
-    )
-    .expect("Failed to bind address");
+    let cache = websurfx::cache::cacher::create_cache(&config).await;
+    let server = run(listener, config, cache).expect("Failed to bind address");
 
     tokio::spawn(server);
     format!("http://127.0.0.1:{}/", port)
@@ -22,7 +17,7 @@ fn spawn_app() -> String {
 
 #[tokio::test]
 async fn test_index() {
-    let address = spawn_app();
+    let address = spawn_app().await;
 
     let client = reqwest::Client::new();
     let res = client.get(address).send().await.unwrap();
