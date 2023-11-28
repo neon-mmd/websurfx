@@ -67,7 +67,7 @@ pub trait Cacher: Send + Sync {
     ///
     /// * `url` - It takes an url as string.
     fn hash_url(&self, url: &str) -> String {
-        format!("{:?}", blake3::hash(url.as_bytes()))
+        blake3::hash(url.as_bytes()).to_string()
     }
 }
 

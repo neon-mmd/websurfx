@@ -64,7 +64,6 @@ impl RedisCache {
     /// on a failure.
     pub async fn cached_json(&mut self, key: &str) -> Result<String, Report<CacheError>> {
         self.current_connection = Default::default();
-        // let hashed_url_string: &str = &self.hash_url(url);
 
         let mut result: Result<String, RedisError> = self.connection_pool
             [self.current_connection as usize]
@@ -122,7 +121,7 @@ impl RedisCache {
 
         let mut result: Result<(), RedisError> = self.connection_pool
             [self.current_connection as usize]
-            .set_ex(key, json_results, 60)
+            .set_ex(key, json_results, 600)
             .await;
 
         // Code to check whether the current connection being used is dropped with connection error
