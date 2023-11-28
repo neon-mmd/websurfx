@@ -107,41 +107,40 @@ async fn results(
     req: HttpRequest,
     safe_search: &Option<u8>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    let url = format!(
-        "http://{}:{}/search?q={}&page={}&safesearch=",
-        config.binding_ip,
-        config.port,
-        query,
-        page - 1,
+    // eagerly parse cookie value to evaluate safe search level
+    let cookie_value = req.cookie("appCookie");
+
+    let cookie_value: Option<Cookie<'_>> = cookie_value
+        .as_ref()
+        .and_then(|cv| serde_json::from_str(cv.name_value().1).ok());
+
+    let safe_search_level = get_safesearch_level(
+        safe_search,
+        &cookie_value.as_ref().map(|cv| cv.safe_search_level),
+        config.safe_search,
+    );
+
+    let cache_key = format!(
+        "http://{}:{}/search?q={}&page={}&safesearch={}",
+        config.binding_ip, config.port, query, page, safe_search_level
     );
 
     // fetch the cached results json.
-    let cached_results = cache.cached_json(&url).await;
+    let cached_results = cache.cached_results(&cache_key).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results {
         Ok(results) => Ok(results),
         Err(_) => {
-            let mut safe_search_level: u8 = match config.safe_search {
-                3..=4 => config.safe_search,
-                _ => match safe_search {
-                    Some(safesearch) => match safesearch {
-                        0..=2 => *safesearch,
-                        _ => config.safe_search,
-                    },
-                    None => config.safe_search,
-                },
-            };
-
             if safe_search_level == 4 {
                 let mut results: SearchResults = SearchResults::default();
 
                 let flag: bool =
                     !is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
-
+                // Return early when query contains disallowed words,
                 if flag {
                     results.set_disallowed();
-                    cache.cache_results(&results, &url).await?;
+                    cache.cache_results(&results, &cache_key).await?;
                     results.set_safe_search_level(safe_search_level);
                     return Ok(results);
                 }
@@ -151,27 +150,13 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match req.cookie("appCookie") {
+            let mut results: SearchResults = match cookie_value {
                 Some(cookie_value) => {
-                    let cookie_value: Cookie<'_> =
-                        serde_json::from_str(cookie_value.name_value().1)?;
-
                     let engines: Vec<EngineHandler> = cookie_value
                         .engines
                         .iter()
                         .filter_map(|name| EngineHandler::new(name).ok())
                         .collect();
-
-                    safe_search_level = match config.safe_search {
-                        3..=4 => config.safe_search,
-                        _ => match safe_search {
-                            Some(safesearch) => match safesearch {
-                                0..=2 => *safesearch,
-                                _ => config.safe_search,
-                            },
-                            None => cookie_value.safe_search_level,
-                        },
-                    };
 
                     match engines.is_empty() {
                         false => {
@@ -217,9 +202,7 @@ async fn results(
             {
                 results.set_filtered();
             }
-            cache
-                .cache_results(&results, &(format!("{url}{safe_search_level}")))
-                .await?;
+            cache.cache_results(&results, &cache_key).await?;
             results.set_safe_search_level(safe_search_level);
             Ok(results)
         }
@@ -251,4 +234,25 @@ fn is_match_from_filter_list(
     }
 
     Ok(false)
+}
+
+/// A helper function which returns the safe search level based on the url params
+/// and cookie value.
+///
+/// # Argurments
+///
+/// * `safe_search` - Safe search level from the url.
+/// * `cookie` - User's cookie
+/// * `default` - Safe search level to fall back to
+fn get_safesearch_level(safe_search: &Option<u8>, cookie: &Option<u8>, default: u8) -> u8 {
+    match safe_search {
+        Some(ss) => {
+            if *ss >= 3 {
+                default
+            } else {
+                *ss
+            }
+        }
+        None => cookie.unwrap_or(default),
+    }
 }
