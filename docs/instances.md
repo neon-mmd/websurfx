@@ -6,7 +6,8 @@ This page provides a list of `Websurfx` instances provided by us and our communi
 
 |URL|Network|Version|Location|Behind Cloudflare?|Maintained By|TLS|IPv6|Comment|
 |-|-|-|-|-|-|-|-|-|
-|https://alamin655-websurfx.hf.space/|www|v0.21.4|🇺🇸 US||[websurfx project](https://github.com/neon-mmd/websurfx)|✅|||
-
+|https://websurfx.co/|www|rolling|🇺🇸 US|||✅|❌||
+|https://websurfx.onrender.com/|www|rolling|🇺🇸 US|||✅|❌||
+|https://alamin655-websurfx.hf.space/|www|v0.21.4|🇺🇸 US||[websurfx project](https://github.com/neon-mmd/websurfx)|✅|❌||
 
 [⬅️ Go back to Home](./README.md)
