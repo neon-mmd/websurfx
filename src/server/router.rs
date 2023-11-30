@@ -4,7 +4,7 @@
 
 use crate::{
     config::parser::Config,
-    handler::paths::{file_path, FileType},
+    handler::{file_path, FileType},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use std::fs::read_to_string;

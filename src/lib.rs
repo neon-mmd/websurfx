@@ -22,9 +22,9 @@ use actix_cors::Cors;
 use actix_files as fs;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
-use cache::cacher::{Cache, SharedCache};
+use cache::cacher::{Cacher, SharedCache};
 use config::parser::Config;
-use handler::paths::{file_path, FileType};
+use handler::{file_path, FileType};
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -40,14 +40,21 @@ use handler::paths::{file_path, FileType};
 ///
 /// ```rust
 /// use std::net::TcpListener;
-/// use websurfx::{config::parser::Config, run, cache::cacher::Cache};
+/// use websurfx::{config::parser::Config, run, cache::cacher::create_cache};
 ///
-/// let config = Config::parse(true).unwrap();
-/// let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
-/// let cache = Cache::new_in_memory();
-/// let server = run(listener,config,cache).expect("Failed to start server");
+/// #[tokio::main]
+/// async fn main(){
+///     let config = Config::parse(true).unwrap();
+///     let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
+///     let cache = create_cache(&config).await;
+///     let server = run(listener,config,cache).expect("Failed to start server");
+/// }
 /// ```
-pub fn run(listener: TcpListener, config: Config, cache: Cache) -> std::io::Result<Server> {
+pub fn run(
+    listener: TcpListener,
+    config: Config,
+    cache: impl Cacher + 'static,
+) -> std::io::Result<Server> {
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
     let cloned_config_threads_opt: u8 = config.threads;

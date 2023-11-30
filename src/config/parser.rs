@@ -1,7 +1,7 @@
 //! This module provides the functionality to parse the lua config and convert the config options
 //! into rust readable form.
 
-use crate::handler::paths::{file_path, FileType};
+use crate::handler::{file_path, FileType};
 
 use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
@@ -21,6 +21,9 @@ pub struct Config {
     /// It stores the redis connection url address on which the redis
     /// client should connect.
     pub redis_url: String,
+    #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+    /// It stores the max TTL for search results in cache.
+    pub cache_expiry_time: u16,
     /// It stores the option to whether enable or disable production use.
     pub aggregator: AggregatorConfig,
     /// It stores the option to whether enable or disable logs.
@@ -93,6 +96,19 @@ impl Config {
             }
         };
 
+        #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+        let parsed_cet = globals.get::<_, u16>("cache_expiry_time")?;
+        let cache_expiry_time = match parsed_cet {
+            0..=59 => {
+                log::error!(
+                    "Config Error: The value of `cache_expiry_time` must be greater than 60"
+                );
+                log::error!("Falling back to using the value `60` for the option");
+                60
+            }
+            _ => parsed_cet,
+        };
+
         Ok(Config {
             port: globals.get::<_, u16>("port")?,
             binding_ip: globals.get::<_, String>("binding_ip")?,
@@ -116,6 +132,8 @@ impl Config {
                 time_limit: rate_limiter["time_limit"],
             },
             safe_search,
+            #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+            cache_expiry_time,
         })
     }
 }

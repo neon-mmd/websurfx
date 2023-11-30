@@ -278,6 +278,7 @@ footer {
   flex-direction: column;
   justify-content: space-between;
   margin: 2rem 0;
+  content-visibility: auto;
 }
 
 .results_aggregated .result {

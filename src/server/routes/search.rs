@@ -3,7 +3,7 @@
 use crate::{
     cache::cacher::SharedCache,
     config::parser::Config,
-    handler::paths::{file_path, FileType},
+    handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
         engine_models::{EngineError, EngineHandler},
@@ -47,54 +47,25 @@ pub async fn search(
                     .insert_header(("location", "/"))
                     .finish());
             }
-            let page = match &params.page {
-                Some(page) => *page,
-                None => 1,
-            };
 
-            let (_, results, _) = join!(
+            let get_results = |page| {
                 results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip,
-                        config.port,
-                        query,
-                        page - 1,
-                    ),
-                    &config,
-                    &cache,
-                    query,
-                    page - 1,
-                    req.clone(),
-                    &params.safesearch
-                ),
-                results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip, config.port, query, page
-                    ),
                     &config,
                     &cache,
                     query,
                     page,
                     req.clone(),
-                    &params.safesearch
-                ),
-                results(
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch=",
-                        config.binding_ip,
-                        config.port,
-                        query,
-                        page + 1,
-                    ),
-                    &config,
-                    &cache,
-                    query,
-                    page + 1,
-                    req.clone(),
-                    &params.safesearch
+                    &params.safesearch,
                 )
+            };
+
+            // .max(1) makes sure that the page > 0.
+            let page = params.page.unwrap_or(1).max(1);
+
+            let (_, results, _) = join!(
+                get_results(page - 1),
+                get_results(page),
+                get_results(page + 1)
             );
 
             Ok(HttpResponse::Ok().body(
@@ -129,7 +100,6 @@ pub async fn search(
 /// It returns the `SearchResults` struct if the search results could be successfully fetched from
 /// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
-    url: String,
     config: &Config,
     cache: &web::Data<SharedCache>,
     query: &str,
@@ -137,33 +107,40 @@ async fn results(
     req: HttpRequest,
     safe_search: &Option<u8>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+    // eagerly parse cookie value to evaluate safe search level
+    let cookie_value = req.cookie("appCookie");
+
+    let cookie_value: Option<Cookie<'_>> = cookie_value
+        .as_ref()
+        .and_then(|cv| serde_json::from_str(cv.name_value().1).ok());
+
+    let safe_search_level = get_safesearch_level(
+        safe_search,
+        &cookie_value.as_ref().map(|cv| cv.safe_search_level),
+        config.safe_search,
+    );
+
+    let cache_key = format!(
+        "http://{}:{}/search?q={}&page={}&safesearch={}",
+        config.binding_ip, config.port, query, page, safe_search_level
+    );
+
     // fetch the cached results json.
-    let cached_results = cache.cached_json(&url).await;
+    let cached_results = cache.cached_results(&cache_key).await;
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results {
         Ok(results) => Ok(results),
         Err(_) => {
-            let mut safe_search_level: u8 = match config.safe_search {
-                3..=4 => config.safe_search,
-                _ => match safe_search {
-                    Some(safesearch) => match safesearch {
-                        0..=2 => *safesearch,
-                        _ => config.safe_search,
-                    },
-                    None => config.safe_search,
-                },
-            };
-
             if safe_search_level == 4 {
                 let mut results: SearchResults = SearchResults::default();
-                let mut _flag: bool =
-                    is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
-                _flag = !is_match_from_filter_list(file_path(FileType::AllowList)?, query)?;
 
-                if _flag {
+                let flag: bool =
+                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
+                // Return early when query contains disallowed words,
+                if flag {
                     results.set_disallowed();
-                    cache.cache_results(&results, &url).await?;
+                    cache.cache_results(&results, &cache_key).await?;
                     results.set_safe_search_level(safe_search_level);
                     return Ok(results);
                 }
@@ -173,27 +150,13 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match req.cookie("appCookie") {
+            let mut results: SearchResults = match cookie_value {
                 Some(cookie_value) => {
-                    let cookie_value: Cookie<'_> =
-                        serde_json::from_str(cookie_value.name_value().1)?;
-
                     let engines: Vec<EngineHandler> = cookie_value
                         .engines
                         .iter()
                         .filter_map(|name| EngineHandler::new(name).ok())
                         .collect();
-
-                    safe_search_level = match config.safe_search {
-                        3..=4 => config.safe_search,
-                        _ => match safe_search {
-                            Some(safesearch) => match safesearch {
-                                0..=2 => *safesearch,
-                                _ => config.safe_search,
-                            },
-                            None => cookie_value.safe_search_level,
-                        },
-                    };
 
                     match engines.is_empty() {
                         false => {
@@ -239,9 +202,7 @@ async fn results(
             {
                 results.set_filtered();
             }
-            cache
-                .cache_results(&results, &(format!("{url}{safe_search_level}")))
-                .await?;
+            cache.cache_results(&results, &cache_key).await?;
             results.set_safe_search_level(safe_search_level);
             Ok(results)
         }
@@ -264,14 +225,34 @@ fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let mut flag = false;
     let mut reader = BufReader::new(File::open(file_path)?);
     for line in reader.by_ref().lines() {
         let re = Regex::new(&line?)?;
         if re.is_match(query) {
-            flag = true;
-            break;
+            return Ok(true);
         }
     }
-    Ok(flag)
+
+    Ok(false)
+}
+
+/// A helper function which returns the safe search level based on the url params
+/// and cookie value.
+///
+/// # Argurments
+///
+/// * `safe_search` - Safe search level from the url.
+/// * `cookie` - User's cookie
+/// * `default` - Safe search level to fall back to
+fn get_safesearch_level(safe_search: &Option<u8>, cookie: &Option<u8>, default: u8) -> u8 {
+    match safe_search {
+        Some(ss) => {
+            if *ss >= 3 {
+                default
+            } else {
+                *ss
+            }
+        }
+        None => cookie.unwrap_or(default),
+    }
 }
