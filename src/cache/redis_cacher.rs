@@ -18,6 +18,8 @@ pub struct RedisCache {
     pool_size: u8,
     /// It stores the index of which connection is being used at the moment.
     current_connection: u8,
+    /// It stores the max TTL for keys.
+    cache_ttl: u16,
 }
 
 impl RedisCache {
@@ -36,6 +38,7 @@ impl RedisCache {
     pub async fn new(
         redis_connection_url: &str,
         pool_size: u8,
+        cache_ttl: u16,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let client = Client::open(redis_connection_url)?;
         let mut tasks: Vec<_> = Vec::new();
@@ -48,6 +51,7 @@ impl RedisCache {
             connection_pool: try_join_all(tasks).await?,
             pool_size,
             current_connection: Default::default(),
+            cache_ttl,
         };
         Ok(redis_cache)
     }
@@ -121,7 +125,7 @@ impl RedisCache {
 
         let mut result: Result<(), RedisError> = self.connection_pool
             [self.current_connection as usize]
-            .set_ex(key, json_results, 600)
+            .set_ex(key, json_results, self.cache_ttl.into())
             .await;
 
         // Code to check whether the current connection being used is dropped with connection error
