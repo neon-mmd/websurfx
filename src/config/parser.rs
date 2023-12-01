@@ -3,7 +3,7 @@
 
 use crate::handler::{file_path, FileType};
 
-use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
+use crate::models::parser_models::{AggregatorConfig, RateLimiter, RequestClientConfig, Style};
 use log::LevelFilter;
 use mlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
@@ -38,6 +38,8 @@ pub struct Config {
     /// It stores the level of safe search to be used for restricting content in the
     /// search results.
     pub safe_search: u8,
+    /// It stores config for the http client which sends requests to upstream servers.
+    pub request_client: RequestClientConfig,
 }
 
 impl Config {
@@ -83,6 +85,8 @@ impl Config {
 
         let rate_limiter = globals.get::<_, HashMap<String, u8>>("rate_limiter")?;
 
+        let mut request_client = globals.get::<_, HashMap<String, String>>("request_client")?;
+
         let parsed_safe_search: u8 = globals.get::<_, u8>("safe_search")?;
         let safe_search: u8 = match parsed_safe_search {
             0..=4 => parsed_safe_search,
@@ -116,6 +120,7 @@ impl Config {
                 time_limit: rate_limiter["time_limit"],
             },
             safe_search,
+            request_client: request_client.try_into()?,
         })
     }
 }

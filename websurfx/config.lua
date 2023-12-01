@@ -15,6 +15,16 @@ rate_limiter = {
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
 }
 
+request_client = {
+	-- proxy_url =""
+	-- is_tor_proxy = "false"
+	use_http2 = "true",
+	https_only = "true",
+	timeout = "5",
+	max_retries = "3",
+	max_redirects = "3"
+}
+
 -- ### Search ###
 -- Filter results based on different levels. The levels provided are:
 -- {{
