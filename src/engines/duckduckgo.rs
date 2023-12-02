@@ -3,16 +3,18 @@
 //! number if provided.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use reqwest::header::HeaderMap;
-use reqwest::Client;
+
 use scraper::Html;
 
 use crate::models::aggregation_models::SearchResult;
 
-use crate::models::engine_models::{EngineError, SearchEngine};
+use crate::models::client_models::HttpClient;
+use crate::models::engine_models::{EngineError, EngineErrorType, QueryType, SearchEngine};
 
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Result, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
 
@@ -33,19 +35,32 @@ impl DuckDuckGo {
                 ".result__a",
                 ".result__url",
                 ".result__snippet",
-            )?,
+            )
+            .change_context(EngineError {
+                error_type: EngineErrorType::UnexpectedError,
+                engine: "duckduckgo".to_string(),
+            })?,
         })
     }
 }
 
 #[async_trait::async_trait]
 impl SearchEngine for DuckDuckGo {
-    async fn results(
+    fn get_name(&self) -> &'static str {
+        "duckduckgo"
+    }
+
+    fn get_query_types(&self) -> QueryType {
+        QueryType::Text
+    }
+
+    async fn fetch_results(
         &self,
         query: &str,
+        // category: QueryType,
+        // query_relevance: Option<QueryRelavancy>,
         page: u32,
-        user_agent: &str,
-        client: &Client,
+        client: Arc<HttpClient>,
         _safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
@@ -66,7 +81,6 @@ impl SearchEngine for DuckDuckGo {
 
         // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([
-            ("USER_AGENT".to_string(), user_agent.to_string()),
             ("REFERER".to_string(), "https://google.com/".to_string()),
             (
                 "CONTENT_TYPE".to_string(),
@@ -74,18 +88,32 @@ impl SearchEngine for DuckDuckGo {
             ),
             ("COOKIE".to_string(), "kl=wt-wt".to_string()),
         ]))
-        .change_context(EngineError::UnexpectedError)?;
+        .change_context(EngineError {
+            error_type: EngineErrorType::UnexpectedError,
+            engine: self.get_name().to_string(),
+        })?;
 
         let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, client).await?,
+            &client
+                .fetch_html(&url, header_map, None)
+                .await
+                .change_context(EngineError {
+                    error_type: EngineErrorType::RequestError,
+                    engine: self.get_name().to_string(),
+                })?,
         );
 
         if self.parser.parse_for_no_results(&document).next().is_some() {
-            return Err(Report::new(EngineError::EmptyResultSet));
+            return Err(EngineError {
+                error_type: EngineErrorType::EmptyResultSet,
+                engine: self.get_name().to_string(),
+            }
+            .into());
         }
 
         // scrape all the results from the html
-        self.parser
+        Ok(self
+            .parser
             .parse_for_results(&document, |title, url, desc| {
                 Some(SearchResult::new(
                     title.inner_html().trim(),
@@ -93,6 +121,6 @@ impl SearchEngine for DuckDuckGo {
                     desc.inner_html().trim(),
                     &["duckduckgo"],
                 ))
-            })
+            }))
     }
 }

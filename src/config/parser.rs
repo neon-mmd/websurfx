@@ -85,7 +85,7 @@ impl Config {
 
         let rate_limiter = globals.get::<_, HashMap<String, u8>>("rate_limiter")?;
 
-        let mut request_client = globals.get::<_, HashMap<String, String>>("request_client")?;
+        let request_client = globals.get::<_, HashMap<String, String>>("request_client")?;
 
         let parsed_safe_search: u8 = globals.get::<_, u8>("safe_search")?;
         let safe_search: u8 = match parsed_safe_search {

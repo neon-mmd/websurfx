@@ -1,186 +1,111 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
-use super::user_agent::random_user_agent;
+use crate::engine::RawResults;
 use crate::handler::{file_path, FileType};
 use crate::models::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
-    engine_models::{EngineError, EngineHandler},
+    engine_models::EngineError,
 };
 use error_stack::Report;
 use regex::Regex;
-use reqwest::{Client, ClientBuilder};
-use std::time::{SystemTime, UNIX_EPOCH};
+use reqwest::Client;
+
 use std::{
     collections::HashMap,
     io::{BufReader, Read},
-    time::Duration,
 };
 use std::{fs::File, io::BufRead};
 use tokio::task::JoinHandle;
 
-/// A constant for holding the prebuilt Client globally in the app.
-static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
+pub struct Ranker;
 
-/// Aliases for long type annotations
-type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
+impl Ranker {
+    // The function preprocesses the scraped results from the user-selected upstream search engines.
+    ///
+    /// Additionally, the function eliminates duplicate results. If two results are identified as coming from
+    /// multiple engines, their names are combined to indicate that the results were fetched from these upstream
+    /// engines. After this, all the data in the `HashMap` is removed and placed into a struct that contains all
+    /// the aggregated results in a vector. Furthermore, the query used is also added to the struct. This step is
+    /// necessary to ensure that the search bar in the search remains populated even when searched from the query URL.
+    /// # Error
+    ///
+    /// Returns an error a reqwest and scraping selector errors if any error occurs in the results
+    /// function in either `searx` or `duckduckgo` or both otherwise returns a `SearchResults struct`
+    /// containing appropriate values.
+    fn preprocess(
+        &self,
+        responses: RawResults,
+        safe_search: u8,
+    ) -> Result<(Vec<SearchResult>, Vec<EngineErrorInfo>), Box<dyn std::error::Error>> {
+        let mut result_map: HashMap<String, SearchResult> = HashMap::new();
+        let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
-/// The function aggregates the scraped results from the user-selected upstream search engines.
-/// These engines can be chosen either from the user interface (UI) or from the configuration file.
-/// The code handles this process by matching the selected search engines and adding them to a vector.
-/// This vector is then used to create an asynchronous task vector using `tokio::spawn`, which returns
-/// a future. This future is awaited in another loop. Once the results are collected, they are filtered
-/// to remove any errors and ensure only proper results are included. If an error is encountered, it is
-/// sent to the UI along with the name of the engine and the type of error. This information is finally
-/// placed in the returned `SearchResults` struct.
-///
-/// Additionally, the function eliminates duplicate results. If two results are identified as coming from
-/// multiple engines, their names are combined to indicate that the results were fetched from these upstream
-/// engines. After this, all the data in the `HashMap` is removed and placed into a struct that contains all
-/// the aggregated results in a vector. Furthermore, the query used is also added to the struct. This step is
-/// necessary to ensure that the search bar in the search remains populated even when searched from the query URL.
-///
-/// Overall, this function serves to aggregate scraped results from user-selected search engines, handling errors,
-/// removing duplicates, and organizing the data for display in the UI.
-///
-/// # Example:
-///
-/// If you search from the url like `https://127.0.0.1/search?q=huston` then the search bar should
-/// contain the word huston and not remain empty.
-///
-/// # Arguments
-///
-/// * `query` - Accepts a string to query with the above upstream search engines.
-/// * `page` - Accepts an u32 page number.
-/// * `random_delay` - Accepts a boolean value to add a random delay before making the request.
-/// * `debug` - Accepts a boolean value to enable or disable debug mode option.
-/// * `upstream_search_engines` - Accepts a vector of search engine names which was selected by the
-/// * `request_timeout` - Accepts a time (secs) as a value which controls the server request timeout.
-/// user through the UI or the config file.
-///
-/// # Error
-///
-/// Returns an error a reqwest and scraping selector errors if any error occurs in the results
-/// function in either `searx` or `duckduckgo` or both otherwise returns a `SearchResults struct`
-/// containing appropriate values.
-pub async fn aggregate(
-    query: &str,
-    page: u32,
-    random_delay: bool,
-    debug: bool,
-    upstream_search_engines: &[EngineHandler],
-    request_timeout: u8,
-    safe_search: u8,
-) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    let client = CLIENT.get_or_init(|| {
-        ClientBuilder::new()
-            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
-            .https_only(true)
-            .gzip(true)
-            .brotli(true)
-            .build()
-            .unwrap()
-    });
+        let mut handle_error = |error: Report<EngineError>| {
+            log::error!("Engine Error: {:?}", error);
+            let error = error.downcast_ref::<EngineError>().unwrap();
+            engine_errors_info.push(EngineErrorInfo::new(&error.error_type, &error.engine))
+        };
 
-    let user_agent: &str = random_user_agent();
+        for response in responses {
+            if result_map.is_empty() {
+                match response {
+                    Ok(results) => {
+                        result_map = results.clone();
+                    }
+                    Err(error) => {
+                        handle_error(error);
+                    }
+                }
+                continue;
+            }
 
-    // Add a random delay before making the request.
-    if random_delay || !debug {
-        let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
-        let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
-        tokio::time::sleep(Duration::from_secs(delay)).await;
-    }
-
-    let mut names: Vec<&str> = Vec::with_capacity(0);
-
-    // create tasks for upstream result fetching
-    let mut tasks: FutureVec = FutureVec::new();
-
-    for engine_handler in upstream_search_engines {
-        let (name, search_engine) = engine_handler.to_owned().into_name_engine();
-        names.push(name);
-        let query: String = query.to_owned();
-        tasks.push(tokio::spawn(async move {
-            search_engine
-                .results(&query, page, user_agent, client, safe_search)
-                .await
-        }));
-    }
-
-    // get upstream responses
-    let mut responses = Vec::with_capacity(tasks.len());
-
-    for task in tasks {
-        if let Ok(result) = task.await {
-            responses.push(result)
-        }
-    }
-
-    // aggregate search results, removing duplicates and handling errors the upstream engines returned
-    let mut result_map: HashMap<String, SearchResult> = HashMap::new();
-    let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
-
-    let mut handle_error = |error: &Report<EngineError>, engine_name: &'static str| {
-        log::error!("Engine Error: {:?}", error);
-        engine_errors_info.push(EngineErrorInfo::new(
-            error.downcast_ref::<EngineError>().unwrap(),
-            engine_name,
-        ));
-    };
-
-    for _ in 0..responses.len() {
-        let response = responses.pop().unwrap();
-        let engine = names.pop().unwrap();
-
-        if result_map.is_empty() {
             match response {
-                Ok(results) => {
-                    result_map = results.clone();
+                Ok(result) => {
+                    result.into_iter().for_each(|(key, value)| {
+                        result_map
+                            .entry(key)
+                            .and_modify(|result| {
+                                result.add_engines(&value.engine[0]);
+                            })
+                            .or_insert_with(|| -> SearchResult { value });
+                    });
                 }
                 Err(error) => {
-                    handle_error(&error, engine);
+                    handle_error(error);
                 }
             }
-            continue;
         }
 
-        match response {
-            Ok(result) => {
-                result.into_iter().for_each(|(key, value)| {
-                    result_map
-                        .entry(key)
-                        .and_modify(|result| {
-                            result.add_engines(engine);
-                        })
-                        .or_insert_with(|| -> SearchResult { value });
-                });
-            }
-            Err(error) => {
-                handle_error(&error, engine);
-            }
+        if safe_search >= 3 {
+            let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
+            filter_with_lists(
+                &mut result_map,
+                &mut blacklist_map,
+                file_path(FileType::BlockList)?,
+            )?;
+
+            filter_with_lists(
+                &mut blacklist_map,
+                &mut result_map,
+                file_path(FileType::AllowList)?,
+            )?;
+
+            drop(blacklist_map);
         }
+
+        Ok((result_map.into_values().collect(), engine_errors_info))
     }
 
-    if safe_search >= 3 {
-        let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
-        filter_with_lists(
-            &mut result_map,
-            &mut blacklist_map,
-            file_path(FileType::BlockList)?,
-        )?;
+    pub fn process(
+        &self,
+        responses: RawResults,
+        safe_search: u8,
+    ) -> Result<SearchResults, Box<dyn std::error::Error>> {
+        let (results, engine_errors_info) = self.preprocess(responses, safe_search)?;
 
-        filter_with_lists(
-            &mut blacklist_map,
-            &mut result_map,
-            file_path(FileType::AllowList)?,
-        )?;
-
-        drop(blacklist_map);
+        Ok(SearchResults::new(results, &engine_errors_info))
     }
-
-    let results: Vec<SearchResult> = result_map.into_values().collect();
-
-    Ok(SearchResults::new(results, &engine_errors_info))
 }
 
 /// Filters a map of search results using a list of regex patterns.
@@ -225,6 +150,7 @@ pub fn filter_with_lists(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::aggregation_models::ResultType;
     use smallvec::smallvec;
     use std::collections::HashMap;
     use std::io::Write;
@@ -238,7 +164,7 @@ mod tests {
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
-                url: "https://www.example.com".to_owned(),
+                page_url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
@@ -248,9 +174,10 @@ mod tests {
             "https://www.rust-lang.org/".to_owned(),
             SearchResult {
                 title: "Rust Programming Language".to_owned(),
-                url: "https://www.rust-lang.org/".to_owned(),
+                page_url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+
             },
         );
 
@@ -282,7 +209,7 @@ mod tests {
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
-                url: "https://www.example.com".to_owned(),
+                page_url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
@@ -292,7 +219,7 @@ mod tests {
             "https://www.rust-lang.org/".to_owned(),
             SearchResult {
                 title: "Rust Programming Language".to_owned(),
-                url: "https://www.rust-lang.org/".to_owned(),
+                page_url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
             },
@@ -342,7 +269,7 @@ mod tests {
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
-                url: "https://www.example.com".to_owned(),
+                page_url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],

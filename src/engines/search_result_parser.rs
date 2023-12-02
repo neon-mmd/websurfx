@@ -1,7 +1,7 @@
 //! This modules provides helper functionalities for parsing a html document into internal SearchResult.
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error, fmt::Display};
 
-use crate::models::{aggregation_models::SearchResult, engine_models::EngineError};
+use crate::models::aggregation_models::SearchResult;
 use error_stack::{Report, Result};
 use scraper::{html::Select, ElementRef, Html, Selector};
 
@@ -19,6 +19,23 @@ pub struct SearchResultParser {
     result_desc: Selector,
 }
 
+#[derive(Debug)]
+pub enum ParserError {
+    SerializationError,
+    NoElementFound,
+}
+
+impl Display for ParserError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParserError::SerializationError => write!(f, "Could not serialize selector"),
+            ParserError::NoElementFound => write!(f, "No such element found"),
+        }
+    }
+}
+
+impl Error for ParserError {}
+
 impl SearchResultParser {
     /// Creates a new parser, if all the selectors are valid, otherwise it returns an EngineError
     pub fn new(
@@ -27,7 +44,7 @@ impl SearchResultParser {
         result_title_selector: &str,
         result_url_selector: &str,
         result_desc_selector: &str,
-    ) -> Result<SearchResultParser, EngineError> {
+    ) -> Result<SearchResultParser, ParserError> {
         Ok(SearchResultParser {
             no_result: new_selector(no_result_selector)?,
             results: new_selector(results_selector)?,
@@ -47,8 +64,8 @@ impl SearchResultParser {
         &self,
         document: &Html,
         builder: impl Fn(&ElementRef<'_>, &ElementRef<'_>, &ElementRef<'_>) -> Option<SearchResult>,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
-        let res = document
+    ) -> HashMap<String, SearchResult> {
+        document
             .select(&self.results)
             .filter_map(|result| {
                 let title = result.select(&self.result_title).next();
@@ -59,16 +76,15 @@ impl SearchResultParser {
                     _ => None,
                 }
             })
-            .map(|search_result| (search_result.url.clone(), search_result))
-            .collect();
-        Ok(res)
+            .map(|search_result| (search_result.page_url.clone(), search_result))
+            .collect()
     }
 }
 
 /// Create a Selector struct, if the given parameter is a valid css expression, otherwise convert it into an EngineError.
-fn new_selector(selector: &str) -> Result<Selector, EngineError> {
+fn new_selector(selector: &str) -> Result<Selector, ParserError> {
     Selector::parse(selector).map_err(|err| {
-        Report::new(EngineError::UnexpectedError).attach_printable(format!(
+        Report::new(ParserError::SerializationError).attach_printable(format!(
             "invalid CSS selector: {}, err: {:?}",
             selector, err
         ))

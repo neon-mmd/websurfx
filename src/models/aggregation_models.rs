@@ -1,11 +1,14 @@
 //! This module provides public models for handling, storing and serializing of search results
 //! data scraped from the upstream search engines.
 
-use super::engine_models::EngineError;
+use std::collections::HashMap;
+
+use super::engine_models::EngineErrorType;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
+use time::Date;
 
-/// A named struct to store the raw scraped search results scraped search results from the
+/// A named struct to store the generic details of raw scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
 /// to write idiomatic rust using `Iterators`.
 /// (href url in html in simple words).
@@ -15,11 +18,42 @@ pub struct SearchResult {
     /// The title of the search result.
     pub title: String,
     /// The url which is accessed when clicked on it
-    pub url: String,
+    pub page_url: String,
     /// The description of the search result.
     pub description: String,
     /// The names of the upstream engines from which this results were provided.
     pub engine: SmallVec<[String; 0]>,
+    // pub result_type: ResultType
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ResultType {
+    TextResult,
+    ImageSearchResult {
+        /// The url of the image
+        image_url: String,
+        /// The resolution and format of the image. Formatted as "resolution - format"
+        format: String,
+    },
+    VideoSearchResult {
+        /// The length of the video.
+        length: Option<String>,
+        /// The uploader of the video.
+        uploader: Option<String>,
+        /// The time of upload.
+        uploaded_time: Option<Date>,
+    },
+    FileSearchResult {
+        /// The metadata regarding the file. eg: author, size, etc
+        metadata: HashMap<String, String>,
+        /// The time of upload of the file.
+        uploaded_at: Option<Date>,
+    },
+    AutoCompletionResult {
+        /// The suggested completion by the upstream search engine.
+        suggestion: String,
+    },
 }
 
 impl SearchResult {
@@ -32,12 +66,19 @@ impl SearchResult {
     /// (href url in html in simple words).
     /// * `description` - The description of the search result.
     /// * `engine` - The names of the upstream engines from which this results were provided.
-    pub fn new(title: &str, url: &str, description: &str, engine: &[&str]) -> Self {
+    pub fn new(
+        title: &str,
+        url: &str,
+        description: &str,
+        engine: &[&str],
+        // result_type: ResultType
+    ) -> Self {
         SearchResult {
             title: title.to_owned(),
-            url: url.to_owned(),
+            page_url: url.to_owned(),
             description: description.to_owned(),
             engine: engine.iter().map(|name| name.to_string()).collect(),
+            // result_type,
         }
     }
 
@@ -81,20 +122,20 @@ impl EngineErrorInfo {
     /// * `error` - It takes the error type which occured while fetching the result from a particular
     /// search engine.
     /// * `engine` - It takes the name of the engine that failed to provide the requested search results.
-    pub fn new(error: &EngineError, engine: &str) -> Self {
+    pub fn new(error: &EngineErrorType, engine: &str) -> Self {
         Self {
             error: match error {
-                EngineError::NoSuchEngineFound(_) => "EngineNotFound".to_owned(),
-                EngineError::RequestError => "RequestError".to_owned(),
-                EngineError::EmptyResultSet => "EmptyResultSet".to_owned(),
-                EngineError::UnexpectedError => "UnexpectedError".to_owned(),
+                EngineErrorType::NoSuchEngineFound => "EngineNotFound".to_owned(),
+                EngineErrorType::RequestError => "RequestError".to_owned(),
+                EngineErrorType::EmptyResultSet => "EmptyResultSet".to_owned(),
+                EngineErrorType::UnexpectedError => "UnexpectedError".to_owned(),
             },
-            engine: engine.to_owned(),
+            engine: engine.to_string(),
             severity_color: match error {
-                EngineError::NoSuchEngineFound(_) => "red".to_owned(),
-                EngineError::RequestError => "green".to_owned(),
-                EngineError::EmptyResultSet => "blue".to_owned(),
-                EngineError::UnexpectedError => "red".to_owned(),
+                EngineErrorType::NoSuchEngineFound => "red".to_owned(),
+                EngineErrorType::RequestError => "green".to_owned(),
+                EngineErrorType::EmptyResultSet => "blue".to_owned(),
+                EngineErrorType::UnexpectedError => "red".to_owned(),
             },
         }
     }

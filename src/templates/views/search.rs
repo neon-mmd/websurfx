@@ -33,8 +33,8 @@ pub fn search(
               @if !search_results.results.is_empty() {
                   @for result in search_results.results.iter(){
                       .result {
-                         h1{a href=(result.url){(PreEscaped(&result.title))}}
-                         small{(result.url)}
+                         h1{a href=(result.page_url){(PreEscaped(&result.title))}}
+                         small{(result.page_url)}
                          p{(PreEscaped(&result.description))}
                          .upstream_engines{
                             @for name in result.clone().engine{

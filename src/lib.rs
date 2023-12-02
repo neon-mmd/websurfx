@@ -7,6 +7,7 @@
 
 pub mod cache;
 pub mod config;
+pub mod engine;
 pub mod engines;
 pub mod handler;
 pub mod models;
@@ -24,7 +25,9 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
 use cache::cacher::{Cacher, SharedCache};
 use config::parser::Config;
+use engine::EngineHandler;
 use handler::{file_path, FileType};
+use results::aggregator::Ranker;
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -54,12 +57,16 @@ pub fn run(
     listener: TcpListener,
     config: Config,
     cache: impl Cacher + 'static,
+    engine_handler: EngineHandler,
+    _ranker: Ranker,
 ) -> std::io::Result<Server> {
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
     let cloned_config_threads_opt: u8 = config.threads;
 
     let cache = web::Data::new(SharedCache::new(cache));
+    let engine_handler = web::Data::new(engine_handler);
+    let ranker = web::Data::new(Ranker);
 
     let server = HttpServer::new(move || {
         let cors: Cors = Cors::default()
@@ -76,6 +83,8 @@ pub fn run(
             .wrap(Logger::default()) // added logging middleware for logging.
             .app_data(web::Data::new(config.clone()))
             .app_data(cache.clone())
+            .app_data(engine_handler.clone())
+            .app_data(ranker.clone())
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()

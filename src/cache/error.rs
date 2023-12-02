@@ -47,4 +47,4 @@ impl fmt::Display for CacheError {
     }
 }
 
-impl error_stack::Context for CacheError {}
+impl std::error::Error for CacheError {}

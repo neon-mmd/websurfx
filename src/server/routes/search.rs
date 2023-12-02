@@ -3,13 +3,13 @@
 use crate::{
     cache::cacher::SharedCache,
     config::parser::Config,
+    engine::EngineHandler,
     handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
-        engine_models::{EngineError, EngineHandler},
         server_models::{Cookie, SearchParams},
     },
-    results::aggregator::aggregate,
+    results::aggregator::Ranker,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use regex::Regex;
@@ -38,6 +38,8 @@ pub async fn search(
     req: HttpRequest,
     config: web::Data<Config>,
     cache: web::Data<SharedCache>,
+    engine_handler: web::Data<EngineHandler>,
+    ranker: web::Data<Ranker>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
     match &params.q {
@@ -52,6 +54,8 @@ pub async fn search(
                 results(
                     &config,
                     &cache,
+                    &engine_handler,
+                    &ranker,
                     query,
                     page,
                     req.clone(),
@@ -102,6 +106,8 @@ pub async fn search(
 async fn results(
     config: &Config,
     cache: &web::Data<SharedCache>,
+    engine_handler: &web::Data<EngineHandler>,
+    ranker: &web::Data<Ranker>,
     query: &str,
     page: u32,
     req: HttpRequest,
@@ -114,7 +120,7 @@ async fn results(
         .as_ref()
         .and_then(|cv| serde_json::from_str(cv.name_value().1).ok());
 
-    let safe_search_level = get_safesearch_level(
+    let safe_search = get_safesearch_level(
         safe_search,
         &cookie_value.as_ref().map(|cv| cv.safe_search_level),
         config.safe_search,
@@ -122,7 +128,7 @@ async fn results(
 
     let cache_key = format!(
         "http://{}:{}/search?q={}&page={}&safesearch={}",
-        config.binding_ip, config.port, query, page, safe_search_level
+        config.binding_ip, config.port, query, page, safe_search
     );
 
     // fetch the cached results json.
@@ -132,7 +138,7 @@ async fn results(
     match cached_results {
         Ok(results) => Ok(results),
         Err(_) => {
-            if safe_search_level == 4 {
+            if safe_search == 4 {
                 let mut results: SearchResults = SearchResults::default();
 
                 let flag: bool =
@@ -141,7 +147,7 @@ async fn results(
                 if flag {
                     results.set_disallowed();
                     cache.cache_results(&results, &cache_key).await?;
-                    results.set_safe_search_level(safe_search_level);
+                    results.set_safe_search_level(safe_search);
                     return Ok(results);
                 }
             }
@@ -150,26 +156,21 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match cookie_value {
+            let mut results = match cookie_value {
                 Some(cookie_value) => {
-                    let engines: Vec<EngineHandler> = cookie_value
+                    let engines: Vec<String> = cookie_value
                         .engines
                         .iter()
-                        .filter_map(|name| EngineHandler::new(name).ok())
+                        .map(|s| s.to_lowercase())
                         .collect();
 
                     match engines.is_empty() {
                         false => {
-                            aggregate(
-                                query,
-                                page,
-                                config.aggregator.random_delay,
-                                config.debug,
-                                &engines,
-                                config.request_timeout,
-                                safe_search_level,
-                            )
-                            .await?
+                            // let engines = engines.iter().;
+                            let results = engine_handler
+                                .search(Some(engines), query, page, safe_search)
+                                .await;
+                            ranker.process(results, safe_search)?
                         }
                         true => {
                             let mut search_results = SearchResults::default();
@@ -178,23 +179,10 @@ async fn results(
                         }
                     }
                 }
-                None => aggregate(
-                    query,
-                    page,
-                    config.aggregator.random_delay,
-                    config.debug,
-                    &config
-                        .upstream_search_engines
-                        .clone()
-                        .into_iter()
-                        .filter_map(|(key, value)| value.then_some(key))
-                        .map(|engine| EngineHandler::new(&engine))
-                        .collect::<Result<Vec<EngineHandler>, error_stack::Report<EngineError>>>(
-                        )?,
-                    config.request_timeout,
-                    safe_search_level,
-                )
-                .await?,
+                None => {
+                    let results = engine_handler.search(None, query, page, safe_search).await;
+                    ranker.process(results, safe_search)?
+                }
             };
             if results.engine_errors_info().is_empty()
                 && results.results().is_empty()
@@ -203,7 +191,7 @@ async fn results(
                 results.set_filtered();
             }
             cache.cache_results(&results, &cache_key).await?;
-            results.set_safe_search_level(safe_search_level);
+            results.set_safe_search_level(safe_search);
             Ok(results)
         }
     }

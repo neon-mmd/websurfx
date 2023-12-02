@@ -5,7 +5,10 @@
 
 use mimalloc::MiMalloc;
 use std::net::TcpListener;
-use websurfx::{cache::cacher::create_cache, config::parser::Config, run};
+use websurfx::{
+    cache::cacher::create_cache, config::parser::Config, engine::EngineHandler,
+    models::client_models::HttpClient, results::aggregator::Ranker, run,
+};
 
 /// A dhat heap memory profiler
 #[cfg(feature = "dhat-heap")]
@@ -44,7 +47,18 @@ async fn main() -> std::io::Result<()> {
         config.port,
     );
 
+    let http_client = HttpClient::new(&config).unwrap();
+    let engine_handler = {
+        let engine_names: Vec<String> = config
+            .upstream_search_engines
+            .iter()
+            .filter_map(|(k, v)| if *v { Some(k.to_string()) } else { None })
+            .collect();
+        EngineHandler::new(engine_names, http_client).unwrap()
+    };
+    let ranker = Ranker;
+
     let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;
 
-    run(listener, config, cache)?.await
+    run(listener, config, cache, engine_handler, ranker)?.await
 }
