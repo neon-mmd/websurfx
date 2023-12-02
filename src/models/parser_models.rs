@@ -72,7 +72,7 @@ impl TryFrom<HashMap<String, String>> for RequestClientConfig {
         };
 
         let is_tor_proxy = value.get("is_tor_proxy").map(|s| {
-            bool_parse(&s).unwrap_or_else(|_| {
+            bool_parse(s).unwrap_or_else(|_| {
                 log::error!("Config Error: The value of `is_tor_proxy` option should be a boolean");
                 log::error!("Falling back to using the value `false` for the option");
                 false
@@ -93,14 +93,13 @@ impl TryFrom<HashMap<String, String>> for RequestClientConfig {
         };
 
         Ok(RequestClientConfig {
-                    proxy_url: value.get("proxy_url").and_then(|s| Some(s.clone())),
-                    is_tor_proxy,
-                    https_only,
-                    use_http2: value["use_http2"].parse()?,
-                    timeout: value["timeout"].parse()?,
-                    max_retries: value["max_retries"].parse()?,
-                    max_redirects: value["max_redirects"].parse()?,
-                })
+            proxy_url: value.get("proxy_url").cloned(),
+            is_tor_proxy,
+            https_only,
+            use_http2: value["use_http2"].parse()?,
+            timeout: value["timeout"].parse()?,
+            max_retries: value["max_retries"].parse()?,
+            max_redirects: value["max_redirects"].parse()?,
+        })
     }
-
 }

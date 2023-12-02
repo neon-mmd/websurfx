@@ -2,15 +2,22 @@
 //! the upstream search engines with the search query provided by the user.
 
 use super::aggregation_models::SearchResult;
-use error_stack::{Report, Result, ResultExt};
-use reqwest::Client;
-use std::{collections::HashMap, fmt};
+use super::client_models::HttpClient;
+use enumflags2::bitflags;
+use error_stack::Result;
+use std::{collections::HashMap, fmt, sync::Arc};
+
+#[derive(Debug)]
+pub struct EngineError {
+    pub error_type: EngineErrorType,
+    pub engine: String,
+}
 
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
-pub enum EngineError {
+pub enum EngineErrorType {
     /// No matching engine found
-    NoSuchEngineFound(String),
+    NoSuchEngineFound,
     /// This variant handles all request related errors like forbidden, not found,
     /// etc.
     EmptyResultSet,
@@ -26,65 +33,56 @@ pub enum EngineError {
 
 impl fmt::Display for EngineError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            EngineError::NoSuchEngineFound(engine) => {
-                write!(f, "No such engine with the name '{engine}' found")
+        match self.error_type {
+            EngineErrorType::NoSuchEngineFound => {
+                write!(f, "No such engine with the name '{0}' found", self.engine)
             }
-            EngineError::EmptyResultSet => {
+            EngineErrorType::EmptyResultSet => {
                 write!(f, "The upstream search engine returned an empty result set")
             }
-            EngineError::RequestError => {
+            EngineErrorType::RequestError => {
                 write!(
                     f,
                     "Error occurred while requesting data from upstream search engine"
                 )
             }
-            EngineError::UnexpectedError => {
+            EngineErrorType::UnexpectedError => {
                 write!(f, "An unexpected error occurred while processing the data")
             }
         }
     }
 }
 
-impl error_stack::Context for EngineError {}
+impl std::error::Error for EngineError {}
+
+// TODO: Should names be standardised? such as should everything related to search be prefixed search?
+
+#[bitflags]
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum QueryType {
+    Text = 0b00001,
+    Video = 0b00010,
+    Image = 0b00100,
+    File = 0b01000,
+    AutoCompletion = 0b10000,
+}
+
+#[derive(Debug, Clone)]
+pub enum QueryRelavancy {
+    Anytime,
+    LastDay,
+    LastWeek,
+    LastMonth,
+    LastYear,
+}
 
 /// A trait to define common behavior for all search engines.
 #[async_trait::async_trait]
 pub trait SearchEngine: Sync + Send {
-    /// This helper function fetches/requests the search results from the upstream search engine in
-    /// an html form.
-    ///
-    /// # Arguments
-    ///
-    /// * `url` - It takes the url of the upstream search engine with the user requested search
-    /// query appended in the search parameters.
-    /// * `header_map` - It takes the http request headers to be sent to the upstream engine in
-    /// order to prevent being detected as a bot. It takes the header as a HeaderMap type.
-    /// * `request_timeout` - It takes the request timeout value as seconds which is used to limit
-    /// the amount of time for each request to remain connected when until the results can be provided
-    /// by the upstream engine.
-    ///
-    /// # Error
-    ///
-    /// It returns the html data as a string if the upstream engine provides the data as expected
-    /// otherwise it returns a custom `EngineError`.
-    async fn fetch_html_from_upstream(
-        &self,
-        url: &str,
-        header_map: reqwest::header::HeaderMap,
-        client: &Client,
-    ) -> Result<String, EngineError> {
-        // fetch the html from upstream search engine
-        Ok(client
-            .get(url)
-            .headers(header_map) // add spoofed headers to emulate human behavior
-            .send()
-            .await
-            .change_context(EngineError::RequestError)?
-            .text()
-            .await
-            .change_context(EngineError::RequestError)?)
-    }
+    fn get_name(&self) -> &'static str;
+
+    fn get_query_types(&self) -> QueryType;
 
     /// This function scrapes results from the upstream engine and puts all the scraped results like
     /// title, visiting_url (href in html),engine (from which engine it was fetched from) and description
@@ -96,7 +94,6 @@ pub trait SearchEngine: Sync + Send {
     /// * `query` - Takes the user provided query to query to the upstream search engine with.
     /// * `page` - Takes an u32 as an argument.
     /// * `user_agent` - Takes a random user agent string as an argument.
-    /// * `request_timeout` - Takes a time (secs) as a value which controls the server request timeout.
     ///
     /// # Errors
     ///
@@ -104,72 +101,13 @@ pub trait SearchEngine: Sync + Send {
     /// reach the above `upstream search engine` page or if the `upstream search engine` is unable to
     /// provide results for the requested search query and also returns error if the scraping selector
     /// or HeaderMap fails to initialize.
-    async fn results(
+    async fn fetch_results(
         &self,
         query: &str,
+        // category: QueryType,
+        // query_relevance: Option<QueryRelavancy>,
         page: u32,
-        user_agent: &str,
-        client: &Client,
+        client: Arc<HttpClient>,
         safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError>;
-}
-
-/// A named struct which stores the engine struct with the name of the associated engine.
-pub struct EngineHandler {
-    /// It stores the engine struct wrapped in a box smart pointer as the engine struct implements
-    /// the `SearchEngine` trait.
-    engine: Box<dyn SearchEngine>,
-    /// It stores the name of the engine to which the struct is associated to.
-    name: &'static str,
-}
-
-impl Clone for EngineHandler {
-    fn clone(&self) -> Self {
-        Self::new(self.name).unwrap()
-    }
-}
-
-impl EngineHandler {
-    /// Parses an engine name into an engine handler.
-    ///
-    /// # Arguments
-    ///
-    /// * `engine_name` - It takes the name of the engine to which the struct was associated to.
-    ///
-    /// # Returns
-    ///
-    /// It returns an option either containing the value or a none if the engine is unknown
-    pub fn new(engine_name: &str) -> Result<Self, EngineError> {
-        let engine: (&'static str, Box<dyn SearchEngine>) =
-            match engine_name.to_lowercase().as_str() {
-                "duckduckgo" => {
-                    let engine = crate::engines::duckduckgo::DuckDuckGo::new()?;
-                    ("duckduckgo", Box::new(engine))
-                }
-                "searx" => {
-                    let engine = crate::engines::searx::Searx::new()?;
-                    ("searx", Box::new(engine))
-                }
-                "brave" => {
-                    let engine = crate::engines::brave::Brave::new()?;
-                    ("brave", Box::new(engine))
-                }
-                _ => {
-                    return Err(Report::from(EngineError::NoSuchEngineFound(
-                        engine_name.to_string(),
-                    )))
-                }
-            };
-
-        Ok(Self {
-            engine: engine.1,
-            name: engine.0,
-        })
-    }
-
-    /// This function converts the EngineHandler type into a tuple containing the engine name and
-    /// the associated engine struct.
-    pub fn into_name_engine(self) -> (&'static str, Box<dyn SearchEngine>) {
-        (self.name, self.engine)
-    }
 }

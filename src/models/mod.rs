@@ -3,7 +3,7 @@
 //! custom engine error for the search engine, etc.
 
 pub mod aggregation_models;
+pub mod client_models;
 pub mod engine_models;
 pub mod parser_models;
 pub mod server_models;
-pub mod client_models;
