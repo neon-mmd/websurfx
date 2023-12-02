@@ -79,7 +79,7 @@ impl Cacher for RedisCache {
             "Initialising redis cache. Listening to {}",
             &config.redis_url
         );
-        RedisCache::new(&config.redis_url, 5)
+        RedisCache::new(&config.redis_url, 5, config.cache_expiry_time)
             .await
             .expect("Redis cache configured")
     }
@@ -113,13 +113,12 @@ pub struct InMemoryCache {
 #[cfg(feature = "memory-cache")]
 #[async_trait::async_trait]
 impl Cacher for InMemoryCache {
-    async fn build(_config: &Config) -> Self {
+    async fn build(config: &Config) -> Self {
         log::info!("Initialising in-memory cache");
 
         InMemoryCache {
             cache: MokaCache::builder()
-                .max_capacity(1000)
-                .time_to_live(Duration::from_secs(60))
+                .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
                 .build(),
         }
     }
