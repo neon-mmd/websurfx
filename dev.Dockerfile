@@ -1,5 +1,5 @@
 # Create Builder image
-FROM --platform=$BUILDPLATFORM rust:1.73.0-alpine3.18
+FROM --platform=$BUILDPLATFORM rust:1.74.0-alpine3.18
 
 # Install required dependencies
 RUN apk add --no-cache alpine-sdk musl-dev g++ make libcrypto3 libressl-dev perl build-base
