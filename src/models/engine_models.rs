@@ -154,6 +154,10 @@ impl EngineHandler {
                     let engine = crate::engines::brave::Brave::new()?;
                     ("brave", Box::new(engine))
                 }
+                "startpage" => {
+                    let engine = crate::engines::startpage::Startpage::new()?;
+                    ("startpage", Box::new(engine))
+                }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(
                         engine_name.to_string(),
