@@ -46,7 +46,7 @@ colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used fo
 theme = "simple"                 -- the theme name which should be used for the website
 
 -- ### Caching ###
-redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
+redis_url = "redis://red-cljb9gkm411s738a7i5g:6379" -- redis connection url address on which the client should connect on.
 cache_expiry_time = 600              -- This option takes the expiry time of the search results (value in seconds and the value should be greater than or equal to 60 seconds).
 -- ### Search Engines ###
 upstream_search_engines = {
