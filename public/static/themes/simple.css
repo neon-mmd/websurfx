@@ -33,6 +33,10 @@ body {
   display: flex;
 }
 
+.websurfx-logo {
+  width: clamp(12rem, 40rem, 48rem);
+}
+
 /* styles for the search box and search button */
 
 .search_bar {
