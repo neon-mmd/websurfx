@@ -326,6 +326,9 @@ footer {
   font-size: 1.2rem;
   padding: 1rem;
   color: var(--color-five);
+  display: flex;
+  gap: 1rem;
+  justify-content: right;
 }
 
 /* Styles for the 404 page  */
