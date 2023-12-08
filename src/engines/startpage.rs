@@ -1,5 +1,5 @@
-//! The `duckduckgo` module handles the scraping of results from the duckduckgo search engine
-//! by querying the upstream duckduckgo search engine with user provided query and with a page
+//! The `startpage` module handles the scraping of results from the startpage search engine
+//! by querying the upstream startpage search engine with user provided query and with a page
 //! number if provided.
 
 use std::collections::HashMap;
