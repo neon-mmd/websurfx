@@ -54,4 +54,5 @@ upstream_search_engines = {
     Searx = false,
     Brave = false,
     Startpage = false,
+    LibreX = false,
 } -- select the upstream search engines from which the results should be fetched.
