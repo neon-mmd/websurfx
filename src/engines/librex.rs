@@ -33,9 +33,9 @@ impl LibreX {
             parser: SearchResultParser::new(
                 ".text-result-container>p",
                 ".text-result-container",
-                ".text-result-container>a>h2",
-                ".text-result-container>a",
-                ".text-result-container>span",
+                ".text-result-wrapper>a>h2",
+                ".text-result-wrapper>a",
+                ".text-result-wrapper>span",
             )?,
         })
     }
