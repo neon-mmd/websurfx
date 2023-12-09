@@ -54,7 +54,7 @@ impl SearchEngine for LibreX {
     /// # Returns
     ///
     /// Returns a `Result` containing a `HashMap` of search results if successful, otherwise an `EngineError`.
-   // The `Err` variant is explicit for better documentation.
+    /// The `Err` variant is explicit for better documentation.
     async fn results(
         &self,
         query: &str,
@@ -63,11 +63,21 @@ impl SearchEngine for LibreX {
         client: &Client,
         _safe_search: u8,
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
+        // Page number can be missing or empty string and so appropriate handling is required
+        // so that upstream server recieves valid page number.
         let url: String = match page {
-            0 => format!("https://search.ahwx.org/search.php?q={query}&p=0&t=10"),
-            _ => format!("https://search.ahwx.org/search.php?q={query}&p={}&t=10", page * 10),
+            1 | 0 => {
+                format!("https://search.ahwx.org/search.php?q={query}&p=0&t=10")
+            }
+            _ => {
+                format!(
+                    "https://search.ahwx.org/search.php?q={query}&p={}&t=10",
+                    page * 10,
+                )
+            }
         };
-        
+
+        // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("USER_AGENT".to_string(), user_agent.to_string()),
             ("REFERER".to_string(), "https://google.com/".to_string()),
@@ -87,6 +97,7 @@ impl SearchEngine for LibreX {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
+        // scrape all the results from the html
         self.parser
             .parse_for_results(&document, |title, url, desc| {
                 Some(SearchResult::new(
