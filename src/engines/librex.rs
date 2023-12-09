@@ -1,5 +1,3 @@
-/// # LibreX Search Engine
-///
 /// The `LibreX` module contains the implementation of a search engine for LibreX using the reqwest and scraper libraries.
 /// It includes a `SearchEngine` trait implementation for interacting with the search engine and retrieving search results.
 
