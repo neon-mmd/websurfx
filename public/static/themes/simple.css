@@ -1,6 +1,6 @@
 /* @import url('./catppuccin-mocha.css'); */
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   src: url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
   fallback: sans-serif;
 }
@@ -21,13 +21,13 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  font-family: 'Rubik', sans-serif;
+  font-family: Rubik, sans-serif;
   background-color: var(--background-color);
 }
 
 /* enforce font for buttons */
 button {
-  font-family: 'Rubik', sans-serif;
+  font-family: Rubik, sans-serif;
 }
 
 /* styles for the index page */
@@ -79,7 +79,7 @@ button {
   opacity: 1; /* Firefox */
 }
 
-.search_bar input::-ms-input-placeholder { /* Edge 12 -18 */
+.search_bar input::input-placeholder { /* Edge 12 -18 */
   color: var(--foreground-color);
 }
 
@@ -255,7 +255,7 @@ header {
 }
 
 footer {
-  padding: 1.7rem 1.7rem 4rem 1.7rem;
+  padding: 1.7rem 1.7rem 4rem;
   gap: 1.8rem;
 }
 
