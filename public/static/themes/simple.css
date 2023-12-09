@@ -1,5 +1,9 @@
 /* @import url('./catppuccin-mocha.css'); */
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Rubik';
+  src: url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
+  fallback: sans-serif;
+}
 
 * {
   padding: 0;
