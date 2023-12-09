@@ -254,6 +254,8 @@ footer {
   align-items: center;
   padding: 1.7rem 1.7rem 4rem;
   gap: 1.8rem;
+  flex-direction: column;
+  justify-content: center;
 }
 
 header h1 a {
@@ -300,11 +302,6 @@ footer div span {
 footer div {
   display: flex;
   gap: 1rem;
-}
-
-footer {
-  flex-direction: column;
-  justify-content: center;
 }
 
 /* Styles for the search page */
