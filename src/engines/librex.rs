@@ -56,7 +56,7 @@ impl SearchEngine for LibreX {
     /// # Returns
     ///
     /// Returns a `Result` containing a `HashMap` of search results if successful, otherwise an `EngineError`.
-    #[allow(clippy::unnecessary_wraps)] // The `Err` variant is explicit for better documentation.
+   // The `Err` variant is explicit for better documentation.
     async fn results(
         &self,
         query: &str,
