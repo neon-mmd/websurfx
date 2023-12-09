@@ -76,11 +76,7 @@ button {
 
 .search_bar input::placeholder {
   color: var(--foreground-color);
-  opacity: 1; /* Firefox */
-}
-
-.search_bar input::input-placeholder { /* Edge 12 -18 */
-  color: var(--foreground-color);
+  opacity: 1;
 }
 
 .search_bar button {
@@ -241,20 +237,21 @@ button {
 
 /* styles for the footer and header */
 
-header,
-footer {
+
+header {
   width: 100%;
   background: var(--background-color);
   display: flex;
   align-items: center;
-}
-
-header {
   justify-content: space-between;
   padding: 2rem 3rem;
 }
 
 footer {
+  width: 100%;
+  background: var(--background-color);
+  display: flex;
+  align-items: center;
   padding: 1.7rem 1.7rem 4rem;
   gap: 1.8rem;
 }
