@@ -76,7 +76,7 @@ impl SearchEngine for LibreX {
             ("CONTENT_TYPE".to_string(), "application/x-www-form-urlencoded".to_string()),
             (
                 "COOKIE".to_string(),
-                "theme=dark; language=en; number_of_results=10; safe_search=on; save=1".to_string(),
+                "theme=amoled; disable_special=on; disable_frontends=on; language=en; number_of_results=10; safe_search=on; save=1".to_string(),
             ),
         ]))
         .change_context(EngineError::UnexpectedError)?;
