@@ -24,7 +24,12 @@ async fn test_index() {
     assert_eq!(res.status(), 200);
 
     let config = Config::parse(true).unwrap();
-    let template = views::index::index(&config.style.colorscheme, &config.style.theme).0;
+    let template = views::index::index(
+        &config.style.colorscheme,
+        &config.style.theme,
+        &config.style.animation,
+    )
+    .0;
     assert_eq!(res.text().await.unwrap(), template);
 }
 
