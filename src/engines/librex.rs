@@ -1,6 +1,5 @@
-//! The `startpage` module handles the scraping of results from the startpage search engine
-//! by querying the upstream startpage search engine with user provided query and with a page
-//! number if provided.
+//! The `librex` module contains the implementation of a search engine for LibreX using the reqwest and scraper libraries.
+//! It includes a `SearchEngine` trait implementation for interacting with the search engine and retrieving search results.
 
 use std::collections::HashMap;
 
@@ -9,37 +8,53 @@ use reqwest::Client;
 use scraper::Html;
 
 use crate::models::aggregation_models::SearchResult;
-
 use crate::models::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{Report, Result, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
 
-/// A new Startpage engine type defined in-order to implement the `SearchEngine` trait which allows to
-/// reduce code duplication as well as allows to create vector of different search engines easily.
-pub struct Startpage {
-    /// The parser, used to interpret the search result.
+/// Represents the LibreX search engine.
+pub struct LibreX {
+    /// The parser used to extract search results from HTML documents.
     parser: SearchResultParser,
 }
 
-impl Startpage {
-    /// Creates the Startpage parser.
+impl LibreX {
+    /// Creates a new instance of LibreX with a default configuration.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing `LibreX` if successful, otherwise an `EngineError`.
     pub fn new() -> Result<Self, EngineError> {
         Ok(Self {
             parser: SearchResultParser::new(
-                ".no-results",
-                ".w-gl__result__main",
-                ".w-gl__result-second-line-container>.w-gl__result-title>h3",
-                ".w-gl__result-url",
-                ".w-gl__description",
+                ".text-result-container>p",
+                ".text-result-container",
+                ".text-result-wrapper>a>h2",
+                ".text-result-wrapper>a",
+                ".text-result-wrapper>span",
             )?,
         })
     }
 }
 
 #[async_trait::async_trait]
-impl SearchEngine for Startpage {
+impl SearchEngine for LibreX {
+    /// Retrieves search results from LibreX based on the provided query, page, user agent, and client.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - The search query.
+    /// * `page` - The page number for pagination.
+    /// * `user_agent` - The user agent string.
+    /// * `client` - The reqwest client for making HTTP requests.
+    /// * `_safe_search` - A parameter for safe search (not currently used).
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Result` containing a `HashMap` of search results if successful, otherwise an `EngineError`.
+    /// The `Err` variant is explicit for better documentation.
     async fn results(
         &self,
         query: &str,
@@ -52,11 +67,11 @@ impl SearchEngine for Startpage {
         // so that upstream server recieves valid page number.
         let url: String = match page {
             1 | 0 => {
-                format!("https://startpage.com/do/dsearch?q={query}&num=10&start=0")
+                format!("https://search.ahwx.org/search.php?q={query}&p=0&t=10")
             }
             _ => {
                 format!(
-                    "https://startpage.com/do/dsearch?q={query}&num=10&start={}",
+                    "https://search.ahwx.org/search.php?q={query}&p={}&t=10",
                     page * 10,
                 )
             }
@@ -66,16 +81,16 @@ impl SearchEngine for Startpage {
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("USER_AGENT".to_string(), user_agent.to_string()),
             ("REFERER".to_string(), "https://google.com/".to_string()),
+            ("CONTENT_TYPE".to_string(), "application/x-www-form-urlencoded".to_string()),
             (
-                "CONTENT_TYPE".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
+                "COOKIE".to_string(),
+                "theme=amoled; disable_special=on; disable_frontends=on; language=en; number_of_results=10; safe_search=on; save=1".to_string(),
             ),
-            ("COOKIE".to_string(), "preferences=connect_to_serverEEE0N1Ndate_timeEEEworldN1Ndisable_family_filterEEE0N1Ndisable_open_in_new_windowEEE0N1Nenable_post_methodEEE1N1Nenable_proxy_safety_suggestEEE1N1Nenable_stay_controlEEE0N1Ninstant_answersEEE1N1Nlang_homepageEEEs%2Fnight%2FenN1NlanguageEEEenglishN1Nlanguage_uiEEEenglishN1Nnum_of_resultsEEE10N1Nsearch_results_regionEEEallN1NsuggestionsEEE1N1Nwt_unitEEEcelsius".to_string()),
         ]))
         .change_context(EngineError::UnexpectedError)?;
 
         let document: Html = Html::parse_document(
-            &Startpage::fetch_html_from_upstream(self, &url, header_map, client).await?,
+            &LibreX::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
         if self.parser.parse_for_no_results(&document).next().is_some() {
@@ -89,7 +104,7 @@ impl SearchEngine for Startpage {
                     title.inner_html().trim(),
                     url.inner_html().trim(),
                     desc.inner_html().trim(),
-                    &["startpage"],
+                    &["librex"],
                 ))
             })
     }

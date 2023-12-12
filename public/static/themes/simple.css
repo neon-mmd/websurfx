@@ -1,4 +1,9 @@
 /* @import url('./catppuccin-mocha.css'); */
+@font-face {
+  font-family: Rubik;
+  src: url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
+  fallback: sans-serif;
+}
 
 * {
   padding: 0;
@@ -16,7 +21,13 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  background: var(--color-one);
+  font-family: Rubik, sans-serif;
+  background-color: var(--background-color);
+}
+
+/* enforce font for buttons */
+button {
+  font-family: Rubik, sans-serif;
 }
 
 /* styles for the index page */
@@ -29,44 +40,65 @@ body {
   align-items: center;
 }
 
-.search-container div {
-  display: flex;
+.search-container svg {
+  color: var(--logo-color);
 }
 
-.websurfx-logo {
-  width: clamp(12rem, 40rem, 48rem);
+.search-container div {
+  display: flex;
 }
 
 /* styles for the search box and search button */
 
 .search_bar {
   display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .search_bar input {
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 2.6rem 2.2rem;
   width: 50rem;
   height: 3rem;
   outline: none;
   border: none;
   box-shadow: rgb(0 0 0 / 1);
-  background: var(--foreground-color);
+  background-color: var(--color-one);
+  color: var(--foreground-color);
+  outline-offset: 3px;
+  font-size: 1.6rem;
+}
+
+.search_bar input:focus {
+  outline: 2px solid var(--foreground-color);
+}
+
+.search_bar input::placeholder {
+  color: var(--foreground-color);
+  opacity: 1;
 }
 
 .search_bar button {
-  padding: 1rem;
-  border-radius: 0;
+  padding: 2.6rem 3.2rem;
+  border-radius: 6px;
   height: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  outline: none;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
   border: none;
+  transition: .1s;
   gap: 0;
-  background: var(--background-color);
-  color: var(--color-three);
+  background-color: var(--color-six);
+  color: var(--background-color);
   font-weight: 600;
   letter-spacing: 0.1rem;
+}
+
+.search_bar button:active {
+  outline: 2px solid var(--color-three);
 }
 
 .search_bar button:active,
@@ -85,11 +117,17 @@ body {
   width: 20rem;
   background-color: var(--color-one);
   color: var(--foreground-color);
-  padding: 1rem 2rem;
+  padding: 1.2rem 2rem;
   border-radius: 0.5rem;
-  outline: none;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
   border: none;
   text-transform: capitalize;
+}
+
+.search_area .search_options select:active,
+.search_area .search_options select:hover {
+  outline: 2px solid var(--color-three);
 }
 
 .search_area .search_options option:hover {
@@ -199,17 +237,25 @@ body {
 
 /* styles for the footer and header */
 
-header,
+
+header {
+  width: 100%;
+  background: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 3rem;
+}
+
 footer {
   width: 100%;
   background: var(--background-color);
   display: flex;
-  padding: 1rem;
   align-items: center;
-}
-
-header {
-  justify-content: space-between;
+  padding: 1.7rem 1.7rem 4rem;
+  gap: 1.8rem;
+  flex-direction: column;
+  justify-content: center;
 }
 
 header h1 a {
@@ -217,7 +263,6 @@ header h1 a {
   text-decoration: none;
   color: var(--foreground-color);
   letter-spacing: 0.1rem;
-  margin-left: 1rem;
 }
 
 header ul,
@@ -259,11 +304,6 @@ footer div {
   gap: 1rem;
 }
 
-footer {
-  flex-direction: column;
-  justify-content: center;
-}
-
 /* Styles for the search page */
 
 .results {
@@ -271,6 +311,11 @@ footer {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  gap: 1rem;
+}
+
+.result {
+  gap: 1rem;
 }
 
 .results .search_bar {
@@ -280,7 +325,7 @@ footer {
 .results_aggregated {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-between; 
   margin: 2rem 0;
   content-visibility: auto;
 }
@@ -292,10 +337,10 @@ footer {
 }
 
 .results_aggregated .result h1 a {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
+  font-weight: normal;
   color: var(--color-two);
   text-decoration: none;
-  letter-spacing: 0.1rem;
 }
 
 .results_aggregated .result h1 a:hover {
@@ -308,14 +353,15 @@ footer {
 
 .results_aggregated .result small {
   color: var(--color-three);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   word-wrap: break-word;
   line-break: anywhere;
 }
 
 .results_aggregated .result p {
   color: var(--foreground-color);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  line-height: 2.4rem;
   margin-top: 0.3rem;
   word-wrap: break-word;
   line-break: anywhere;
@@ -445,6 +491,7 @@ footer {
   display: flex;
   justify-content: space-around;
   width: 80dvw;
+  margin: 5rem 0;
 }
 
 .settings h1 {
@@ -452,9 +499,18 @@ footer {
   font-size: 2.5rem;
 }
 
+.settings > h1 {
+  margin-bottom: 4rem;
+  margin-left: 2rem;
+}
+
 .settings hr {
   border-color: var(--color-three);
   margin: 0.3rem 0 1rem;
+}
+
+.settings > hr {
+  margin-left: 2rem;
 }
 
 .settings_container .sidebar {
@@ -467,7 +523,6 @@ footer {
   margin-left: -0.7rem;
   padding: 0.7rem;
   border-radius: 5px;
-  font-weight: bold;
   margin-bottom: 0.5rem;
   color: var(--foreground-color);
   text-transform: capitalize;
@@ -475,18 +530,30 @@ footer {
 }
 
 .settings_container .sidebar .btn {
-  padding: 0.5rem;
+  padding: 2rem;
   border-radius: 0.5rem;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
+}
+
+.settings_container .sidebar .btn:active {
+  outline: 2px solid var(--color-two);
+}
+
+.settings_container .sidebar .btn:not(.active):hover {
+  color: var(--color-two);
 }
 
 .settings_container .sidebar .btn.active {
   background-color: var(--color-two);
+  color: var(--background-color);
 }
 
 .settings_container .main_container {
   width: 70%;
   border-left: 1.5px solid var(--color-three);
   padding-left: 3rem;
+  border: none;
 }
 
 .settings_container .tab {
@@ -495,6 +562,7 @@ footer {
 
 .settings_container .tab.active {
   display: flex;
+  gap: 1.2rem;
   flex-direction: column;
   justify-content: space-around;
 }
@@ -542,7 +610,7 @@ footer {
 .settings_container .general select {
   margin: 0.7rem 0;
   width: 20rem;
-  background-color: var(--background-color);
+  background-color: var(--color-one);
   color: var(--foreground-color);
   padding: 1rem 2rem;
   border-radius: 0.5rem;
@@ -560,16 +628,19 @@ footer {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
   padding: 1rem 0;
+  margin-bottom: 2rem;
+  gap: 2rem;
 }
 
 .settings_container .engines .toggle_btn {
   color: var(--foreground-color);
   font-size: 1.5rem;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  border-radius: 100px;
+  gap: 1.5rem;
+  letter-spacing: 1px;
 }
 
 .settings_container .engines hr {
@@ -602,8 +673,14 @@ footer {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: var(--background-color);
-  transition: 0.4s;
+  background-color: var(--foreground-color);
+  transition: 0.2s;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
+}
+
+.slider:active {
+  outline: 2px solid var(--foreground-color);
 }
 
 .slider::before {
@@ -613,8 +690,8 @@ footer {
   width: 2.6rem;
   left: 0.4rem;
   bottom: 0.4rem;
-  background-color: var(--foreground-color);
-  transition: 0.4s;
+  background-color: var(--background-color);
+  transition: .2s;
 }
 
 input:checked + .slider {
