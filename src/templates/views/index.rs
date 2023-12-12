@@ -14,9 +14,9 @@ use crate::templates::partials::{bar::bar, footer::footer, header::header};
 /// # Returns
 ///
 /// It returns the compiled html markup code as a result.
-pub fn index(colorscheme: &str, theme: &str) -> Markup {
+pub fn index(colorscheme: &str, theme: &str, animation: &Option<String>) -> Markup {
     html!(
-        (header(colorscheme, theme))
+        (header(colorscheme, theme, animation))
         main class="search-container"{
             img class="websurfx-logo" src="../images/websurfx_logo.svg" alt="Websurfx meta-search engine logo";
             (bar(&String::default()))
