@@ -50,7 +50,7 @@ colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used fo
 theme = "simple" -- the theme name which should be used for the website
 -- The different animations provided are:
 -- {{
--- simple-frost
+-- simple-frosted-glow
 -- }}
 animation = "simple-frosted-glow" -- the animation name which should be used with the theme or `nil` if you don't want any animations.
 
