@@ -50,6 +50,9 @@ function setClientSettings() {
       case 'colorschemes':
         cookie_dictionary['colorscheme'] = select_tag.value
         break
+      case 'animations':
+        cookie_dictionary['animation'] = select_tag.value || null
+        break
       case 'safe_search_levels':
         cookie_dictionary['safe_search_level'] = Number(select_tag.value)
         break
@@ -103,13 +106,50 @@ function getClientSettings() {
       .map((item) => item.split('='))
       .reduce((acc, [_, v]) => (acc = JSON.parse(v)) && acc, {})
 
-    // Loop through all link tags and update their href values to match the user's preferences
-    Array.from(document.querySelectorAll('link')).forEach((item) => {
-      if (item.href.includes('static/themes')) {
-        item.href = `static/themes/${cookie_value['theme']}.css`
-      } else if (item.href.includes('static/colorschemes')) {
-        item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
+    let links = Array.from(document.querySelectorAll('link'))
+
+    // A check to determine whether the animation link exists under the head tag or not.
+    // If it does not exists then create and add a new animation link under the head tag
+    // and update the other link tags href according to the settings provided by the user
+    // via the UI. On the other hand if it does exist then just update all the link tags
+    // href according to the settings provided by the user via the UI.
+    if (!links.some((item) => item.href.includes('static/animations'))) {
+      if (cookie_value['animation']) {
+        let animation_link = document.createElement('link')
+        animation_link.href = `static/animations/${cookie_value['animation']}.css`
+        animation_link.rel = 'stylesheet'
+        animation_link.type = 'text/css'
+        document.querySelector('head').appendChild(animation_link)
       }
-    })
+      // Loop through all link tags and update their href values to match the user's preferences
+      links.forEach((item) => {
+        if (item.href.includes('static/themes')) {
+          item.href = `static/themes/${cookie_value['theme']}.css`
+        } else if (item.href.includes('static/colorschemes')) {
+          item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
+        }
+      })
+    } else {
+      // Loop through all link tags and update their href values to match the user's preferences
+      links.forEach((item) => {
+        if (item.href.includes('static/themes')) {
+          item.href = `static/themes/${cookie_value['theme']}.css`
+        } else if (item.href.includes('static/colorschemes')) {
+          item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
+        } else if (
+          item.href.includes('static/animations') &&
+          cookie_value['animation']
+        ) {
+          item.href = `static/colorschemes/${cookie_value['animation']}.css`
+        }
+      })
+      if (!cookie_value['animation']) {
+        document
+          .querySelector('head')
+          .removeChild(
+            links.filter((item) => item.href.includes('static/animations')),
+          )
+      }
+    }
   }
 }
