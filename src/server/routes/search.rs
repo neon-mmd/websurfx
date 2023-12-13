@@ -72,6 +72,7 @@ pub async fn search(
                 crate::templates::views::search::search(
                     &config.style.colorscheme,
                     &config.style.theme,
+                    &config.style.animation,
                     query,
                     &results?,
                 )

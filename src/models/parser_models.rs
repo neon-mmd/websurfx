@@ -17,6 +17,9 @@ pub struct Style {
     /// It stores the parsed colorscheme option used to set a colorscheme for the
     /// theme being used.
     pub colorscheme: String,
+    /// It stores the parsed animation option used to set an animation for the
+    /// theme being used.
+    pub animation: Option<String>,
 }
 
 impl Style {
@@ -27,8 +30,12 @@ impl Style {
     /// * `theme` - It takes the parsed theme option used to set a theme for the website.
     /// * `colorscheme` - It takes the parsed colorscheme option used to set a colorscheme
     /// for the theme being used.
-    pub fn new(theme: String, colorscheme: String) -> Self {
-        Style { theme, colorscheme }
+    pub fn new(theme: String, colorscheme: String, animation: Option<String>) -> Self {
+        Style {
+            theme,
+            colorscheme,
+            animation,
+        }
     }
 }
 

@@ -115,6 +115,7 @@ impl Config {
             style: Style::new(
                 globals.get::<_, String>("theme")?,
                 globals.get::<_, String>("colorscheme")?,
+                globals.get::<_, Option<String>>("animation")?,
             ),
             #[cfg(feature = "redis-cache")]
             redis_url: globals.get::<_, String>("redis_url")?,
