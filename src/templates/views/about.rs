@@ -14,9 +14,9 @@ use crate::templates::partials::{footer::footer, header::header};
 /// # Returns
 ///
 /// It returns the compiled html markup code as a result.
-pub fn about(colorscheme: &str, theme: &str) -> Markup {
+pub fn about(colorscheme: &str, theme: &str, animation: &Option<String>) -> Markup {
     html!(
-        (header(colorscheme, theme))
+        (header(colorscheme, theme, animation))
         main class="about-container"{
          article {
              div{

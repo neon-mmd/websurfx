@@ -1,0 +1,15 @@
+.results_aggregated .result {
+  margin: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.results_aggregated .result:hover {
+  box-shadow:
+    inset 0 0 3rem var(--color-two),
+    inset 0 0 6rem var(--color-five),
+    inset 0 0 9rem var(--color-three),
+    0 0 0.25rem var(--color-two),
+    0 0 0.5rem var(--color-five),
+    0 0 0.75rem var(--color-three);
+}

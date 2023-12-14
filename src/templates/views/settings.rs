@@ -25,10 +25,11 @@ use crate::templates::partials::{
 pub fn settings(
     colorscheme: &str,
     theme: &str,
+    animation: &Option<String>,
     engine_names: &[&String],
 ) -> Result<Markup, Box<dyn std::error::Error>> {
     Ok(html!(
-        (header(colorscheme, theme))
+        (header(colorscheme, theme, animation))
         main class="settings"{
            h1{"Settings"}
            hr;

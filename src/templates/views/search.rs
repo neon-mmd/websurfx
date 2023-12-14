@@ -22,11 +22,12 @@ use crate::{
 pub fn search(
     colorscheme: &str,
     theme: &str,
+    animation: &Option<String>,
     query: &str,
     search_results: &SearchResults,
 ) -> Markup {
     html!(
-        (header(colorscheme, theme))
+        (header(colorscheme, theme, animation))
         main class="results"{
            (search_bar(&search_results.engine_errors_info, search_results.safe_search_level, query))
            .results_aggregated{
