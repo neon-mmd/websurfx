@@ -29,8 +29,8 @@ impl DuckDuckGo {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".no-results",
-                ".result",
-                ".result__a",
+                ".results>.result",
+                ".result__title>.result__a",
                 ".result__url",
                 ".result__snippet",
             )?,

@@ -13,9 +13,9 @@ use maud::{html, Markup};
 /// # Returns
 ///
 /// It returns the compiled html markup code as a result.
-pub fn not_found(colorscheme: &str, theme: &str) -> Markup {
+pub fn not_found(colorscheme: &str, theme: &str, animation: &Option<String>) -> Markup {
     html!(
-        (header(colorscheme, theme))
+        (header(colorscheme, theme, animation))
         main class="error_container"{
          img src="images/robot-404.svg" alt="Image of broken robot.";
          .error_content{

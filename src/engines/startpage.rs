@@ -87,7 +87,7 @@ impl SearchEngine for Startpage {
             .parse_for_results(&document, |title, url, desc| {
                 Some(SearchResult::new(
                     title.inner_html().trim(),
-                    &format!("{}", url.inner_html().trim()),
+                    url.inner_html().trim(),
                     desc.inner_html().trim(),
                     &["startpage"],
                 ))

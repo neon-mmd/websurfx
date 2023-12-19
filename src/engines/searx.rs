@@ -52,11 +52,11 @@ impl SearchEngine for Searx {
 
         let url: String = match page {
             0 | 1 => {
-                format!("https://searx.work/search?q={query}&pageno=1&safesearch={safe_search}")
+                format!("https://searx.be/search?q={query}&pageno=1&safesearch={safe_search}")
             }
-            _ => format!(
-                "https://searx.work/search?q={query}&pageno={page}&safesearch={safe_search}"
-            ),
+            _ => {
+                format!("https://searx.be/search?q={query}&pageno={page}&safesearch={safe_search}")
+            }
         };
 
         // initializing headers and adding appropriate headers.
