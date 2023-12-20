@@ -57,6 +57,7 @@ pub trait Cacher: Send + Sync {
     /// failure.
     async fn cache_results(
         &mut self,
+        options: u8,
         search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<CacheError>>;
@@ -68,6 +69,17 @@ pub trait Cacher: Send + Sync {
     /// * `url` - It takes an url as string.
     fn hash_url(&self, url: &str) -> String {
         blake3::hash(url.as_bytes()).to_string()
+    }
+}
+
+impl Cacher {
+    pub async fn cache_results(
+        &mut self,
+        options: u8,
+        search_results: &SearchResults,
+        url: &str,
+    ) -> Result<(), Report<CacheError>> {
+        // todo
     }
 }
 

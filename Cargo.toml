@@ -38,8 +38,8 @@ mimalloc = { version = "0.1.38", default-features = false }
 async-once-cell = {version="0.5.3", default-features=false}
 actix-governor = {version="0.5.0", default-features=false}
 mini-moka = { version="0.10", optional = true, default-features=false, features=["sync"]}
-brotli = { version = "3.4.0", default-features = false, features=["std"] }
-chacha20poly1305={version="0.10.1", default-features=false, features=["alloc","getrandom"]}
+brotli = { version = "3.4.0", default-features = false, features=["std"], optional=true}
+chacha20poly1305={version="0.10.1", default-features=false, features=["alloc","getrandom"], optional=true}
 
 [dev-dependencies]
 rusty-hook = {version="^0.11.2", default-features=false}
