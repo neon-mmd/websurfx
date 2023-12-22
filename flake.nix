@@ -41,6 +41,8 @@
             rustPackages.clippy
             rustc
             yamllint
+            openssl
+            pkg-config
           ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
