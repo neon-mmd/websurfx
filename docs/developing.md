@@ -228,9 +228,9 @@ Then run the following command to setup the `NixOS dev-shell`:
 nix develop
 ```
 
-> Alternatively, you can use `nix-direnv` to simplify entering into the `nix-shell` but the setup is beyond the scope here. Read more about it here: [nix-direnv](https://github.com/nix-community/nix-direnv)
+> You can use `nix-direnv` to simplify entering into the `nix-shell`. Its setup is beyond the scope of this guide. Read more about it here: [nix-direnv](https://github.com/nix-community/nix-direnv)
 
-This will add `docker`, `cargo-watch`, and other dev environment essentials to your `nix-shell` so you don't have to install all of them imperatively.
+This will add `docker`, `cargo-watch`, and other dev environment essentials to your `nix-shell` so you don't have to install everything imperatively.
 
 After finishing the commands above, run the following command to setup the `pre-commit` checks:
 
@@ -242,12 +242,6 @@ By running the above-mentioned command, it will automatically set up all the pre
 
 #### Post Setup Requirements
 
-Inside `flake.nix`, the `$HOME/.cargo/bin` is added to the `PATH`. The git hook manager for this project is `rusty-hook`, and (unfortunately) it has to be installed via `cargo` and can't be neatly packaged up inside the flake ([see issue](https://github.com/swellaby/rusty-hook/issues/168)). This was automatically installed when you ran `cargo test`.
-
-Run `git commit`. This should take a while and the pre-commit hook will get rejected and we will explain why. 
-
-In this step, `rusty-hook` runs the pre-commit checks and require the dev dependencies `stylelint`, `stylelint-config-standard`, `postcss-lit`. No need to add `stylelint` CLI since it's already a part of the flake so we will install the two remaining dev dependencies.
-
 The final step is to run
 
 ```shell
@@ -256,7 +250,7 @@ npm i -D stylelint-config-standard postcss-lit`
 
 This will add `node_modules` in the current directory.
 
-Run `git commit` again and if every thing is setup correctly, it should say that your branch is up to date.
+Run `git commit` and if every thing is setup correctly, it should say that your branch is up to date.
 
 #### Running the Project
 
