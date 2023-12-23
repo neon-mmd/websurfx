@@ -348,7 +348,7 @@ footer div {
 }
 
 .results_aggregated .result h1 a:visited {
-  color: var(--background-color);
+  color: var(--color-five);
 }
 
 .results_aggregated .result small {

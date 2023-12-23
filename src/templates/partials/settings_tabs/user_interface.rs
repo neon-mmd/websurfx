@@ -60,6 +60,17 @@ pub fn user_interface() -> Result<Markup, Box<dyn std::error::Error>> {
                    option value=(k){(v)}
                }
            }
+           h3{"select animation"}
+           p class="description"{
+               "Select the animation for your theme to be used in user interface"
+           }
+           select name="animations"{
+               option value=""{"none"}
+               @for (k,v) in style_option_list("animations")?{
+                   option value=(k){(v)}
+               }
+           }
+
         }
     ))
 }

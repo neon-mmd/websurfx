@@ -13,7 +13,12 @@ use std::fs::read_to_string;
 #[get("/")]
 pub async fn index(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     Ok(HttpResponse::Ok().body(
-        crate::templates::views::index::index(&config.style.colorscheme, &config.style.theme).0,
+        crate::templates::views::index::index(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+        )
+        .0,
     ))
 }
 
@@ -28,6 +33,7 @@ pub async fn not_found(
             crate::templates::views::not_found::not_found(
                 &config.style.colorscheme,
                 &config.style.theme,
+                &config.style.animation,
             )
             .0,
         ))
@@ -47,7 +53,12 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
 #[get("/about")]
 pub async fn about(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     Ok(HttpResponse::Ok().body(
-        crate::templates::views::about::about(&config.style.colorscheme, &config.style.theme).0,
+        crate::templates::views::about::about(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+        )
+        .0,
     ))
 }
 
@@ -60,6 +71,7 @@ pub async fn settings(
         crate::templates::views::settings::settings(
             &config.style.colorscheme,
             &config.style.theme,
+            &config.style.animation,
             &config
                 .upstream_search_engines
                 .keys()
