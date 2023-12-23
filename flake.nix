@@ -39,8 +39,11 @@
             nodePackages_latest.stylelint
             redis
             rustPackages.clippy
+            cargo-watch
             rustc
             yamllint
+            openssl
+            pkg-config
           ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
         };
