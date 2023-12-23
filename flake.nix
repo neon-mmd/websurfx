@@ -32,19 +32,27 @@
           buildInputs = [
             actionlint
             cargo
+            docker
             haskellPackages.hadolint
+            nodejs
             nodePackages_latest.cspell
             nodePackages_latest.eslint
             nodePackages_latest.markdownlint-cli2
             nodePackages_latest.stylelint
             redis
             rustPackages.clippy
+            rust-analyzer
             rustc
+            rustfmt
             yamllint
             openssl
             pkg-config
           ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          shellHook = ''
+            export PATH="$PATH:$HOME/.cargo/bin"
+            export NODE_PATH="$NODE_PATH:./node_modules"
+          '';
         };
 
       # Build via "nix build .#websurfx", which is basically just
