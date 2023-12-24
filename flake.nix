@@ -42,6 +42,7 @@
             redis
             rustPackages.clippy
             rust-analyzer
+            cargo-watch
             rustc
             rustfmt
             yamllint
@@ -59,4 +60,4 @@
       # calls the build function
       packages.websurfx = packages.default;
     });
-}
+
