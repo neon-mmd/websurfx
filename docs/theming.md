@@ -1,17 +1,25 @@
-# Colorschemes
+# Theming
 
-## Built-in
+## Colorschemes
 
-By default `websurfx` comes with 9 colorschemes to choose from which can be easily chosen using the config file. To how to change colorschemes please view the [Configuration](https://github.com/neon-mmd/websurfx/wiki/configuration) section of the wiki.
+### Built-in
 
-## Custom
+By default `websurfx` comes with 12 colorschemes to choose from which can be easily chosen using the config file or via the settings page on the website.
 
-Creating coloschemes is as easy as it gets it requires the user to have a theme file name with the colorscheme in which every space should be replaced with a `-` (dash) and it should end with a `.css` file extension. After creating the file you need to add the following code with the `colors` you want:
+> To how to change colorschemes using the config file. See: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
+
+### Custom
+
+To write a custom theme for the website, you will first need to create a new file under the `public/static/themes` folder with name of the theme containing each word seperated with a hyphen (**-**). Then after that edit the newly created file as required with new css code.
+
+Creating coloschemes is as easy as it gets it requires the user to have a colorscheme file name with the name of the colorscheme that is to be provided in which every space should be replaced with a `-` (dash) and it should end with a `.css` file extension. After creating the file you need to add the following code with the `colors` you want to include:
 
 ```css
 :root {
   --background-color: <background color>;
   --foreground-color: <foreground color (text color on the website) >;
+  --logo-color: <logo color
+    (the color of the logo svg image on the website homepage) >;
   --color-one: <color 1>;
   --color-two: <color 2>;
   --color-three: <color 3>;
@@ -22,7 +30,7 @@ Creating coloschemes is as easy as it gets it requires the user to have a theme 
 }
 ```
 
-> **Note**
+> [!Note]
 > Please infer the theme file located under `public/static/themes` to better understand where each color is being used.
 
 **Example of `catppuccin-mocha` colorscheme:**
@@ -31,6 +39,7 @@ Creating coloschemes is as easy as it gets it requires the user to have a theme 
 :root {
   --background-color: #1e1e2e;
   --foreground-color: #cdd6f4;
+  --logo-color: #f5c2e7;
   --color-one: #45475a;
   --color-two: #f38ba8;
   --color-three: #a6e3a1;
@@ -41,21 +50,31 @@ Creating coloschemes is as easy as it gets it requires the user to have a theme 
 }
 ```
 
-# Themes
+## Themes
 
-## Built-in
+### Built-in
 
-By default `websurfx` comes with 1 theme to choose from which can be easily chosen using the config file. To how to change themes please view the [Configuration](https://github.com/neon-mmd/websurfx/wiki/configuration) section of the wiki.
+By default `websurfx` comes with 1 theme to choose from which can be easily chosen using the config file or via the settings page on the website.
 
-## Custom
+> To how to change themes using the config file. See: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
 
-To write custom color scheme, it requires the user to have some knowledge of `css stylesheets`.
+### Custom
 
-**Here is an example of `simple theme` (which we provide by default with the app) which will give the user a better idea on how to create a custom theme using it as a template:**
+> This section expects the user to have some knowledge of `css`.
 
-### General
+To write a custom theme for the website, you will first need to create a new file under the `public/static/themes` folder with name of the theme containing each word seperated with a hyphen (**-**). Then after that edit the newly created file as required with new css code.
+
+Here is an example of `simple theme` (which we provide by default with the app) which will give you a better idea on how you can create your own custom theme for the website:
+
+#### General
 
 ```css
+@font-face {
+  font-family: Rubik;
+  src: url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
+  fallback: sans-serif;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -72,11 +91,17 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  background: var(--color-one);
+  font-family: Rubik, sans-serif;
+  background-color: var(--background-color);
+}
+
+/* enforce font for buttons */
+button {
+  font-family: Rubik, sans-serif;
 }
 ```
 
-### Styles for the index page
+#### Styles for the index page
 
 ```css
 .search-container {
@@ -87,42 +112,67 @@ body {
   align-items: center;
 }
 
+.search-container svg {
+  color: var(--logo-color);
+}
+
 .search-container div {
   display: flex;
 }
 ```
 
-### Styles for the search box and search button
+#### Styles for the search box and search button
 
 ```css
 .search_bar {
   display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .search_bar input {
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 2.6rem 2.2rem;
   width: 50rem;
   height: 3rem;
   outline: none;
   border: none;
-  box-shadow: rgba(0, 0, 0, 1);
-  background: var(--foreground-color);
+  box-shadow: rgb(0 0 0 / 1);
+  background-color: var(--color-one);
+  color: var(--foreground-color);
+  outline-offset: 3px;
+  font-size: 1.6rem;
+}
+
+.search_bar input:focus {
+  outline: 2px solid var(--foreground-color);
+}
+
+.search_bar input::placeholder {
+  color: var(--foreground-color);
+  opacity: 1;
 }
 
 .search_bar button {
-  padding: 1rem;
-  border-radius: 0;
+  padding: 2.6rem 3.2rem;
+  border-radius: 6px;
   height: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  outline: none;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
   border: none;
+  transition: 0.1s;
   gap: 0;
-  background: var(--background-color);
-  color: var(--color-three);
+  background-color: var(--color-six);
+  color: var(--background-color);
   font-weight: 600;
   letter-spacing: 0.1rem;
+}
+
+.search_bar button:active {
+  outline: 2px solid var(--color-three);
 }
 
 .search_bar button:active,
@@ -141,11 +191,17 @@ body {
   width: 20rem;
   background-color: var(--color-one);
   color: var(--foreground-color);
-  padding: 1rem 2rem;
+  padding: 1.2rem 2rem;
   border-radius: 0.5rem;
-  outline: none;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
   border: none;
   text-transform: capitalize;
+}
+
+.search_area .search_options select:active,
+.search_area .search_options select:hover {
+  outline: 2px solid var(--color-three);
 }
 
 .search_area .search_options option:hover {
@@ -170,9 +226,7 @@ body {
 .result_not_found img {
   width: 40rem;
 }
-```
 
-```css
 /* styles for the error box */
 .error_box .error_box_toggle_button {
   background: var(--foreground-color);
@@ -188,9 +242,11 @@ body {
   min-height: 20rem;
   min-width: 22rem;
 }
+
 .error_box .dropdown_error_box.show {
   display: flex;
 }
+
 .error_box .dropdown_error_box .error_item,
 .error_box .dropdown_error_box .no_errors {
   display: flex;
@@ -200,22 +256,25 @@ body {
   padding: 1rem;
   font-size: 1.2rem;
 }
+
 .error_box .dropdown_error_box .error_item {
   justify-content: space-between;
 }
+
 .error_box .dropdown_error_box .no_errors {
   min-height: 18rem;
   justify-content: center;
 }
 
 .error_box .dropdown_error_box .error_item:hover {
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 100px 100px rgb(255 255 255 / 0.1);
 }
 
 .error_box .error_item .severity_color {
   width: 1.2rem;
   height: 1.2rem;
 }
+
 .results .result_disallowed,
 .results .result_filtered,
 .results .result_engine_not_selected {
@@ -225,7 +284,7 @@ body {
   gap: 10rem;
   font-size: 2rem;
   color: var(--foreground-color);
-  margin: 0rem 7rem;
+  margin: 0 7rem;
 }
 
 .results .result_disallowed .user_query,
@@ -251,16 +310,34 @@ body {
 }
 ```
 
-### Styles for the footer and header
+#### Styles for the footer and header
 
 ```css
 header {
-  background: var(--background-color);
   width: 100%;
+  background: var(--background-color);
   display: flex;
-  justify-content: right;
   align-items: center;
-  padding: 1rem;
+  justify-content: space-between;
+  padding: 2rem 3rem;
+}
+
+footer {
+  width: 100%;
+  background: var(--background-color);
+  display: flex;
+  align-items: center;
+  padding: 1.7rem 1.7rem 4rem;
+  gap: 1.8rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+header h1 a {
+  text-transform: capitalize;
+  text-decoration: none;
+  color: var(--foreground-color);
+  letter-spacing: 0.1rem;
 }
 
 header ul,
@@ -301,39 +378,9 @@ footer div {
   display: flex;
   gap: 1rem;
 }
-
-footer {
-  background: var(--background-color);
-  width: 100%;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-footer div span {
-  font-size: 1.5rem;
-  color: var(--4);
-}
-
-footer div {
-  display: flex;
-  gap: 1rem;
-}
-
-footer {
-  background: var(--bg);
-  width: 100%;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
 ```
 
-### Styles for the search page
+#### Styles for the search page
 
 ```css
 .results {
@@ -341,6 +388,11 @@ footer {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  gap: 1rem;
+}
+
+.result {
+  gap: 1rem;
 }
 
 .results .search_bar {
@@ -352,6 +404,7 @@ footer {
   flex-direction: column;
   justify-content: space-between;
   margin: 2rem 0;
+  content-visibility: auto;
 }
 
 .results_aggregated .result {
@@ -361,10 +414,10 @@ footer {
 }
 
 .results_aggregated .result h1 a {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
+  font-weight: normal;
   color: var(--color-two);
   text-decoration: none;
-  letter-spacing: 0.1rem;
 }
 
 .results_aggregated .result h1 a:hover {
@@ -377,14 +430,15 @@ footer {
 
 .results_aggregated .result small {
   color: var(--color-three);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   word-wrap: break-word;
   line-break: anywhere;
 }
 
 .results_aggregated .result p {
   color: var(--foreground-color);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  line-height: 2.4rem;
   margin-top: 0.3rem;
   word-wrap: break-word;
   line-break: anywhere;
@@ -395,10 +449,13 @@ footer {
   font-size: 1.2rem;
   padding: 1rem;
   color: var(--color-five);
+  display: flex;
+  gap: 1rem;
+  justify-content: right;
 }
 ```
 
-### Styles for the 404 page
+#### Styles for the 404 page
 
 ```css
 .error_container {
@@ -448,11 +505,11 @@ footer {
 }
 ```
 
-### Styles for the previous and next button on the search page
+#### Styles for the previous and next button on the search page
 
 ```css
 .page_navigation {
-  padding: 0 0 2rem 0;
+  padding: 0 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -472,7 +529,7 @@ footer {
 }
 ```
 
-### Styles for the about page
+#### Styles for the about page
 
 This part is only available right now in the **rolling/edge/unstable** version
 
@@ -517,7 +574,7 @@ This part is only available right now in the **rolling/edge/unstable** version
 }
 ```
 
-### Styles for the Settings Page
+#### Styles for the Settings Page
 
 This part is only available right now in the **rolling/edge/unstable** version
 
@@ -526,6 +583,7 @@ This part is only available right now in the **rolling/edge/unstable** version
   display: flex;
   justify-content: space-around;
   width: 80dvw;
+  margin: 5rem 0;
 }
 
 .settings h1 {
@@ -533,9 +591,18 @@ This part is only available right now in the **rolling/edge/unstable** version
   font-size: 2.5rem;
 }
 
+.settings > h1 {
+  margin-bottom: 4rem;
+  margin-left: 2rem;
+}
+
 .settings hr {
   border-color: var(--color-three);
-  margin: 0.3rem 0 1rem 0;
+  margin: 0.3rem 0 1rem;
+}
+
+.settings > hr {
+  margin-left: 2rem;
 }
 
 .settings_container .sidebar {
@@ -548,7 +615,6 @@ This part is only available right now in the **rolling/edge/unstable** version
   margin-left: -0.7rem;
   padding: 0.7rem;
   border-radius: 5px;
-  font-weight: bold;
   margin-bottom: 0.5rem;
   color: var(--foreground-color);
   text-transform: capitalize;
@@ -556,18 +622,30 @@ This part is only available right now in the **rolling/edge/unstable** version
 }
 
 .settings_container .sidebar .btn {
-  padding: 0.5rem;
+  padding: 2rem;
   border-radius: 0.5rem;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
+}
+
+.settings_container .sidebar .btn:active {
+  outline: 2px solid var(--color-two);
+}
+
+.settings_container .sidebar .btn:not(.active):hover {
+  color: var(--color-two);
 }
 
 .settings_container .sidebar .btn.active {
   background-color: var(--color-two);
+  color: var(--background-color);
 }
 
 .settings_container .main_container {
   width: 70%;
   border-left: 1.5px solid var(--color-three);
   padding-left: 3rem;
+  border: none;
 }
 
 .settings_container .tab {
@@ -576,6 +654,7 @@ This part is only available right now in the **rolling/edge/unstable** version
 
 .settings_container .tab.active {
   display: flex;
+  gap: 1.2rem;
   flex-direction: column;
   justify-content: space-around;
 }
@@ -623,7 +702,7 @@ This part is only available right now in the **rolling/edge/unstable** version
 .settings_container .general select {
   margin: 0.7rem 0;
   width: 20rem;
-  background-color: var(--background-color);
+  background-color: var(--color-one);
   color: var(--foreground-color);
   padding: 1rem 2rem;
   border-radius: 0.5rem;
@@ -641,16 +720,19 @@ This part is only available right now in the **rolling/edge/unstable** version
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
   padding: 1rem 0;
+  margin-bottom: 2rem;
+  gap: 2rem;
 }
 
 .settings_container .engines .toggle_btn {
   color: var(--foreground-color);
   font-size: 1.5rem;
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  border-radius: 100px;
+  gap: 1.5rem;
+  letter-spacing: 1px;
 }
 
 .settings_container .engines hr {
@@ -658,11 +740,11 @@ This part is only available right now in the **rolling/edge/unstable** version
 }
 
 .settings_container .cookies input {
-  margin: 1rem 0rem;
+  margin: 1rem 0;
 }
 ```
 
-### Styles for the Toggle Button
+#### Styles for the Toggle Button
 
 This part is only available right now in the **rolling/edge/unstable** version
 
@@ -686,25 +768,26 @@ This part is only available right now in the **rolling/edge/unstable** version
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--background-color);
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
+  inset: 0;
+  background-color: var(--foreground-color);
+  transition: 0.2s;
+  outline-offset: 3px;
+  outline: 2px solid transparent;
 }
 
-.slider:before {
+.slider:active {
+  outline: 2px solid var(--foreground-color);
+}
+
+.slider::before {
   position: absolute;
   content: '';
   height: 2.6rem;
   width: 2.6rem;
   left: 0.4rem;
   bottom: 0.4rem;
-  background-color: var(--foreground-color);
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
+  background-color: var(--background-color);
+  transition: 0.2s;
 }
 
 input:checked + .slider {
@@ -715,9 +798,7 @@ input:focus + .slider {
   box-shadow: 0 0 1px var(--color-three);
 }
 
-input:checked + .slider:before {
-  -webkit-transform: translateX(2.6rem);
-  -ms-transform: translateX(2.6rem);
+input:checked + .slider::before {
   transform: translateX(2.6rem);
 }
 
@@ -726,9 +807,79 @@ input:checked + .slider:before {
   border-radius: 3.4rem;
 }
 
-.slider.round:before {
+.slider.round::before {
   border-radius: 50%;
 }
 ```
+
+## Animations
+
+### Built-in
+
+By default `websurfx` comes with 1 animation to choose from which can be easily chosen using the config file or via the settings page on the website.
+
+> To how to change animations using the config file. See: [**Configuration**](https://github.com/neon-mmd/websurfx/wiki/configuration)
+
+### Custom
+
+To write custom animation, it requires the user to have some knowledge of `themes` and the `HTML of the page for which the animation is being provided for`.
+
+The animations can be of 2 categories:
+
+- Theme specific animations
+- Universal animations
+
+#### Theme Specific Animations
+
+These animations can only be used with a specific theme and should not be used with other themes otherwise it either won't look good or won't work at all or would work partially.
+
+Here is an example of `simple-frosted-glow` animation for the `simple theme` (which we provide by default with the app) which will give you a better idea on how to create a custom animation for a specific theme:
+
+```css
+.results_aggregated .result {
+  margin: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.results_aggregated .result:hover {
+  box-shadow:
+    inset 0 0 3rem var(--color-two),
+    inset 0 0 6rem var(--color-five),
+    inset 0 0 9rem var(--color-three),
+    0 0 0.25rem var(--color-two),
+    0 0 0.5rem var(--color-five),
+    0 0 0.75rem var(--color-three);
+}
+```
+
+#### Universal Animations
+
+These animations are independent of the theme being used and can be used with all the themes.
+
+Here is an example of `text-tilt` animation which will give you an idea on how to create universal animations for the search engine website.
+
+```css
+.results_aggregated .result:hover {
+  transform: skewX(10deg);
+}
+```
+
+> [!Note]
+> 1. The above-mentioned examples of animations was covered for the search page of the search engine website. While the same way of creating custom animations can also be done for other pages also.
+> 2. While the naming the file for the new theme file. Follow the following naming conventions:
+>    1. If the animation is theme specfic then name of the animation file should look like this:
+>       `<name of the theme which these animation is for><seperated by a hyphen or dash><name of the animation with whitespaces replaced with hyphens>`
+>       **For example:**
+>       If the animation to make search results frosty glow on hover was to be created for the `simple` theme then the name of the file would look something like this: 
+>       `simple-frosted-glow`
+>       Where `simple` is the name of the theme the animation targets and `frosted-glow` is the name of the animation where each word has been seperated by a hyphen.
+>    2. If the animation is not theme specfic (univeral theme) then name of the animation file should look like this:
+>       `<name of the animation with whitespaces replaced with hyphens>`
+>       **For example:**
+>       If the animation to make search results text tilt on hover was to be created then the name of the file would look something like this: 
+>       `text-tilt`
+>       Where `text-tilt` is the name of the animation where each word has been seperated by a hyphen. (While naming the files for these types of themes, You do not need to add a theme name in frontend of the file name.).
+
 
 [⬅️ Go back to Home](./README.md)
