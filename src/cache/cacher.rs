@@ -4,6 +4,7 @@
 use error_stack::Report;
 #[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
+
 #[cfg(feature = "memory-cache")]
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -57,7 +58,6 @@ pub trait Cacher: Send + Sync {
     /// failure.
     async fn cache_results(
         &mut self,
-        options: u8,
         search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<CacheError>>;
@@ -70,16 +70,41 @@ pub trait Cacher: Send + Sync {
     fn hash_url(&self, url: &str) -> String {
         blake3::hash(url.as_bytes()).to_string()
     }
-}
 
-impl Cacher {
-    pub async fn cache_results(
+    #[cfg(any(
+        feature = "compress-cache-results",
+        feature = "encrypted-cache-results",
+        feature = "cec-cache-results"
+    ))]
+
+    /// A helper function that returns either compressed or encryption results
+    /// Feature flags are required  for this to work
+    async fn compressed_encrypted_results(
         &mut self,
-        options: u8,
-        search_results: &SearchResults,
         url: &str,
-    ) -> Result<(), Report<CacheError>> {
-        // todo
+    ) -> Result<Vec<u8>, Report<CacheError>> {
+        let results = self.cached_results(url).await?;
+
+        let mut bytes = serde_json::to_vec(&results).map_err(|_| CacheError::SerializationError)?;
+
+        #[cfg(feature = "compress-cache-results")]
+        use std::io::Write;
+        let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
+        writer.write_all(&bytes);
+        bytes = writer.into_inner();
+        #[cfg(feature = "encrypt-cache-results")]
+        use chacha20poly1305::{
+            aead::{Aead, AeadCore, KeyInit, OsRng},
+            ChaCha20Poly1305,
+        };
+
+        let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+        let cipher = ChaCha20Poly1305::new(&key);
+        let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
+        bytes = cipher
+            .encrypt(&nonce, bytes.as_ref())
+            .map_err(|_| CacheError::EncryptionError)?;
+        Ok(bytes)
     }
 }
 
@@ -294,3 +319,5 @@ pub async fn create_cache(config: &Config) -> impl Cacher {
     #[cfg(not(any(feature = "memory-cache", feature = "redis-cache")))]
     return DisabledCache::build(config).await;
 }
+
+//#[cfg(feature = "Compress-cache-results")]

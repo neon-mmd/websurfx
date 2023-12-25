@@ -81,3 +81,6 @@ default = ["memory-cache"]
 dhat-heap = ["dep:dhat"] 
 memory-cache = ["dep:mini-moka"]
 redis-cache = ["dep:redis"]
+compress-cache-results = ["dep:brotli"]
+encrypt-cache-results = ["dep:chacha20poly1305"]
+
