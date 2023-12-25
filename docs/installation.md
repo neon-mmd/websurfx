@@ -44,7 +44,7 @@ nix build .#websurfx
 nix run .#websurfx
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in Privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 Once you have run the above set of commands, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
@@ -89,7 +89,7 @@ nix build .#websurfx
 nix run .#websurfx
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 ## Other Distros
@@ -127,6 +127,16 @@ cd websurfx
 ```
 
 Once you have changed the directory to the `websurfx` directory then follow the build options listed below:
+
+> [!Note]
+> Before you start building the search engine using one of the below listed command. We would strongly recommend setting the `PKG_ENV` enviroment variable as this applies some special optimization to code to reduce the file and improve the page load speed of the website.
+> To set the `PKG_ENV` enviroment variable in the `bash` shell run the following command:
+>
+> ```bash
+> export PKG_ENV="prod"
+> ```
+>
+> For how to set the environment variables in other shells. You can follow the instructions on how to do so by visiting the documentation of the specific shell you are using.
 
 ### Hybrid Cache
 
@@ -285,22 +295,22 @@ Then run the following command to deploy the search engine:
 $ docker compose up -d
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec` or any other privileged access methods.
 
 Then launch the browser of your choice and navigate to http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>.
 
-> **Note**
+> [!Note]
 > The official prebuild images only support `stable` versions of the app and will not support `rolling/edge/unstable` versions. But with support and contribution, it could be made available for these versions as well 🙂.
 
 ## Manual Deployment
 
 This section covers how to deploy the app with docker manually by manually building the image and deploying it.
 
-> **Note**
+> [!Note]
 > This section is provided for those who want to further customize the docker image or for those who are extra cautious about security.
 
-> **Warning**
+> [!Warning]
 > A note of caution the project currently only supports **x86-64** architecture and as such we do not recommend deploying the project on devices with other architectures. Though if you still want to do it then **do it at your own risk**.
 
 ### Unstable/Edge/Rolling
@@ -317,19 +327,19 @@ After that edit the config.lua file located under `websurfx` directory. In the c
 ```lua
 -- ### General ###
 logging = true -- an option to enable or disable logs.
-debug = false -- an option to enable or disable debug mode.
-threads = 8 -- the amount of threads that the app will use to run (the value should be greater than 0).
+debug = false  -- an option to enable or disable debug mode.
+threads = 10   -- the amount of threads that the app will use to run (the value should be greater than 0).
 
 -- ### Server ###
-port = "8080" -- port on which server should be launched
-binding_ip = "0.0.0.0" --ip address on the server should be launched.
-production_use = false -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
+port = "8080"            -- port on which server should be launched
+binding_ip = "127.0.0.1" --ip address on the which server should be launched.
+production_use = false   -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
-request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
+request_timeout = 30      -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
 rate_limiter = {
-	number_of_requests = 20, -- The number of requests that are allowed within a provided time limit.
-	time_limit = 3, -- The time limit in which the number of requests that should be accepted.
+    number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
+    time_limit = 3,       -- The time limit in which the quantity of requests that should be accepted.
 }
 
 -- ### Search ###
@@ -360,15 +370,18 @@ safe_search = 2
 -- tomorrow-night
 -- }}
 colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
-theme = "simple" -- the theme name which should be used for the website
+theme = "simple"                 -- the theme name which should be used for the website
 
 -- ### Caching ###
-redis_url = "redis://redis:6379" -- redis connection url address on which the client should connect on.
-
+redis_url = "redis://127.0.0.1:8082" -- redis connection url address on which the client should connect on.
+cache_expiry_time = 600              -- This option takes the expiry time of the search results (value in seconds and the value should be greater than or equal to 60 seconds).
 -- ### Search Engines ###
 upstream_search_engines = {
-	DuckDuckGo = true,
-	Searx = false,
+    DuckDuckGo = true,
+    Searx = false,
+    Brave = false,
+    Startpage = false,
+    LibreX = false,
 } -- select the upstream search engines from which the results should be fetched.
 ```
 
@@ -378,7 +391,7 @@ After this make sure to edit the `docker-compose.yml` and `Dockerfile` files as 
 $ docker compose up -d --build
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 This will take around 5-10 mins for the first deployment, afterwards, the docker build stages will be cached so it will be faster to build from next time onwards. After the above step finishes launch your preferred browser and then navigate to `http://<ip_address_of_the_device>:<whatever_port_you_provided_in_the_config>`.
