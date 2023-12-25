@@ -12,7 +12,7 @@ This page of the docs outlines how to get **Websurfx** up and running in a devel
   - [NixOS Dev Shell using Nix Flake](#nixos-dev-shell-using-nix-flake-)
   - [Local Development with Docker Compose](#local-development-with-docker-compose-)
   - [Project Commands](#project-commands)
-+ - [Environment Variables](#environment-variables)
+  - [Environment Variables](#environment-variables)
 - [Git Strategy](#git-strategy)
   - [Flow](#git-flow)
   - [Branches](#git-branch-naming)
@@ -57,7 +57,7 @@ $ npm i -g stylelint
 $ npm i -g stylelint stylelint-config-standard postcss-lit
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 - `Cargo-watch` installed on your system which will allow you to auto-build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
@@ -69,7 +69,7 @@ cargo install cargo-watch
 - `Git` installed on your system. The installation instructions for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 - Finally, The latest version of `Docker` is installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
 
-> **Note**
+> [!Note]
 > For **rolling release Linux distributions (distros)**, the above-mentioned required packages except for `stylelint` and `cargo-watch` can also be installed via the distro-specific package manager.
 >
 > **For Example:**
@@ -149,7 +149,7 @@ Once you have finished running the above command, Websurfx should now be served 
 
 This section covers how to use and set up the Gitpod development environment for working on the project.
 
-> **Note**
+> [!Note]
 > By default the project only supports the Vscode **IDE/Editor** for Gitpod.
 
 #### Launching Gitpod
@@ -212,12 +212,6 @@ This section covers how to setup the project for development using the `NixOS de
 Before you start working on the project. You will need the following packages installed on your system:
 
 - `Git` installed on your system. The installation instructions for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Finally, The latest version of `Docker` is installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
-
-> Optionally, On `NixOS` the above-mentioned required packages except for `stylelint` and `cargo-watch` could also be installed by following the link to the installation instructions provided below:
->
-> - `Git`: https://search.nixos.org/packages?channel=23.05&show=git&from=0&size=50&sort=relevance&type=packages&query=git
-> - `Docker`: https://search.nixos.org/packages?channel=23.05&show=docker&from=0&size=50&sort=relevance&type=packages&query=docker
 
 #### Setting up Pre-commit Checks
 
@@ -234,7 +228,11 @@ Then run the following command to setup the `NixOS dev-shell`:
 nix develop
 ```
 
-Once you have finished running the above commands then run the following command to setup the `pre-commit` checks:
+> You can use `nix-direnv` to simplify entering into the `nix-shell`. Its setup is beyond the scope of this guide. Read more about it here: [nix-direnv](https://github.com/nix-community/nix-direnv)
+
+This will add `docker`, `cargo-watch`, and other dev environment essentials to your `nix-shell` so you don't have to install everything imperatively.
+
+After finishing the commands above, run the following command to setup the `pre-commit` checks:
 
 ```shell
 cargo test
@@ -244,13 +242,15 @@ By running the above-mentioned command, it will automatically set up all the pre
 
 #### Post Setup Requirements
 
-After you have done setting up pre-commit checks, then you may need to fulfill a few more requirements to finish setting up the development environment with `NixOS dev-shell`. These include:
-
-- `Cargo-watch` installed on your system which will allow you to auto-build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
+The final step is to run
 
 ```shell
-cargo install cargo-watch
+npm i -D stylelint-config-standard postcss-lit`
 ```
+
+This will add `node_modules` in the current directory.
+
+Run `git commit` and if every thing is setup correctly, it should say that your branch is up to date.
 
 #### Running the Project
 
@@ -310,13 +310,13 @@ Before you start working on the project. You will need the following packages in
 $ npm i -g stylelint
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 - `Git` installed on your system. The installation instructions for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 - Finally, The latest version of `Docker` is installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
 
-> **Note**
+> [!Note]
 > For **rolling release Linux distributions (distros)**, the above-mentioned all required packages can also be installed via the distro-specific package manager.
 >
 > **For Example:**
@@ -355,7 +355,7 @@ If you have followed the above section then you should have a cloned repository 
 $ docker compose -f dev.docker-compose.yml up
 ```
 
-> **Note**
+> [!Note]
 > In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
 
 Once you have finished running the above command, Websurfx should now be served on the address http://127.0.0.1:8080. Hot reload is enabled, so making changes to any of the files will trigger the project to be rebuilt.
@@ -366,13 +366,12 @@ Once you have finished running the above command, Websurfx should now be served 
 
 - `cargo build`: Builds the project.
 
-> **Note**
+> [!Note]
 > When you build the project first time with the above command it will require the app to compile every dependency in the project which will then be cached on your system. So when you compile the app next time it will only compile for the new changes.
 
-+ `cargo run`: Starts the app and serves the project on http://127.0.0.1:8080.
+- `cargo run`: Starts the app and serves the project on http://127.0.0.1:8080.
 
-
-> **Important**
+> [!Important]
 > You must run the build command first.
 
 #### Development
@@ -458,10 +457,10 @@ When you submit your pull request, include the required info, by filling out the
 - If any dependencies were added, explain why it was needed, and state the cost. associated, and confirm it does not introduce any security, privacy, or speed issues
 - Optionally, provide a checklist of all the changes that were included in the pull request.
 
-> **Important**
+> [!Important]
 > Make sure to fill all the required/mandatory sections of the pull request as filling them helps us distinguish between spam pull requests and legitimate pull requests.
 
-> **Note**
+> [!Note]
 > The pull request template contains comments in the following form `<!-- -->` which are used to provide a guide on what should be provided under each heading of the template. These comments are never rendered when the pull request is either created or updated and hence anything provided in such comments is never displayed.
 
 ## Resources for Beginners
@@ -498,7 +497,7 @@ For Rust, CSS, JS, HTML, Git, and Docker- you'll need an IDE (e.g. [VSCode](http
 
 Linting is done using [Cargo Clippy](https://doc.rust-lang.org/clippy/) and [StyleLint](https://stylelint.io/) or [ESLint](https://eslint.org/). Also, linting is run as a git pre-commit hook.
 
-> **Important**
+> [!Important]
 > All lint checks must pass before any PR can be merged.
 
 Styleguides to follow:
@@ -509,7 +508,7 @@ Styleguides to follow:
 
 ## Application Structure
 
-> **Important**
+> [!Important]
 > We follow the Unix style naming conventions for all the files and folders in the project (except for all files under the `themes` and `colorschemes` folder in the frontend's source code which requires that the names of the files and folders should be in lowercase and the words be separated with a hyphen.) which includes the name of the files and folders should be in lowercase and every word should be separated with an underscore.
 
 **Files in the root of the codebase:** `./`
@@ -541,30 +540,42 @@ Styleguides to follow:
 ./public/
 ├── robots.txt                    # Robots file for the Website.
 ├── images                        # Images for the Website.
-├── static                        # The directory containing all the UI handlers.
-│   ├── cookies.js                # Handles the loading of saved cookies.
-│   ├── error_box.js              # Handles the toggling functionality of the error box on the search page.
-│   ├── index.js                  # Functions to handle the search functionality of the search bar.
-│   ├── pagination.js             # Functions to handle the navigation between the previous and next page in the search page.
-│   ├── search_area_options.js    # Changes the search options under the search bar in the search page according to the safe search level set using the URL safesearch parameter.
-│   ├── settings.js               # Handles the settings and saving of all the settings page options as a cookie.
-│   ├── colorschemes              # A folder containing all the popular colorscheme files as CSS files.
-│   └── themes                    # A folder containing all the popular theme files as CSS files.
-└── templates                     # Folder containing all the template files for the different pages on the website.
-    ├── 404.html                  # A 404-page template.
-    ├── about.html                # An about page template.
-    ├── bar.html                  # A template for the search bar.
-    ├── cookies_tab.html          # A template for the cookies tab for the settings page.
-    ├── engines_tab.html          # A template for the engines tab for the settings page.
-    ├── footer.html               # A footer template for all pages.
-    ├── general_tab.html          # A template for the general tab for the settings page.
-    ├── header.html               # A header template for all pages.
-    ├── index.html                # A home page template.
-    ├── navbar.html               # A navbar template for the header template.
-    ├── search.html               # A search page template.
-    ├── search_bar.html           # A search bar template specifically for the search page.
-    ├── settings.html             # A settings page template.
-    └── user_interface_tab.html   # A template for the user interface tab for the settings page.
+└── static                        # The directory containing all the UI handlers.
+    ├── cookies.js                # Handles the loading of saved cookies.
+    ├── error_box.js              # Handles the toggling functionality of the error box on the search page.
+    ├── index.js                  # Functions to handle the search functionality of the search bar.
+    ├── pagination.js             # Functions to handle the navigation between the previous and next page in the search page.
+    ├── search_area_options.js    # Changes the search options under the search bar in the search page according to the safe search level set using the URL safesearch parameter.
+    ├── settings.js               # Handles the settings and saving of all the settings page options as a cookie.
+    ├── colorschemes              # A folder containing all the popular colorscheme files as CSS files.
+    └── themes                    # A folder containing all the popular theme files as CSS files.
+```
+
+**Fronted Maud HTML Framework Source:** `./src/templates/`
+
+```
+./src/templates/
+├── mod.rs                        # A module file for the rust project.
+├── partials                      # A folder containing the code for partials for the views.
+│   ├── bar.rs                    # Provides partial code for the search bar.
+│   ├── footer.rs                 # Provides partial code for the footer section.
+│   ├── header.rs                 # Provides partial code for the header section.
+│   ├── mod.rs                    # A module file for the rust project.
+│   ├── navbar.rs                 # Provides partial code for the navbar inside the header section.
+│   ├── search_bar.rs             # Provides partial code for the search bar present in the search page.
+│   └── settings_tabs             # A folder containing all the partials for the settings page tabs.
+│       ├── cookies.rs            # Provides partial code for the cookies tab.
+│       ├── engines.rs            # Provides partial code for the engines tab.
+│       ├── general.rs            # Provides partial code for the general tab.
+│       ├── mod.rs                # A module file for the rust project.
+│       └── user_interface.rs     # Provides partial code for the user interface tab.
+└── views                         # A folder containing the code for the views.
+    ├── about.rs                  # Provides code for the about page view.
+    ├── index.rs                  # Provides code for the homepage view.
+    ├── mod.rs                    # A module file for the rust project.
+    ├── not_found.rs              # Provides code for the 404 page view.
+    ├── search.rs                 # Provides code for the search page view.
+    └── settings.rs               # Provides code for the settings page view.
 ```
 
 **Backend Source:** `./src/`
@@ -601,12 +612,13 @@ Styleguides to follow:
 │   ├── aggregator.rs             # Provides code aggregate and fetches results from the upstream engines.
 │   ├── mod.rs                    # A module file for the rust project.
 │   └── user_agent.rs             # Provides a helper function to allow random user agents to pass in the server request code to improve user privacy and avoiding detected as a bot.
-└── server                        # A folder that holds code to handle the routes for the search engine website.
-    ├── mod.rs                    # A module file for the rust project.
-    ├── router.rs                 # Provides functions to handle the different routes on the website.
-    └── routes                    # A folder that contains code to handle the bigger route for the website.
-        ├── mod.rs                # A module file for the rust project.
-        └── search.rs             # Provides the function to handle the search route.
+├── server                        # A folder that holds code to handle the routes for the search engine website.
+│   ├── mod.rs                    # A module file for the rust project.
+│   ├── router.rs                 # Provides functions to handle the different routes on the website.
+│   └── routes                    # A folder that contains code to handle the bigger route for the website.
+│       ├── mod.rs                # A module file for the rust project.
+│       └── search.rs             # Provides the function to handle the search route.
+└── templates                     # A module that provides and handles Maud HTML framework source code for the search engine website (subfolders and files are explained in the above frontend section.)
 ```
 
 ## Development Tools
