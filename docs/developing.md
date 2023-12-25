@@ -212,12 +212,6 @@ This section covers how to setup the project for development using the `NixOS de
 Before you start working on the project. You will need the following packages installed on your system:
 
 - `Git` installed on your system. The installation instructions for this can be found [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Finally, The latest version of `Docker` is installed on your system which will be used to avoid introducing unexpected issues when working on the project. The installation instructions for this can be found [here](https://docs.docker.com/engine/install/).
-
-> Optionally, On `NixOS` the above-mentioned required packages except for `stylelint` and `cargo-watch` could also be installed by following the link to the installation instructions provided below:
->
-> - `Git`: https://search.nixos.org/packages?channel=23.05&show=git&from=0&size=50&sort=relevance&type=packages&query=git
-> - `Docker`: https://search.nixos.org/packages?channel=23.05&show=docker&from=0&size=50&sort=relevance&type=packages&query=docker
 
 #### Setting up Pre-commit Checks
 
@@ -234,7 +228,11 @@ Then run the following command to setup the `NixOS dev-shell`:
 nix develop
 ```
 
-Once you have finished running the above commands then run the following command to setup the `pre-commit` checks:
+> You can use `nix-direnv` to simplify entering into the `nix-shell`. Its setup is beyond the scope of this guide. Read more about it here: [nix-direnv](https://github.com/nix-community/nix-direnv)
+
+This will add `docker`, `cargo-watch`, and other dev environment essentials to your `nix-shell` so you don't have to install everything imperatively.
+
+After finishing the commands above, run the following command to setup the `pre-commit` checks:
 
 ```shell
 cargo test
@@ -244,13 +242,15 @@ By running the above-mentioned command, it will automatically set up all the pre
 
 #### Post Setup Requirements
 
-After you have done setting up pre-commit checks, then you may need to fulfill a few more requirements to finish setting up the development environment with `NixOS dev-shell`. These include:
-
-- `Cargo-watch` installed on your system which will allow you to auto-build the project when any checks occur in the source code files in the codebase (`websurfx` directory). Before you install `cargo-watch` on your system, make sure you have `cargo` installed on your system. To install `cargo-watch` run the following command:
+The final step is to run
 
 ```shell
-cargo install cargo-watch
+npm i -D stylelint-config-standard postcss-lit`
 ```
+
+This will add `node_modules` in the current directory.
+
+Run `git commit` and if every thing is setup correctly, it should say that your branch is up to date.
 
 #### Running the Project
 
