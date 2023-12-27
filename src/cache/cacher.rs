@@ -70,12 +70,7 @@ pub trait Cacher: Send + Sync {
     fn hash_url(&self, url: &str) -> String {
         blake3::hash(url.as_bytes()).to_string()
     }
-
-  
-    /// A helper function that returns either compressed or encryption results
-    /// Feature flags are required  for this to work
     
-
     /// A helper function that returns either compressed or encryption results
     /// Feature flags are required  for this to work
     #[cfg(any(
@@ -105,14 +100,14 @@ pub trait Cacher: Send + Sync {
 	            ChaCha20Poly1305,
 	        };
 	
-		let cipher = CIPHER.get_or_init(|| {
-		        let key = ChaCha20Poly1305::generate_key(&mut OsRng);
-		        ChaCha20Poly1305::new(&key)
-		});
+            let cipher = CIPHER.get_or_init(|| {
+                let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+                ChaCha20Poly1305::new(&key)
+            });
 		
-		let encryption_key = ENCRYPTION_KEY.get_or_init(
-		        || ChaCha20Poly1305::generate_nonce(&mut OsRng), // 96-bits; unique per message
-		);
+            let encryption_key = ENCRYPTION_KEY.get_or_init(
+                || ChaCha20Poly1305::generate_nonce(&mut OsRng), // 96-bits; unique per message
+            );
 	
 	        bytes = cipher
 	            .encrypt(&encryption_key, bytes.as_ref())
