@@ -74,14 +74,15 @@ pub trait Cacher: Send + Sync {
   
     /// A helper function that returns either compressed or encryption results
     /// Feature flags are required  for this to work
+    
+
+    /// A helper function that returns either compressed or encryption results
+    /// Feature flags are required  for this to work
     #[cfg(any(
         feature = "compress-cache-results",
         feature = "encrypted-cache-results",
         feature = "cec-cache-results"
     ))]
-
-    /// A helper function that returns either compressed or encryption results
-    /// Feature flags are required  for this to work
     async fn compress_encrypt_results(
         &mut self,
         search_results: &str,
