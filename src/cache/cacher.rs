@@ -71,14 +71,14 @@ pub trait Cacher: Send + Sync {
         blake3::hash(url.as_bytes()).to_string()
     }
 
+  
+    /// A helper function that returns either compressed or encryption results
+    /// Feature flags are required  for this to work
     #[cfg(any(
         feature = "compress-cache-results",
         feature = "encrypted-cache-results",
         feature = "cec-cache-results"
     ))]
-
-    /// A helper function that returns either compressed or encryption results
-    /// Feature flags are required  for this to work
     async fn compressed_encrypted_results(
         &mut self,
         url: &str,
