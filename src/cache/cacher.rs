@@ -79,32 +79,45 @@ pub trait Cacher: Send + Sync {
         feature = "encrypted-cache-results",
         feature = "cec-cache-results"
     ))]
-    async fn compressed_encrypted_results(
+
+    /// A helper function that returns either compressed or encryption results
+    /// Feature flags are required  for this to work
+    async fn compress_encrypt_results(
         &mut self,
+        search_results: &str,
         url: &str,
     ) -> Result<Vec<u8>, Report<CacheError>> {
-        let results = self.cached_results(url).await?;
-
-        let mut bytes = serde_json::to_vec(&results).map_err(|_| CacheError::SerializationError)?;
-
+        let mut bytes = search_results.as_bytes();
+        
         #[cfg(feature = "compress-cache-results")]
-        use std::io::Write;
-        let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
-        writer.write_all(&bytes);
-        bytes = writer.into_inner();
+        {
+	        use std::io::Write;
+	        let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
+	        writer.write_all(&bytes);
+	        bytes = writer.into_inner();
+	        Ok(bytes)
+        }
         #[cfg(feature = "encrypt-cache-results")]
-        use chacha20poly1305::{
-            aead::{Aead, AeadCore, KeyInit, OsRng},
-            ChaCha20Poly1305,
-        };
-
-        let key = ChaCha20Poly1305::generate_key(&mut OsRng);
-        let cipher = ChaCha20Poly1305::new(&key);
-        let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng); // 96-bits; unique per message
-        bytes = cipher
-            .encrypt(&nonce, bytes.as_ref())
-            .map_err(|_| CacheError::EncryptionError)?;
-        Ok(bytes)
+        {
+	        use chacha20poly1305::{
+	            aead::{Aead, AeadCore, KeyInit, OsRng},
+	            ChaCha20Poly1305,
+	        };
+	
+		let cipher = CIPHER.get_or_init(|| {
+		        let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+		        ChaCha20Poly1305::new(&key)
+		});
+		
+		let encryption_key = ENCRYPTION_KEY.get_or_init(
+		        || ChaCha20Poly1305::generate_nonce(&mut OsRng), // 96-bits; unique per message
+		);
+	
+	        bytes = cipher
+	            .encrypt(&encryption_key, bytes.as_ref())
+	            .map_err(|_| CacheError::EncryptionError)?;
+	        Ok(bytes)
+        }
     }
 }
 
