@@ -69,13 +69,11 @@ pub async fn settings(
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     Ok(HttpResponse::Ok().body(
         crate::templates::views::settings::settings(
+            config.safe_search,
             &config.style.colorscheme,
             &config.style.theme,
             &config.style.animation,
-            &config
-                .upstream_search_engines
-                .keys()
-                .collect::<Vec<&String>>(),
+            &config.upstream_search_engines,
         )?
         .0,
     ))
