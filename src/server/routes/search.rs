@@ -68,16 +68,18 @@ pub async fn search(
                 get_results(page + 1)
             );
 
-            Ok(HttpResponse::Ok().body(
-                crate::templates::views::search::search(
-                    &config.style.colorscheme,
-                    &config.style.theme,
-                    &config.style.animation,
-                    query,
-                    &results?,
-                )
-                .0,
-            ))
+            Ok(HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(
+                    crate::templates::views::search::search(
+                        &config.style.colorscheme,
+                        &config.style.theme,
+                        &config.style.animation,
+                        query,
+                        &results?,
+                    )
+                    .0,
+                ))
         }
         None => Ok(HttpResponse::TemporaryRedirect()
             .insert_header(("location", "/"))
