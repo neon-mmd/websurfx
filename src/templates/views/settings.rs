@@ -1,5 +1,7 @@
 //! A module that handles the view for the settings page in the `websurfx` frontend.
 
+use std::collections::HashMap;
+
 use maud::{html, Markup};
 
 use crate::templates::partials::{
@@ -14,8 +16,10 @@ use crate::templates::partials::{
 ///
 /// # Arguments
 ///
+/// * `safe_search_level` - It takes the safe search level as an argument.
 /// * `colorscheme` - It takes the colorscheme name as an argument.
 /// * `theme` - It takes the theme name as an argument.
+/// * `animation` - It takes the animation name as an argument.
 /// * `engine_names` - It takes a list of engine names as an argument.
 ///
 /// # Error
@@ -23,10 +27,11 @@ use crate::templates::partials::{
 /// This function returns a compiled html markup code on success otherwise returns a standard error
 /// message.
 pub fn settings(
+    safe_search_level: u8,
     colorscheme: &str,
     theme: &str,
     animation: &Option<String>,
-    engine_names: &[&String],
+    engine_names: &HashMap<String, bool>,
 ) -> Result<Markup, Box<dyn std::error::Error>> {
     Ok(html!(
         (header(colorscheme, theme, animation))
@@ -41,8 +46,8 @@ pub fn settings(
                   .btn onclick="setActiveTab(this)"{"cookies"}
               }
               .main_container{
-                  (general())
-                  (user_interface()?)
+                  (general(safe_search_level))
+                  (user_interface(theme, colorscheme, animation)?)
                   (engines(engine_names))
                   (cookies())
                   p class="message"{}
