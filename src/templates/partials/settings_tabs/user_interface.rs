@@ -85,7 +85,7 @@ pub fn user_interface(
            select name="animations"{
                // Sets the user selected animation name from the config file as the first option in the selection list.
                option value=(animation.as_ref().unwrap_or(&"".to_owned())){(animation.as_ref().unwrap_or(&"".to_owned()).replace('-'," "))}
-               @for (k,v) in style_option_list("animations", &animation.as_ref().unwrap_or(&"".to_owned()))?{
+               @for (k,v) in style_option_list("animations", animation.as_ref().unwrap_or(&"".to_owned()))?{
                    option value=(k){(v)}
                }
            }

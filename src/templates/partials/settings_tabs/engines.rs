@@ -26,7 +26,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                // Checks whether all the engines are selected or not if they are then the
                // checked `select_all` button is rendered otherwise the unchecked version
                // is rendered.
-               @if engine_names.values().all(|selected| *selected == true){
+               @if engine_names.values().all(|selected| *selected){
                    .toggle_btn{
                       label class="switch"{
                          input type="checkbox" class="select_all" onchange="toggleAllSelection()" checked;
@@ -49,7 +49,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                    // Checks whether the `engine_name` is selected or not if they are then the
                    // checked `engine` button is rendered otherwise the unchecked version is
                    // rendered.
-                   @if *selected == true {
+                   @if *selected {
                        .toggle_btn{
                            label class="switch"{
                               input type="checkbox" class="engine" checked;

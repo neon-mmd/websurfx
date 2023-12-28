@@ -25,7 +25,7 @@ pub fn general(safe_search_level: u8) -> Markup {
            @if safe_search_level < 3 {
                select name="safe_search_levels" {
                    // Sets the user selected safe_search_level name from the config file as the first option in the selection list.
-                   option value=(safe_search_level){(SAFE_SEARCH_LEVELS.iter().filter(|level| level.0 == safe_search_level).next().unwrap().1)}
+                   option value=(safe_search_level){(SAFE_SEARCH_LEVELS.iter().find(|level| level.0 == safe_search_level).unwrap().1)}
                    @for (k,v) in SAFE_SEARCH_LEVELS.iter().filter(|level| level.0 != safe_search_level){
                      option value=(k){(v)}
                    }
