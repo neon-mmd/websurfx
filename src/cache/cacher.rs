@@ -73,6 +73,15 @@ pub trait Cacher: Send + Sync {
     
     /// A helper function that returns either compressed or encryption results
     /// Feature flags are required  for this to work
+    ///
+    /// # Arguments 
+    /// 
+    /// * `search_results` - It takes the json search results string as an argument.
+    /// * `url` - It takes the url of the queried pages as an argument.
+    ///
+    /// # Error
+    /// Returns the compressed or encrypted bytes on success otherwise it returns a CacheError
+    /// on failure.
     #[cfg(any(
         feature = "compress-cache-results",
         feature = "encrypted-cache-results",
