@@ -60,4 +60,4 @@
       # calls the build function
       packages.websurfx = packages.default;
     });
-
+}
