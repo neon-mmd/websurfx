@@ -600,10 +600,18 @@ footer div {
   text-transform: capitalize;
 }
 
-.settings_container .tab .description {
+.settings_container .tab .description,
+.settings_container .tab .admin_warning {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+}
+
+.settings_container .tab .description {
   color: var(--foreground-color);
+}
+
+.settings_container .tab .admin_warning {
+  color: var(--color-two);
 }
 
 .settings_container .user_interface select,
