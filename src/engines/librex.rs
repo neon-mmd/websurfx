@@ -65,17 +65,10 @@ impl SearchEngine for LibreX {
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
-        let url: String = match page {
-            1 | 0 => {
-                format!("https://search.ahwx.org/search.php?q={query}&p=0&t=10")
-            }
-            _ => {
-                format!(
-                    "https://search.ahwx.org/search.php?q={query}&p={}&t=10",
-                    page * 10,
-                )
-            }
-        };
+        let url: String = format!(
+            "https://search.ahwx.org/search.php?q={query}&p={}&t=10",
+            page * 10
+        );
 
         // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([

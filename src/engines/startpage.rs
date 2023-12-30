@@ -50,17 +50,10 @@ impl SearchEngine for Startpage {
     ) -> Result<HashMap<String, SearchResult>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
-        let url: String = match page {
-            1 | 0 => {
-                format!("https://startpage.com/do/dsearch?q={query}&num=10&start=0")
-            }
-            _ => {
-                format!(
-                    "https://startpage.com/do/dsearch?q={query}&num=10&start={}",
-                    page * 10,
-                )
-            }
-        };
+        let url: String = format!(
+            "https://startpage.com/do/dsearch?q={query}&num=10&start={}",
+            page * 10,
+        );
 
         // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([
