@@ -75,13 +75,11 @@ pub async fn settings(
         .content_type("text/html; charset=utf-8")
         .body(
             crate::templates::views::settings::settings(
+                config.safe_search,
                 &config.style.colorscheme,
                 &config.style.theme,
                 &config.style.animation,
-                &config
-                    .upstream_search_engines
-                    .keys()
-                    .collect::<Vec<&String>>(),
+                &config.upstream_search_engines,
             )?
             .0,
         ))
