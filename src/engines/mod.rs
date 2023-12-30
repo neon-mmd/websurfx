@@ -6,6 +6,7 @@
 pub mod brave;
 pub mod duckduckgo;
 pub mod librex;
+pub mod mojeek;
 pub mod search_result_parser;
 pub mod searx;
 pub mod startpage;

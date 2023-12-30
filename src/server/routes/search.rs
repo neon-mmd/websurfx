@@ -59,11 +59,11 @@ pub async fn search(
                 )
             };
 
-            // .max(1) makes sure that the page > 0.
-            let page = params.page.unwrap_or(1).max(1);
+            // .max(1) makes sure that the page >= 0.
+            let page = params.page.unwrap_or(1).max(1) - 1;
 
             let (_, results, _) = join!(
-                get_results(page - 1),
+                get_results(page.saturating_sub(1)),
                 get_results(page),
                 get_results(page + 1)
             );
