@@ -144,7 +144,7 @@ async fn results(
             .upstream_search_engines
             .iter()
             .filter(|map| *map.1)
-            .map(|map| String::from(&(*map.0)))
+            .map(|map| String::from(map.0))
             .collect();
 
         engines.sort();
