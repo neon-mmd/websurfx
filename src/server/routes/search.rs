@@ -139,6 +139,16 @@ async fn results(
         // We sort the list of engine so the cache keys will match between users. The cookie's list of engines is unordered.
         engines.sort();
         cache_key = cache_key + &(engines.join(""));
+    } else {
+        let mut engines: Vec<String> = config
+            .upstream_search_engines
+            .iter()
+            .filter(|map| *map.1)
+            .map(|map| String::from(&(*map.0)))
+            .collect();
+
+        engines.sort();
+        cache_key = cache_key + &(engines.join(""));
     }
 
     // fetch the cached results json.
