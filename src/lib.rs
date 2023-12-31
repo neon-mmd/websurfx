@@ -21,7 +21,12 @@ use crate::server::router;
 use actix_cors::Cors;
 use actix_files as fs;
 use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{dev::Server, http::header, middleware::Logger, web, App, HttpServer};
+use actix_web::{
+    dev::Server,
+    http::header,
+    middleware::{Compress, Logger},
+    web, App, HttpServer,
+};
 use cache::cacher::{Cacher, SharedCache};
 use config::parser::Config;
 use handler::{file_path, FileType};
@@ -73,6 +78,8 @@ pub fn run(
             ]);
 
         App::new()
+            // Compress the responses provided by the server for the client requests.
+            .wrap(Compress::default())
             .wrap(Logger::default()) // added logging middleware for logging.
             .app_data(web::Data::new(config.clone()))
             .app_data(cache.clone())
