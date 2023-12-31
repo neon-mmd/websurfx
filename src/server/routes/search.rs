@@ -123,10 +123,23 @@ async fn results(
         config.safe_search,
     );
 
-    let cache_key = format!(
+    let mut cache_key = format!(
         "http://{}:{}/search?q={}&page={}&safesearch={}",
         config.binding_ip, config.port, query, page, safe_search_level
     );
+
+    // Modify the cache key adding each enabled search engine to the string
+    if let Some(cookie_value) = &cookie_value {
+        let mut engines: Vec<String> = cookie_value
+            .engines
+            .iter()
+            .map(|s| String::from(*s))
+            .collect::<Vec<String>>();
+
+        // We sort the list of engine so the cache keys will match between users. The cookie's list of engines is unordered.
+        engines.sort();
+        cache_key = cache_key + &(engines.join(""));
+    }
 
     // fetch the cached results json.
     let cached_results = cache.cached_results(&cache_key).await;
