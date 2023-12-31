@@ -11,7 +11,7 @@ use crate::{
     },
     results::aggregator::aggregate,
 };
-use actix_web::{get, web, HttpRequest, HttpResponse};
+use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
 use std::{
     fs::File,
@@ -68,7 +68,7 @@ pub async fn search(
                 get_results(page + 1)
             );
 
-            Ok(HttpResponse::Ok()
+            Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
                 .content_type("text/html; charset=utf-8")
                 .body(
                     crate::templates::views::search::search(

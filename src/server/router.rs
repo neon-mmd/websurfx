@@ -6,22 +6,20 @@ use crate::{
     config::parser::Config,
     handler::{file_path, FileType},
 };
-use actix_web::{get, web, HttpRequest, HttpResponse};
+use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use std::fs::read_to_string;
 
 /// Handles the route of index page or main page of the `websurfx` meta search engine website.
 #[get("/")]
 pub async fn index(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(
-            crate::templates::views::index::index(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-            )
-            .0,
-        ))
+    Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+        crate::templates::views::index::index(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+        )
+        .0,
+    ))
 }
 
 /// Handles the route of any other accessed route/page which is not provided by the
@@ -29,16 +27,14 @@ pub async fn index(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn st
 pub async fn not_found(
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(
-            crate::templates::views::not_found::not_found(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-            )
-            .0,
-        ))
+    Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+        crate::templates::views::not_found::not_found(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+        )
+        .0,
+    ))
 }
 
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.
@@ -47,23 +43,21 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
     let page_content: String =
         read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
     Ok(HttpResponse::Ok()
-        .content_type("text/plain; charset=ascii")
+        .content_type(ContentType::plaintext())
         .body(page_content))
 }
 
 /// Handles the route of about page of the `websurfx` meta search engine website.
 #[get("/about")]
 pub async fn about(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(
-            crate::templates::views::about::about(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-            )
-            .0,
-        ))
+    Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+        crate::templates::views::about::about(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+        )
+        .0,
+    ))
 }
 
 /// Handles the route of settings page of the `websurfx` meta search engine website.
@@ -71,16 +65,16 @@ pub async fn about(config: web::Data<Config>) -> Result<HttpResponse, Box<dyn st
 pub async fn settings(
     config: web::Data<Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(
-            crate::templates::views::settings::settings(
-                config.safe_search,
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-                &config.upstream_search_engines,
-            )?
-            .0,
-        ))
+    Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+        crate::templates::views::settings::settings(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+            &config
+                .upstream_search_engines
+                .keys()
+                .collect::<Vec<&String>>(),
+        )?
+        .0,
+    ))
 }
