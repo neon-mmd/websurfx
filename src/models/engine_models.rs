@@ -166,6 +166,10 @@ impl EngineHandler {
                     let engine = crate::engines::mojeek::Mojeek::new()?;
                     ("mojeek", Box::new(engine))
                 }
+                "bing" => {
+                    let engine = crate::engines::bing::Bing::new()?;
+                    ("bing", Box::new(engine))
+                }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(
                         engine_name.to_string(),
