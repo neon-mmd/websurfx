@@ -6,7 +6,7 @@ use crate::{
     handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
-        engine_models::{EngineError, EngineHandler},
+        engine_models::EngineHandler,
         server_models::{Cookie, SearchParams},
     },
     results::aggregator::aggregate,
@@ -126,27 +126,27 @@ async fn results(
         config.binding_ip, config.port, query, page, safe_search_level
     );
 
+    let mut cookie_engines: Vec<String> = vec![];
+    let mut config_engines: Vec<String> = config
+        .upstream_search_engines
+        .iter()
+        .filter_map(|(engine, enabled)| enabled.then_some(engine.clone()))
+        .collect();
+    config_engines.sort();
+
     // Modify the cache key adding each enabled search engine to the string
     if let Some(cookie_value) = &cookie_value {
-        let mut engines: Vec<String> = cookie_value
+        cookie_engines = cookie_value
             .engines
             .iter()
             .map(|s| String::from(*s))
             .collect::<Vec<String>>();
 
         // We sort the list of engine so the cache keys will match between users. The cookie's list of engines is unordered.
-        engines.sort();
-        cache_key = format!("{}{}", cache_key, engines.join(","));
+        cookie_engines.sort();
+        cache_key = format!("{}{}", cache_key, cookie_engines.join(","));
     } else {
-        let mut engines: Vec<String> = config
-            .upstream_search_engines
-            .iter()
-            .filter(|map| *map.1)
-            .map(|map| String::from(map.0))
-            .collect();
-
-        engines.sort();
-        cache_key = format!("{}{}", cache_key, engines.join(","));
+        cache_key = format!("{}{}", cache_key, config_engines.join(","));
     }
 
     // fetch the cached results json.
@@ -175,9 +175,10 @@ async fn results(
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
             let mut results: SearchResults = match cookie_value {
-                Some(cookie_value) => {
-                    let engines: Vec<EngineHandler> = cookie_value
-                        .engines
+                // If the cookie was used before
+                Some(_) => {
+                    // Use the cookie_engines Strings from before to create the EngineHandlers
+                    let engines: Vec<EngineHandler> = cookie_engines
                         .iter()
                         .filter_map(|name| EngineHandler::new(name).ok())
                         .collect();
@@ -202,23 +203,22 @@ async fn results(
                         }
                     }
                 }
-                None => aggregate(
-                    query,
-                    page,
-                    config.aggregator.random_delay,
-                    config.debug,
-                    &config
-                        .upstream_search_engines
-                        .clone()
-                        .into_iter()
-                        .filter_map(|(key, value)| value.then_some(key))
-                        .map(|engine| EngineHandler::new(&engine))
-                        .collect::<Result<Vec<EngineHandler>, error_stack::Report<EngineError>>>(
-                        )?,
-                    config.request_timeout,
-                    safe_search_level,
-                )
-                .await?,
+                // Otherwise, use the config_engines to create the EngineHandlers
+                None => {
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        &config_engines
+                            .into_iter()
+                            .filter_map(|engine| EngineHandler::new(&engine).ok())
+                            .collect::<Vec<EngineHandler>>(),
+                        config.request_timeout,
+                        safe_search_level,
+                    )
+                    .await?
+                }
             };
             if results.engine_errors_info().is_empty()
                 && results.results().is_empty()
