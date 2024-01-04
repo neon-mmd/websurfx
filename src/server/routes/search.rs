@@ -144,9 +144,9 @@ async fn results(
 
         // We sort the list of engine so the cache keys will match between users. The cookie's list of engines is unordered.
         cookie_engines.sort();
-        cache_key = format!("{}{}", cache_key, cookie_engines.join(","));
+        cache_key = format!("{cache_key}&engines={}", cookie_engines.join(","));
     } else {
-        cache_key = format!("{}{}", cache_key, config_engines.join(","));
+        cache_key = format!("{cache_key}&engines={}", config_engines.join(","));
     }
 
     // fetch the cached results json.
