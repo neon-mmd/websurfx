@@ -40,6 +40,8 @@ actix-governor = {version="0.5.0", default-features=false}
 mini-moka = { version="0.10", optional = true, default-features=false, features=["sync"]}
 brotli = { version = "3.4.0", default-features = false, features=["std"], optional=true}
 chacha20poly1305={version="0.10.1", default-features=false, features=["alloc","getrandom"], optional=true}
+base64 = {version= "0.21.5", optional = true}
+chacha20 = "0.9.1"
 
 [dev-dependencies]
 rusty-hook = {version="^0.11.2", default-features=false}
@@ -81,6 +83,6 @@ default = ["memory-cache"]
 dhat-heap = ["dep:dhat"] 
 memory-cache = ["dep:mini-moka"]
 redis-cache = ["dep:redis"]
-compress-cache-results = ["dep:brotli"]
-encrypt-cache-results = ["dep:chacha20poly1305"]
+compress-cache-results = ["dep:brotli","dep:base64"]
+encrypt-cache-results = ["dep:chacha20poly1305","dep:base64"]
 
