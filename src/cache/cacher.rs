@@ -4,6 +4,7 @@
 use error_stack::Report;
 #[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
+use regex::bytes;
 
 #[cfg(feature = "memory-cache")]
 use std::time::Duration;
@@ -299,10 +300,14 @@ impl Cacher for RedisCache {
     }
 
     async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
+        use base64::Engine;
         let hashed_url_string: &str = &self.hash_url(url);
-        let json = self.cached_json(hashed_url_string).await?;
-        Ok(serde_json::from_str::<SearchResults>(&json)
-            .map_err(|_| CacheError::SerializationError)?)
+        let base64_string = self.cached_json(hashed_url_string).await?;
+
+        let bytes = base64::engine::general_purpose::STANDARD_NO_PAD
+            .decode(&base64_string)
+            .map_err(|_| CacheError::Base64DecodingOrEncodingError)?;
+        self.post_process_search_results(bytes)
     }
 
     async fn cache_results(
@@ -310,10 +315,11 @@ impl Cacher for RedisCache {
         search_results: &SearchResults,
         url: &str,
     ) -> Result<(), Report<CacheError>> {
-        let json =
-            serde_json::to_string(search_results).map_err(|_| CacheError::SerializationError)?;
+        use base64::Engine;
+        let bytes = self.pre_process_search_results(search_results)?;
+        let base64_string = base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes);
         let hashed_url_string = self.hash_url(url);
-        self.cache_json(&json, &hashed_url_string).await
+        self.cache_json(&base64_string, &hashed_url_string).await
     }
 }
 /// TryInto implementation for SearchResults from Vec<u8>

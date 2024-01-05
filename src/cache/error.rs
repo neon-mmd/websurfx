@@ -22,6 +22,8 @@ pub enum CacheError {
     EncryptionError,
     /// Whenever compression of  the cache results fails
     CompressionError,
+    /// Whenever base64 decoding failed
+    Base64DecodingOrEncodingError,
 }
 
 impl fmt::Display for CacheError {
@@ -54,6 +56,10 @@ impl fmt::Display for CacheError {
 
             CacheError::CompressionError => {
                 write!(f, "failed to compress or uncompress cache results")
+            }
+
+            CacheError::Base64DecodingOrEncodingError=> {
+                write!(f, "base64 encoding or decoding failed")
             }
         }
     }
