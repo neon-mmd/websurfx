@@ -1,7 +1,6 @@
-
-  use chacha20poly1305::{
+use chacha20poly1305::{
     consts::{B0, B1},
-     ChaChaPoly1305,
+    ChaChaPoly1305,
 };
 use std::sync::OnceLock;
 
@@ -20,6 +19,6 @@ pub static CIPHER: OnceLock<
     >,
 > = OnceLock::new();
 
-pub static ENCRYPTION_KEY: OnceLock<GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>> =
-    OnceLock::new();
- 
+pub static ENCRYPTION_KEY: OnceLock<
+    GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
+> = OnceLock::new();
