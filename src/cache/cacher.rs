@@ -191,11 +191,84 @@ pub trait Cacher: Send + Sync {
 
         #[cfg(feature = "cec-cache-results")]
         {
-            let decompressd = decompress_util(&mut writer, bytes)?;
-            let decrypted = self.encrypt_or_decrypt_results(decompressd, false)?;
+            let decompressed = decompress_util(&mut writer, bytes)?;
+            let decrypted = self.encrypt_or_decrypt_results(decompressed, false)?;
 
             decompress_util(&mut writer, decrypted)
         }
+    }
+
+    /// A helper function that compresses or encrypts search results before they're inserted into a cache store
+
+    /// # Arguments
+    ///
+    /// * `search_results` - A reference to the search_Results to process.
+    ///
+
+    ///
+    /// # Error
+    /// Returns a Vec of compressed or encrypted bytes on success otherwise it returns a CacheError
+    /// on failure.
+    fn pre_process_search_results(
+        &mut self,
+        search_results: &SearchResults,
+    ) -> Result<Vec<u8>, Report<CacheError>> {
+        let mut bytes: Vec<u8> = search_results.try_into()?;
+        #[cfg(feature = "compress-cache-results")]
+        {
+            let compressed = self.compress_results(&bytes)?;
+            bytes = compressed.into();
+        }
+
+        #[cfg(feature = "encrypt-cache-results")]
+        {
+            let encrypted = self.encrypt_or_decrypt_results(&bytes, true)?;
+            bytes = encrypted.into();
+        }
+
+        #[cfg(feature = "cec-cache-results")]
+        {
+            let compressed_encrypted_compressed = self.compress_encrypt_compress_results(&bytes)?;
+            bytes = compressed_encrypted_compressed.into();
+        }
+
+        Ok(bytes)
+    }
+
+    /// A helper function that decompresses or decrypts search results after they're fetched from the cache-store
+
+    /// # Arguments
+    ///
+    /// * `bytes` - A Vec of bytes stores in the cache.
+    ///
+
+    ///
+    /// # Error
+    /// Returns the SearchResults struct on success otherwise it returns a CacheError
+    /// on failure.
+    fn post_process_search_results(
+        &mut self,
+        mut bytes: Vec<u8>,
+    ) -> Result<SearchResults, Report<CacheError>> {
+        #[cfg(feature = "compress-cache-results")]
+        {
+            let decompressed = self.decompress_results(&bytes)?;
+            bytes = decompressed.into();
+        }
+
+        #[cfg(feature = "encrypt-cache-results")]
+        {
+            let decrypted = self.encrypt_or_decrypt_results(&bytes, false)?;
+            bytes = decrypted.into();
+        }
+
+        #[cfg(feature = "cec-cache-results")]
+        {
+            let decompressed_decrypted = self.decompress_results(&bytes)?;
+            bytes = decompressed_decrypted.into();
+        }
+
+        Ok(bytes.try_into()?)
     }
 }
 #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
@@ -243,12 +316,30 @@ impl Cacher for RedisCache {
         self.cache_json(&json, &hashed_url_string).await
     }
 }
+/// TryInto implementation for SearchResults from Vec<u8>
+use std::convert::TryInto;
+
+impl TryInto<SearchResults> for Vec<u8> {
+    type Error = CacheError;
+
+    fn try_into(self) -> Result<SearchResults, Self::Error> {
+        serde_json::from_slice(&self).map_err(|_| CacheError::SerializationError)
+    }
+}
+
+impl TryInto<Vec<u8>> for &SearchResults {
+    type Error = CacheError;
+
+    fn try_into(self) -> Result<Vec<u8>, Self::Error> {
+        serde_json::to_vec(self).map_err(|_| CacheError::SerializationError)
+    }
+}
 
 /// Memory based cache backend.
 #[cfg(feature = "memory-cache")]
 pub struct InMemoryCache {
     /// The backend cache which stores data.
-    cache: MokaCache<String, SearchResults>,
+    cache: MokaCache<String, Vec<u8>>,
 }
 
 #[cfg(feature = "memory-cache")]
@@ -267,7 +358,7 @@ impl Cacher for InMemoryCache {
     async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
         let hashed_url_string = self.hash_url(url);
         match self.cache.get(&hashed_url_string) {
-            Some(res) => Ok(res),
+            Some(res) => self.post_process_search_results(res),
             None => Err(Report::new(CacheError::MissingValue)),
         }
     }
@@ -278,7 +369,8 @@ impl Cacher for InMemoryCache {
         url: &str,
     ) -> Result<(), Report<CacheError>> {
         let hashed_url_string = self.hash_url(url);
-        self.cache.insert(hashed_url_string, search_results.clone());
+        let bytes = self.pre_process_search_results(search_results)?;
+        self.cache.insert(hashed_url_string, bytes);
         Ok(())
     }
 }
