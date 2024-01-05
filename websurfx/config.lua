@@ -65,4 +65,5 @@ upstream_search_engines = {
     Startpage = false,
     LibreX = false,
     Mojeek = false,
+    Bing = false,
 } -- select the upstream search engines from which the results should be fetched.
