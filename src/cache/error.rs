@@ -58,7 +58,7 @@ impl fmt::Display for CacheError {
                 write!(f, "failed to compress or uncompress cache results")
             }
 
-            CacheError::Base64DecodingOrEncodingError=> {
+            CacheError::Base64DecodingOrEncodingError => {
                 write!(f, "base64 encoding or decoding failed")
             }
         }
