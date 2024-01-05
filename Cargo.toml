@@ -82,8 +82,8 @@ strip = "debuginfo"
 default = ["memory-cache"]
 dhat-heap = ["dep:dhat"] 
 memory-cache = ["dep:mini-moka"]
-redis-cache = ["dep:redis"]
-compress-cache-results = ["dep:brotli","dep:base64"]
-encrypt-cache-results = ["dep:chacha20poly1305","dep:base64","dep:chacha20"]
+redis-cache = ["dep:redis","dep:base64"]
+compress-cache-results = ["dep:brotli"]
+encrypt-cache-results = ["dep:chacha20poly1305","dep:chacha20"]
 cec-cache-results = ["compress-cache-results","encrypt-cache-results"]
 
