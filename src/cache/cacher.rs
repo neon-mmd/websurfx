@@ -15,6 +15,14 @@ use super::error::CacheError;
 #[cfg(feature = "redis-cache")]
 use super::redis_cacher::RedisCache;
 
+#[cfg(any(   
+        feature = "encrypt-cache-results",
+        feature = "cec-cache-results"
+    ))]
+
+ use super::encryption::*;
+
+
 /// Abstraction trait for common methods provided by a cache backend.
 #[async_trait::async_trait]
 pub trait Cacher: Send + Sync {
@@ -84,7 +92,7 @@ pub trait Cacher: Send + Sync {
     /// on failure.
     #[cfg(any(
         feature = "compress-cache-results",
-        feature = "encrypted-cache-results",
+        feature = "encrypt-cache-results",
         feature = "cec-cache-results"
     ))]
     async fn compress_encrypt_results(
@@ -118,12 +126,16 @@ pub trait Cacher: Send + Sync {
                 || ChaCha20Poly1305::generate_nonce(&mut OsRng), // 96-bits; unique per message
             );
 	
-	        bytes = cipher
+	        bytes = &cipher
 	            .encrypt(&encryption_key, bytes.as_ref())
 	            .map_err(|_| CacheError::EncryptionError)?;
-	        Ok(bytes)
+
+	        Ok(bytes.to_vec())
         }
     }
+      
+
+
 }
 
 #[cfg(feature = "redis-cache")]
