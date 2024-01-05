@@ -4,7 +4,7 @@
 use error_stack::Report;
 #[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
-use regex::bytes;
+
 
 #[cfg(feature = "memory-cache")]
 use std::time::Duration;
