@@ -3,6 +3,7 @@
 //! provide a standard functions to be implemented for all the upstream search engine handling
 //! code. Moreover, it also provides a custom error for the upstream search engine handling code.
 
+pub mod bing;
 pub mod brave;
 pub mod duckduckgo;
 pub mod librex;
