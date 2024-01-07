@@ -16,6 +16,8 @@ pub fn bar(query: &str) -> Markup {
     html!(
         (PreEscaped("<div class=\"search_bar\">"))
             input type="search" name="search-box" value=(query) placeholder="Type to search";
-            button type="submit" onclick="searchWeb()"{"search"}
+            button type="submit" onclick="searchWeb()" {
+                img src="./images/magnifying_glass.svg" alt="Info icon for error box";
+            }
     )
 }
