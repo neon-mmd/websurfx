@@ -2,7 +2,7 @@
 //!
 //! This module contains the main function which handles the logging of the application to the
 //! stdout and handles the command line arguments provided and launches the `websurfx` server.
-
+#[allow(unused_imports)]
 use mimalloc::MiMalloc;
 use std::net::TcpListener;
 use websurfx::{cache::cacher::create_cache, config::parser::Config, run};
