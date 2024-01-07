@@ -42,6 +42,7 @@ brotli = { version = "3.4.0", default-features = false, features=["std"], option
 chacha20poly1305={version="0.10.1", default-features=false, features=["alloc","getrandom"], optional=true}
 chacha20 = {version="0.9.1", default-features=false, optional=true}
 base64 = {version="0.21.5", default-features=false, features=["std"], optional=true}
+cfg-if = "1.0.0"
 
 [dev-dependencies]
 rusty-hook = {version="^0.11.2", default-features=false}

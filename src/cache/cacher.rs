@@ -93,9 +93,9 @@ pub trait Cacher: Send + Sync {
     ))]
     fn encrypt_or_decrypt_results(
         &mut self,
-        mut bytes: &[u8],
+        mut bytes: Vec<u8>,
         encrypt: bool,
-    ) -> Result<&[u8], Report<CacheError>> {
+    ) -> Result<Vec<u8>, Report<CacheError>> {
         use chacha20poly1305::{
             aead::{Aead, AeadCore, KeyInit, OsRng},
             ChaCha20Poly1305,
@@ -111,12 +111,12 @@ pub trait Cacher: Send + Sync {
         );
 
         bytes = if encrypt {
-            &cipher
-                .encrypt(&encryption_key, bytes.as_ref())
+            cipher
+                .encrypt(encryption_key, bytes.as_ref())
                 .map_err(|_| CacheError::EncryptionError)?
         } else {
-            &cipher
-                .decrypt(&encryption_key, bytes.as_ref())
+            cipher
+                .decrypt(encryption_key, bytes.as_ref())
                 .map_err(|_| CacheError::EncryptionError)?
         };
 
@@ -135,11 +135,13 @@ pub trait Cacher: Send + Sync {
     /// Returns the compressed bytes on success otherwise it returns a CacheError
     /// on failure.
     #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    fn compress_results(&mut self, mut bytes: &[u8]) -> Result<&[u8], Report<CacheError>> {
+    fn compress_results(&mut self, mut bytes: Vec<u8>) -> Result<Vec<u8>, Report<CacheError>> {
         use std::io::Write;
         let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
-        writer.write_all(&bytes);
-        bytes = &writer.into_inner();
+        writer
+            .write_all(&bytes)
+            .map_err(|_| CacheError::CompressionError)?;
+        bytes = writer.into_inner();
         Ok(bytes)
     }
 
@@ -157,8 +159,8 @@ pub trait Cacher: Send + Sync {
     #[cfg(feature = "cec-cache-results")]
     fn compress_encrypt_compress_results(
         &mut self,
-        mut bytes: &[u8],
-    ) -> Result<&[u8], Report<CacheError>> {
+        mut bytes: Vec<u8>,
+    ) -> Result<Vec<u8>, Report<CacheError>> {
         // compress first
         bytes = self.compress_results(bytes)?;
         // encrypt
@@ -183,18 +185,21 @@ pub trait Cacher: Send + Sync {
     /// on failure.
 
     #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    fn decompress_results(&mut self, mut bytes: &[u8]) -> Result<&[u8], Report<CacheError>> {
-        let mut writer = brotli::DecompressorWriter::new(Vec::new(), 4096);
+    fn decompress_results(&mut self, bytes: &[u8]) -> Result<Vec<u8>, Report<CacheError>> {
+        cfg_if::cfg_if! {
+             if #[cfg(feature = "compress-cache-results")]
+            {
+               decompress_util(bytes)
 
-        #[cfg(feature = "compress-cache-results")]
-        decompress_util(&mut writer, bytes);
+            }
+            else if  #[cfg(feature = "cec-cache-results")]
+            {
+                let decompressed = decompress_util(bytes)?;
+                let decrypted = self.encrypt_or_decrypt_results(decompressed, false)?;
 
-        #[cfg(feature = "cec-cache-results")]
-        {
-            let decompressed = decompress_util(&mut writer, bytes)?;
-            let decrypted = self.encrypt_or_decrypt_results(decompressed, false)?;
+                decompress_util(&decrypted)
 
-            decompress_util(&mut writer, decrypted)
+            }
         }
     }
 
@@ -213,23 +218,24 @@ pub trait Cacher: Send + Sync {
         &mut self,
         search_results: &SearchResults,
     ) -> Result<Vec<u8>, Report<CacheError>> {
+        #[allow(unused_mut)] // needs to be mutable when any of the features is enabled
         let mut bytes: Vec<u8> = search_results.try_into()?;
         #[cfg(feature = "compress-cache-results")]
         {
-            let compressed = self.compress_results(&bytes)?;
-            bytes = compressed.into();
+            let compressed = self.compress_results(bytes)?;
+            bytes = compressed;
         }
 
         #[cfg(feature = "encrypt-cache-results")]
         {
-            let encrypted = self.encrypt_or_decrypt_results(&bytes, true)?;
-            bytes = encrypted.into();
+            let encrypted = self.encrypt_or_decrypt_results(bytes, true)?;
+            bytes = encrypted;
         }
 
         #[cfg(feature = "cec-cache-results")]
         {
-            let compressed_encrypted_compressed = self.compress_encrypt_compress_results(&bytes)?;
-            bytes = compressed_encrypted_compressed.into();
+            let compressed_encrypted_compressed = self.compress_encrypt_compress_results(bytes)?;
+            bytes = compressed_encrypted_compressed;
         }
 
         Ok(bytes)
@@ -246,6 +252,8 @@ pub trait Cacher: Send + Sync {
     /// # Error
     /// Returns the SearchResults struct on success otherwise it returns a CacheError
     /// on failure.
+
+    #[allow(unused_mut)] // needs to be mutable when any of the features is enabled
     fn post_process_search_results(
         &mut self,
         mut bytes: Vec<u8>,
@@ -253,36 +261,49 @@ pub trait Cacher: Send + Sync {
         #[cfg(feature = "compress-cache-results")]
         {
             let decompressed = self.decompress_results(&bytes)?;
-            bytes = decompressed.into();
+            bytes = decompressed
         }
 
         #[cfg(feature = "encrypt-cache-results")]
         {
-            let decrypted = self.encrypt_or_decrypt_results(&bytes, false)?;
-            bytes = decrypted.into();
+            let decrypted = self.encrypt_or_decrypt_results(bytes, false)?;
+            bytes = decrypted
         }
 
         #[cfg(feature = "cec-cache-results")]
         {
             let decompressed_decrypted = self.decompress_results(&bytes)?;
-            bytes = decompressed_decrypted.into();
+            bytes = decompressed_decrypted;
         }
 
         Ok(bytes.try_into()?)
     }
 }
-#[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-fn decompress_util<'a>(
-    writer: &'a mut brotli::DecompressorWriter<Vec<u8>>,
-    input: &[u8],
-) -> Result<&'a [u8], Report<CacheError>> {
-    use std::io::Write;
 
-    writer.write_all(&input);
+/// A helper function that returns compressed results.
+/// Feature flags (**compress-cache-results or cec-cache-results**) are required  for this to work.
+/// If bytes where
+/// # Arguments
+///
+/// * `bytes` - It takes a slice of bytes as an argument.
+
+///
+/// # Error
+/// Returns the uncompressed bytes on success otherwise it returns a CacheError
+/// on failure.
+
+#[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
+fn decompress_util(input: &[u8]) -> Result<Vec<u8>, Report<CacheError>> {
+    use std::io::Write;
+    let mut writer = brotli::DecompressorWriter::new(Vec::new(), 4096);
+
+    writer
+        .write_all(input)
+        .map_err(|_| CacheError::CompressionError)?;
     let bytes = writer
         .into_inner()
         .map_err(|_| CacheError::CompressionError)?;
-    Ok(&bytes)
+    Ok(bytes)
 }
 
 #[cfg(feature = "redis-cache")]
@@ -304,7 +325,7 @@ impl Cacher for RedisCache {
         let base64_string = self.cached_json(hashed_url_string).await?;
 
         let bytes = base64::engine::general_purpose::STANDARD_NO_PAD
-            .decode(&base64_string)
+            .decode(base64_string)
             .map_err(|_| CacheError::Base64DecodingOrEncodingError)?;
         self.post_process_search_results(bytes)
     }
