@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use chacha20poly1305::{
     consts::{B0, B1},
     ChaChaPoly1305,
@@ -13,12 +14,13 @@ use chacha20::{
     ChaChaCore,
 };
 
+/// OUR CIPHER, only initialised once
 pub static CIPHER: OnceLock<
     ChaChaPoly1305<
         StreamCipherCoreWrapper<ChaChaCore<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B1>, B0>>>,
     >,
 > = OnceLock::new();
-
+/// OUR ENCRYPTION KEY
 pub static ENCRYPTION_KEY: OnceLock<
     GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>,
 > = OnceLock::new();
