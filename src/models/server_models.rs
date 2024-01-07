@@ -2,6 +2,8 @@
 //! engine website.
 use serde::Deserialize;
 
+use super::parser_models::Style;
+
 /// A named struct which deserializes all the user provided search parameters and stores them.
 #[derive(Deserialize)]
 pub struct SearchParams {
@@ -19,13 +21,26 @@ pub struct SearchParams {
 /// A named struct which is used to deserialize the cookies fetched from the client side.
 #[allow(dead_code)]
 #[derive(Deserialize)]
-pub struct Cookie<'a> {
+pub struct Cookie {
     /// It stores the theme name used in the website.
-    pub theme: &'a str,
+    pub theme: String,
     /// It stores the colorscheme name used for the website theme.
-    pub colorscheme: &'a str,
+    pub colorscheme: String,
     /// It stores the user selected upstream search engines selected from the UI.
-    pub engines: Vec<&'a str>,
+    pub engines: Vec<String>,
     /// It stores the user selected safe search level from the UI.
     pub safe_search_level: u8,
+}
+
+impl Cookie {
+    /// server_models::Cookie contructor function
+    pub fn build(style: &Style, mut engines: Vec<String>, safe_search_level: u8) -> Self {
+        engines.sort();
+        Self {
+            theme: style.theme.clone(),
+            colorscheme: style.colorscheme.clone(),
+            engines,
+            safe_search_level,
+        }
+    }
 }

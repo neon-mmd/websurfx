@@ -7,7 +7,7 @@ use crate::{
     models::{
         aggregation_models::SearchResults,
         engine_models::EngineHandler,
-        server_models::{Cookie, SearchParams},
+        server_models::{self, SearchParams},
     },
     results::aggregator::aggregate,
 };
@@ -48,16 +48,36 @@ pub async fn search(
                     .finish());
             }
 
-            let get_results = |page| {
-                results(
-                    &config,
-                    &cache,
-                    query,
-                    page,
-                    req.clone(),
-                    &params.safesearch,
+            // Closure to build a server_models::Cookie capturing local references
+            let build_cookie = || {
+                server_models::Cookie::build(
+                    &config.style,
+                    config
+                        .upstream_search_engines
+                        .clone()
+                        .into_iter()
+                        .filter_map(|engine_map| engine_map.1.then_some(engine_map.0))
+                        .collect(),
+                    config.safe_search,
                 )
             };
+
+            // Get search settings using the user's cookie or from the server's config
+            let search_settings: server_models::Cookie = match req.cookie("appCookie") {
+                Some(cookie_value) => {
+                    if let Ok(cookie) = serde_json::from_str(cookie_value.value()) {
+                        cookie
+                    // If there's an issue parsing the cookie's value, default to the config
+                    } else {
+                        build_cookie()
+                    }
+                }
+                // If there's no cookie saved, use the server's config
+                None => build_cookie(),
+            };
+
+            // Closure wrapping the results function capturing local references
+            let get_results = |page| results(&config, &cache, query, page, &search_settings);
 
             // .max(1) makes sure that the page >= 0.
             let page = params.page.unwrap_or(1).max(1) - 1;
@@ -105,49 +125,20 @@ async fn results(
     cache: &web::Data<SharedCache>,
     query: &str,
     page: u32,
-    req: HttpRequest,
-    safe_search: &Option<u8>,
+    user_settings: &server_models::Cookie,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     // eagerly parse cookie value to evaluate safe search level
-    let cookie_value = req.cookie("appCookie");
+    let safe_search_level = user_settings.safe_search_level;
 
-    let cookie_value: Option<Cookie<'_>> = cookie_value
-        .as_ref()
-        .and_then(|cv| serde_json::from_str(cv.name_value().1).ok());
-
-    let safe_search_level = get_safesearch_level(
-        safe_search,
-        &cookie_value.as_ref().map(|cv| cv.safe_search_level),
-        config.safe_search,
+    let cache_key = format!(
+        "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
+        config.binding_ip,
+        config.port,
+        query,
+        page,
+        safe_search_level,
+        user_settings.engines.join(",")
     );
-
-    let mut cache_key = format!(
-        "http://{}:{}/search?q={}&page={}&safesearch={}",
-        config.binding_ip, config.port, query, page, safe_search_level
-    );
-
-    let mut cookie_engines: Vec<String> = vec![];
-    let mut config_engines: Vec<String> = config
-        .upstream_search_engines
-        .iter()
-        .filter_map(|(engine, enabled)| enabled.then_some(engine.clone()))
-        .collect();
-    config_engines.sort();
-
-    // Modify the cache key adding each enabled search engine to the string
-    if let Some(cookie_value) = &cookie_value {
-        cookie_engines = cookie_value
-            .engines
-            .iter()
-            .map(|s| String::from(*s))
-            .collect::<Vec<String>>();
-
-        // We sort the list of engine so the cache keys will match between users. The cookie's list of engines is unordered.
-        cookie_engines.sort();
-        cache_key = format!("{cache_key}&engines={}", cookie_engines.join(","));
-    } else {
-        cache_key = format!("{cache_key}&engines={}", config_engines.join(","));
-    }
 
     // fetch the cached results json.
     let cached_results = cache.cached_results(&cache_key).await;
@@ -174,43 +165,16 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match cookie_value {
-                // If the cookie was used before
-                Some(_) => {
-                    // Use the cookie_engines Strings from before to create the EngineHandlers
-                    let engines: Vec<EngineHandler> = cookie_engines
-                        .iter()
-                        .filter_map(|name| EngineHandler::new(name).ok())
-                        .collect();
-
-                    match engines.is_empty() {
-                        false => {
-                            aggregate(
-                                query,
-                                page,
-                                config.aggregator.random_delay,
-                                config.debug,
-                                &engines,
-                                config.request_timeout,
-                                safe_search_level,
-                            )
-                            .await?
-                        }
-                        true => {
-                            let mut search_results = SearchResults::default();
-                            search_results.set_no_engines_selected();
-                            search_results
-                        }
-                    }
-                }
-                // Otherwise, use the config_engines to create the EngineHandlers
-                None => {
+            let mut results: SearchResults = match user_settings.engines.is_empty() {
+                false => {
                     aggregate(
                         query,
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        &config_engines
+                        &user_settings
+                            .engines
+                            .clone()
                             .into_iter()
                             .filter_map(|engine| EngineHandler::new(&engine).ok())
                             .collect::<Vec<EngineHandler>>(),
@@ -218,6 +182,11 @@ async fn results(
                         safe_search_level,
                     )
                     .await?
+                }
+                true => {
+                    let mut search_results = SearchResults::default();
+                    search_results.set_no_engines_selected();
+                    search_results
                 }
             };
             if results.engine_errors_info().is_empty()
@@ -258,25 +227,4 @@ fn is_match_from_filter_list(
     }
 
     Ok(false)
-}
-
-/// A helper function which returns the safe search level based on the url params
-/// and cookie value.
-///
-/// # Argurments
-///
-/// * `safe_search` - Safe search level from the url.
-/// * `cookie` - User's cookie
-/// * `default` - Safe search level to fall back to
-fn get_safesearch_level(safe_search: &Option<u8>, cookie: &Option<u8>, default: u8) -> u8 {
-    match safe_search {
-        Some(ss) => {
-            if *ss >= 3 {
-                default
-            } else {
-                *ss
-            }
-        }
-        None => cookie.unwrap_or(default),
-    }
 }
