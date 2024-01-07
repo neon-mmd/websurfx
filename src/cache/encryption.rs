@@ -1,4 +1,4 @@
-#![allow(clippy::type_complexity)]
+#![allow(clippy::type_complexity)] // the static types are too long, this cases no compilation problems though.
 use chacha20poly1305::{
     consts::{B0, B1},
     ChaChaPoly1305,
