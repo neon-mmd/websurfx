@@ -63,18 +63,20 @@ pub async fn search(
             };
 
             // Get search settings using the user's cookie or from the server's config
-            let search_settings: server_models::Cookie = match req.cookie("appCookie") {
+            let mut search_settings: server_models::Cookie = match req.cookie("appCookie") {
                 Some(cookie_value) => {
-                    if let Ok(cookie) = serde_json::from_str(cookie_value.value()) {
-                        cookie
-                    // If there's an issue parsing the cookie's value, default to the config
-                    } else {
-                        build_cookie()
+                    match serde_json::from_str(cookie_value.value()) {
+                        Ok(cookie) => cookie,
+                        // If there's an issue parsing the cookie's value, default to the config
+                        Err(_) => build_cookie(),
                     }
                 }
                 // If there's no cookie saved, use the server's config
                 None => build_cookie(),
             };
+
+            search_settings.safe_search_level =
+                get_safesearch_level(&params.safesearch, config.safe_search);
 
             // Closure wrapping the results function capturing local references
             let get_results = |page| results(&config, &cache, query, page, &search_settings);
@@ -227,4 +229,25 @@ fn is_match_from_filter_list(
     }
 
     Ok(false)
+}
+
+/// A helper function which returns the safe search level based on the url params
+/// and cookie value.
+///
+/// # Argurments
+///
+/// * `safe_search` - Safe search level from the url.
+/// * `cookie` - User's cookie
+/// * `default` - Safe search level to fall back to
+fn get_safesearch_level(safe_search: &Option<u8>, default: u8) -> u8 {
+    match safe_search {
+        Some(ss) => {
+            if *ss >= 3 {
+                default
+            } else {
+                *ss
+            }
+        }
+        None => default,
+    }
 }
