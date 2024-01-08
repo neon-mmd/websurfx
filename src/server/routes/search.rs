@@ -62,9 +62,11 @@ pub async fn search(
                 )
             };
 
+            let cookie = req.cookie("appCookie");
+
             // Get search settings using the user's cookie or from the server's config
-            let mut search_settings: server_models::Cookie = match req.cookie("appCookie") {
-                Some(cookie_value) => {
+            let mut search_settings: server_models::Cookie<'_> = match cookie {
+                Some(ref cookie_value) => {
                     match serde_json::from_str(cookie_value.value()) {
                         Ok(cookie) => cookie,
                         // If there's an issue parsing the cookie's value, default to the config
@@ -127,10 +129,10 @@ async fn results(
     cache: &web::Data<SharedCache>,
     query: &str,
     page: u32,
-    user_settings: &server_models::Cookie,
+    search_settings: &server_models::Cookie<'_>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     // eagerly parse cookie value to evaluate safe search level
-    let safe_search_level = user_settings.safe_search_level;
+    let safe_search_level = search_settings.safe_search_level;
 
     let cache_key = format!(
         "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
@@ -139,7 +141,7 @@ async fn results(
         query,
         page,
         safe_search_level,
-        user_settings.engines.join(",")
+        search_settings.engines.join(",")
     );
 
     // fetch the cached results json.
@@ -167,14 +169,14 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match user_settings.engines.is_empty() {
+            let mut results: SearchResults = match search_settings.engines.is_empty() {
                 false => {
                     aggregate(
                         query,
                         page,
                         config.aggregator.random_delay,
                         config.debug,
-                        &user_settings
+                        &search_settings
                             .engines
                             .clone()
                             .into_iter()

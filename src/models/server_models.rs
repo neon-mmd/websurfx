@@ -21,24 +21,24 @@ pub struct SearchParams {
 /// A named struct which is used to deserialize the cookies fetched from the client side.
 #[allow(dead_code)]
 #[derive(Deserialize)]
-pub struct Cookie {
+pub struct Cookie<'a> {
     /// It stores the theme name used in the website.
-    pub theme: String,
+    pub theme: &'a str,
     /// It stores the colorscheme name used for the website theme.
-    pub colorscheme: String,
+    pub colorscheme: &'a str,
     /// It stores the user selected upstream search engines selected from the UI.
     pub engines: Vec<String>,
     /// It stores the user selected safe search level from the UI.
     pub safe_search_level: u8,
 }
 
-impl Cookie {
+impl<'a> Cookie<'a> {
     /// server_models::Cookie contructor function
-    pub fn build(style: &Style, mut engines: Vec<String>, safe_search_level: u8) -> Self {
+    pub fn build(style: &'a Style, mut engines: Vec<String>, safe_search_level: u8) -> Self {
         engines.sort();
         Self {
-            theme: style.theme.clone(),
-            colorscheme: style.colorscheme.clone(),
+            theme: &style.theme,
+            colorscheme: &style.colorscheme,
             engines,
             safe_search_level,
         }
