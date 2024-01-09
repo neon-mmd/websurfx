@@ -7,10 +7,14 @@ const SAFE_SEARCH_LEVELS: [(u8, &str); 3] = [(0, "None"), (1, "Low"), (2, "Moder
 
 /// A functions that handles the html code for the general tab for the settings page for the search page.
 ///
+/// # Arguments
+///
+/// * `safe_search_level` - It takes the safe search level as an argument.
+///
 /// # Returns
 ///
 /// It returns the compiled html markup code for the general tab.
-pub fn general() -> Markup {
+pub fn general(safe_search_level: u8) -> Markup {
     html!(
         div class="general tab active"{
            h1{"General"}
@@ -18,9 +22,19 @@ pub fn general() -> Markup {
            p class="description"{
                "Select a safe search level from the menu below to filter content based on the level."
            }
-           select name="safe_search_levels"{
-               @for (k,v) in SAFE_SEARCH_LEVELS{
-                 option value=(k){(v)}
+           @if safe_search_level < 3 {
+               select name="safe_search_levels" {
+                   // Sets the user selected safe_search_level name from the config file as the first option in the selection list.
+                   option value=(safe_search_level){(SAFE_SEARCH_LEVELS.iter().find(|level| level.0 == safe_search_level).unwrap().1)}
+                   @for (k,v) in SAFE_SEARCH_LEVELS.iter().filter(|level| level.0 != safe_search_level){
+                     option value=(k){(v)}
+                   }
+               }
+           }
+           @else {
+               p class="admin_warning" {"⚠️  This setting is being managed by the server administrator."}
+               select name="safe_search_levels" disabled {
+                     option value=(SAFE_SEARCH_LEVELS[2].0){(SAFE_SEARCH_LEVELS[2].1)}
                }
            }
         }

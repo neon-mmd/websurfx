@@ -4,13 +4,16 @@ use crate::handler::{file_path, FileType};
 use maud::{html, Markup};
 use std::fs::read_dir;
 
-/// A helper function that helps in building the list of all available colorscheme/theme names
-/// present in the colorschemes and themes folder respectively.
+/// A helper function that helps in building the list of all available colorscheme/theme/animation
+/// names present in the colorschemes, animations and themes folder respectively by excluding the
+/// ones that have already been selected via the config file.
 ///
 /// # Arguments
 ///
 /// * `style_type` - It takes the style type of the values `theme` and `colorscheme` as an
 /// argument.
+/// * `selected_style` - It takes the currently selected style value provided via the config file
+/// as an argument.
 ///
 /// # Error
 ///
@@ -18,7 +21,8 @@ use std::fs::read_dir;
 /// returns a standard error message.
 fn style_option_list(
     style_type: &str,
-) -> Result<Vec<(String, String)>, Box<dyn std::error::Error + '_>> {
+    selected_style: &str,
+) -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
     let mut style_option_names: Vec<(String, String)> = Vec::new();
     for file in read_dir(format!(
         "{}static/{}/",
@@ -26,7 +30,13 @@ fn style_option_list(
         style_type,
     ))? {
         let style_name = file?.file_name().to_str().unwrap().replace(".css", "");
-        style_option_names.push((style_name.clone(), style_name.replace('-', " ")));
+        if selected_style != style_name {
+            style_option_names.push((style_name.clone(), style_name.replace('-', " ")));
+        }
+    }
+
+    if style_type == "animations" {
+        style_option_names.push(("".to_owned(), "none".to_owned()))
     }
 
     Ok(style_option_names)
@@ -38,7 +48,11 @@ fn style_option_list(
 ///
 /// It returns the compiled html markup code for the user interface tab on success otherwise
 /// returns a standard error message.
-pub fn user_interface() -> Result<Markup, Box<dyn std::error::Error>> {
+pub fn user_interface(
+    theme: &str,
+    colorscheme: &str,
+    animation: &Option<String>,
+) -> Result<Markup, Box<dyn std::error::Error>> {
     Ok(html!(
         div class="user_interface tab"{
            h1{"User Interface"}
@@ -47,7 +61,9 @@ pub fn user_interface() -> Result<Markup, Box<dyn std::error::Error>> {
                "Select the theme from the available themes to be used in user interface"
            }
            select name="themes"{
-               @for (k,v) in style_option_list("themes")?{
+               // Sets the user selected theme name from the config file as the first option in the selection list.
+               option value=(theme){(theme.replace('-', " "))}
+               @for (k,v) in style_option_list("themes", theme)?{
                    option value=(k){(v)}
                }
            }
@@ -56,7 +72,9 @@ pub fn user_interface() -> Result<Markup, Box<dyn std::error::Error>> {
                "Select the color scheme for your theme to be used in user interface"
            }
            select name="colorschemes"{
-               @for (k,v) in style_option_list("colorschemes")?{
+               // Sets the user selected colorscheme name from the config file as the first option in the selection list.
+               option value=(colorscheme){(colorscheme.replace('-', " "))}
+               @for (k,v) in style_option_list("colorschemes", colorscheme)?{
                    option value=(k){(v)}
                }
            }
@@ -65,12 +83,12 @@ pub fn user_interface() -> Result<Markup, Box<dyn std::error::Error>> {
                "Select the animation for your theme to be used in user interface"
            }
            select name="animations"{
-               option value=""{"none"}
-               @for (k,v) in style_option_list("animations")?{
+               // Sets the user selected animation name from the config file as the first option in the selection list.
+               option value=(animation.as_ref().unwrap_or(&"".to_owned())){(animation.as_ref().unwrap_or(&"".to_owned()).replace('-'," "))}
+               @for (k,v) in style_option_list("animations", animation.as_ref().unwrap_or(&"".to_owned()))?{
                    option value=(k){(v)}
                }
            }
-
         }
     ))
 }

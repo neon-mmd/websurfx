@@ -50,14 +50,10 @@ impl SearchEngine for Searx {
             safe_search = 2;
         };
 
-        let url: String = match page {
-            0 | 1 => {
-                format!("https://searx.be/search?q={query}&pageno=1&safesearch={safe_search}")
-            }
-            _ => {
-                format!("https://searx.be/search?q={query}&pageno={page}&safesearch={safe_search}")
-            }
-        };
+        let url: String = format!(
+            "https://searx.be/search?q={query}&pageno={}&safesearch={safe_search}",
+            page + 1
+        );
 
         // initializing headers and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([

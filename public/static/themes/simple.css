@@ -95,6 +95,14 @@ button {
   color: var(--background-color);
   font-weight: 600;
   letter-spacing: 0.1rem;
+  position: relative;
+}
+
+.search_bar button img {
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%, -50%);
 }
 
 .search_bar button:active {
@@ -600,10 +608,18 @@ footer div {
   text-transform: capitalize;
 }
 
-.settings_container .tab .description {
+.settings_container .tab .description,
+.settings_container .tab .admin_warning {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+}
+
+.settings_container .tab .description {
   color: var(--foreground-color);
+}
+
+.settings_container .tab .admin_warning {
+  color: var(--color-two);
 }
 
 .settings_container .user_interface select,

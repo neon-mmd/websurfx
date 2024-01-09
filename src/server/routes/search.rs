@@ -11,7 +11,7 @@ use crate::{
     },
     results::aggregator::aggregate,
 };
-use actix_web::{get, web, HttpRequest, HttpResponse};
+use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
 use std::{
     fs::File,
@@ -59,16 +59,16 @@ pub async fn search(
                 )
             };
 
-            // .max(1) makes sure that the page > 0.
-            let page = params.page.unwrap_or(1).max(1);
+            // .max(1) makes sure that the page >= 0.
+            let page = params.page.unwrap_or(1).max(1) - 1;
 
             let (_, results, _) = join!(
-                get_results(page - 1),
+                get_results(page.saturating_sub(1)),
                 get_results(page),
                 get_results(page + 1)
             );
 
-            Ok(HttpResponse::Ok().body(
+            Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
                 crate::templates::views::search::search(
                     &config.style.colorscheme,
                     &config.style.theme,
