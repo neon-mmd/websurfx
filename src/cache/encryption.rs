@@ -1,4 +1,6 @@
-#![allow(clippy::type_complexity)] // the static types are too long, this cases no compilation problems though.
+/// --- Add appropriate documentation for this type ---
+type ChaChaCoreStreamCipher = ChaChaPoly1305<StreamCipherCoreWrapper<ChaChaCore<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B1>, B0>>>;
+
 use chacha20poly1305::{
     consts::{B0, B1},
     ChaChaPoly1305,
@@ -15,9 +17,7 @@ use chacha20::{
 };
 
 /// OUR CIPHER, only initialised once
-pub static CIPHER: OnceLock<
-    ChaChaPoly1305<
-        StreamCipherCoreWrapper<ChaChaCore<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B1>, B0>>>,
+pub static CIPHER: OnceLock<ChaChaCoreStreamCipher>,
     >,
 > = OnceLock::new();
 /// OUR ENCRYPTION KEY
