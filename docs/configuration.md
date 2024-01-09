@@ -4,7 +4,7 @@
 
 If you have built `websurfx` from the source then the configuration file will be located under the project directory (codebase) at `websurfx/`
 
-> **Note**
+> [!Note]
 > If you have built websurfx with an unstable/rolling/edge branch then you can copy the configuration file from `websurfx/config.lua` located under the project directory (codebase) to `~/.config/websurfx/` and make the changes there and rerun the websurfx server. _This is only available from unstable/rolling/edge version_.
 
 ## Installed From Package
@@ -48,7 +48,7 @@ Some of the configuration options provided in the file are stated below. These a
 
 ## Website
 
-- **colorscheme:** The colorscheme name which should be used for the website theme (the name should be by  the colorscheme file name present in the `public/static/colorschemes` folder).
+- **colorscheme:** The colorscheme name which should be used for the website theme (the name should be by the colorscheme file name present in the `public/static/colorschemes` folder).
 
 > By Default we provide 12 colorschemes to choose from these are:
 >
@@ -71,12 +71,20 @@ Some of the configuration options provided in the file are stated below. These a
 >
 > 1. simple
 
+- **animation:** The animation name that should be used for the website (again, the name should be by the animation file name present in the `public/static/animations` folder).
+
+> By Default we provide 1 animation to choose from these are:
+>
+> 1. simple-frosted-glow
+
 ## Cache
 
 - **redis_url:** Redis connection URL address on which the client should connect.
 
 > **Note**
 > This option can be commented out if you have compiled the app without the `redis-cache` feature. For more information, See [**building**](./building.md).
+
+- **cache_expiry_time:** The maximum time the server will store the cache for, after which it flushs/removes/expires/invalidates the cached results. (value provided to this option should be in seconds and the value should be greater than or equal to 60 seconds).
 
 ## Search Engines
 
