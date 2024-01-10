@@ -14,6 +14,7 @@ use crate::{
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
 use std::{
+    borrow::Cow,
     fs::File,
     io::{BufRead, BufReader, Read},
 };
@@ -48,37 +49,30 @@ pub async fn search(
                     .finish());
             }
 
-            // Closure to build a server_models::Cookie capturing local references
-            let build_cookie = || {
-                server_models::Cookie::build(
-                    &config.style,
-                    config
-                        .upstream_search_engines
-                        .clone()
-                        .into_iter()
-                        .filter_map(|engine_map| engine_map.1.then_some(engine_map.0))
-                        .collect(),
-                    config.safe_search,
-                )
-            };
-
             let cookie = req.cookie("appCookie");
 
             // Get search settings using the user's cookie or from the server's config
-            let mut search_settings: server_models::Cookie<'_> = match cookie {
-                Some(ref cookie_value) => {
-                    match serde_json::from_str(cookie_value.value()) {
-                        Ok(cookie) => cookie,
-                        // If there's an issue parsing the cookie's value, default to the config
-                        Err(_) => build_cookie(),
-                    }
-                }
-                // If there's no cookie saved, use the server's config
-                None => build_cookie(),
-            };
+            let mut search_settings: server_models::Cookie<'_> = cookie
+                .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
+                .unwrap_or_else(|| {
+                    server_models::Cookie::build(
+                        &config.style,
+                        config
+                            .upstream_search_engines
+                            .iter()
+                            .filter_map(|(engine, enabled)| {
+                                enabled.then_some(Cow::Borrowed(engine.as_str()))
+                            })
+                            .collect(),
+                        config.safe_search,
+                    )
+                });
 
-            search_settings.safe_search_level =
-                get_safesearch_level(&params.safesearch, config.safe_search);
+            get_safesearch_level(
+                &mut search_settings.safe_search_level,
+                &params.safesearch,
+                config.safe_search,
+            );
 
             // Closure wrapping the results function capturing local references
             let get_results = |page| results(&config, &cache, query, page, &search_settings);
@@ -178,8 +172,7 @@ async fn results(
                         config.debug,
                         &search_settings
                             .engines
-                            .clone()
-                            .into_iter()
+                            .iter()
                             .filter_map(|engine| EngineHandler::new(&engine).ok())
                             .collect::<Vec<EngineHandler>>(),
                         config.request_timeout,
@@ -233,23 +226,21 @@ fn is_match_from_filter_list(
     Ok(false)
 }
 
-/// A helper function which returns the safe search level based on the url params
-/// and cookie value.
+/// A helper function to modify the safe search level based on the url params.
+/// The `safe_search` is the one in the user's cookie or
+/// the default set by the server config if the cookie was missing.
 ///
 /// # Argurments
 ///
-/// * `safe_search` - Safe search level from the url.
-/// * `cookie` - User's cookie
-/// * `default` - Safe search level to fall back to
-fn get_safesearch_level(safe_search: &Option<u8>, default: u8) -> u8 {
-    match safe_search {
-        Some(ss) => {
-            if *ss >= 3 {
-                default
-            } else {
-                *ss
-            }
+/// * `url_level` - Safe search level from the url.
+/// * `safe_search` - User's cookie, or the safe search level set by the server
+/// * `config_level` - Safe search level to fall back to
+fn get_safesearch_level(safe_search: &mut u8, url_level: &Option<u8>, config_level: u8) {
+    if let Some(search_level) = url_level {
+        if *search_level >= 3 {
+            *safe_search = config_level
+        } else {
+            *safe_search = *search_level;
         }
-        None => default,
     }
 }
