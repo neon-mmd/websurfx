@@ -236,11 +236,11 @@ fn is_match_from_filter_list(
 /// * `safe_search` - User's cookie, or the safe search level set by the server
 /// * `config_level` - Safe search level to fall back to
 fn get_safesearch_level(safe_search: &mut u8, url_level: &Option<u8>, config_level: u8) {
-    if let Some(search_level) = url_level {
-        if *search_level >= 3 {
+    if let Some(url_level) = url_level {
+        if *url_level >= 3 {
             *safe_search = config_level
         } else {
-            *safe_search = *search_level;
+            *safe_search = *url_level;
         }
     }
 }
