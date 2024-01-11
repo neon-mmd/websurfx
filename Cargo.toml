@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.7.3"
+version = "1.9.0"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -38,6 +38,11 @@ mimalloc = { version = "0.1.38", default-features = false }
 async-once-cell = {version="0.5.3", default-features=false}
 actix-governor = {version="0.5.0", default-features=false}
 mini-moka = { version="0.10", optional = true, default-features=false, features=["sync"]}
+brotli = { version = "3.4.0", default-features = false, features=["std"], optional=true}
+chacha20poly1305={version="0.10.1", default-features=false, features=["alloc","getrandom"], optional=true}
+chacha20 = {version="0.9.1", default-features=false, optional=true}
+base64 = {version="0.21.5", default-features=false, features=["std"], optional=true}
+cfg-if = {version="1.0.0", default-features=false,optional=true}
 
 [dev-dependencies]
 rusty-hook = {version="^0.11.2", default-features=false}
@@ -78,4 +83,8 @@ strip = "debuginfo"
 default = ["memory-cache"]
 dhat-heap = ["dep:dhat"] 
 memory-cache = ["dep:mini-moka"]
-redis-cache = ["dep:redis"]
+redis-cache = ["dep:redis","dep:base64"]
+compress-cache-results = ["dep:brotli","dep:cfg-if"]
+encrypt-cache-results = ["dep:chacha20poly1305","dep:chacha20"]
+cec-cache-results = ["compress-cache-results","encrypt-cache-results"]
+
