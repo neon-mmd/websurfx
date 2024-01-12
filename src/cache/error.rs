@@ -18,6 +18,12 @@ pub enum CacheError {
     SerializationError,
     /// Returned when the value is missing.
     MissingValue,
+    /// whenever encryption or decryption of cache results fails
+    EncryptionError,
+    /// Whenever compression of  the cache results fails
+    CompressionError,
+    /// Whenever base64 decoding failed
+    Base64DecodingOrEncodingError,
 }
 
 impl fmt::Display for CacheError {
@@ -42,6 +48,18 @@ impl fmt::Display for CacheError {
             }
             CacheError::SerializationError => {
                 write!(f, "Unable to serialize, deserialize from the cache")
+            }
+
+            CacheError::EncryptionError => {
+                write!(f, "Failed to encrypt or decrypt cache-results")
+            }
+
+            CacheError::CompressionError => {
+                write!(f, "failed to compress or uncompress cache results")
+            }
+
+            CacheError::Base64DecodingOrEncodingError => {
+                write!(f, "base64 encoding or decoding failed")
             }
         }
     }

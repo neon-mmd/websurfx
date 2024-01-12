@@ -44,7 +44,7 @@ impl RedisCache {
         let mut tasks: Vec<_> = Vec::new();
 
         for _ in 0..pool_size {
-            tasks.push(client.get_tokio_connection_manager());
+            tasks.push(client.get_connection_manager());
         }
 
         let redis_cache = RedisCache {
