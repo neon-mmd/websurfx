@@ -68,8 +68,8 @@ pub async fn search(
                     )
                 });
 
-            get_safesearch_level(
-                &mut search_settings.safe_search_level,
+            search_settings.safe_search_level = get_safesearch_level(
+                &Some(search_settings.safe_search_level),
                 &params.safesearch,
                 config.safe_search,
             );
@@ -235,12 +235,15 @@ fn is_match_from_filter_list(
 /// * `url_level` - Safe search level from the url.
 /// * `safe_search` - User's cookie, or the safe search level set by the server
 /// * `config_level` - Safe search level to fall back to
-fn get_safesearch_level(safe_search: &mut u8, url_level: &Option<u8>, config_level: u8) {
-    if let Some(url_level) = url_level {
-        if *url_level >= 3 {
-            *safe_search = config_level
-        } else {
-            *safe_search = *url_level;
+fn get_safesearch_level(cookie_level: &Option<u8>, url_level: &Option<u8>, config_level: u8) -> u8 {
+    match url_level {
+        Some(url_level) => {
+            if *url_level >= 3 {
+                config_level
+            } else {
+                *url_level
+            }
         }
+        None => cookie_level.unwrap_or(config_level),
     }
 }
