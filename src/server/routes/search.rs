@@ -6,14 +6,15 @@ use crate::{
     handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
-        engine_models::{EngineError, EngineHandler},
-        server_models::{Cookie, SearchParams},
+        engine_models::EngineHandler,
+        server_models::{self, SearchParams},
     },
     results::aggregator::aggregate,
 };
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
 use std::{
+    borrow::Cow,
     fs::File,
     io::{BufRead, BufReader, Read},
 };
@@ -48,16 +49,33 @@ pub async fn search(
                     .finish());
             }
 
-            let get_results = |page| {
-                results(
-                    &config,
-                    &cache,
-                    query,
-                    page,
-                    req.clone(),
-                    &params.safesearch,
-                )
-            };
+            let cookie = req.cookie("appCookie");
+
+            // Get search settings using the user's cookie or from the server's config
+            let mut search_settings: server_models::Cookie<'_> = cookie
+                .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
+                .unwrap_or_else(|| {
+                    server_models::Cookie::build(
+                        &config.style,
+                        config
+                            .upstream_search_engines
+                            .iter()
+                            .filter_map(|(engine, enabled)| {
+                                enabled.then_some(Cow::Borrowed(engine.as_str()))
+                            })
+                            .collect(),
+                        config.safe_search,
+                    )
+                });
+
+            search_settings.safe_search_level = get_safesearch_level(
+                &Some(search_settings.safe_search_level),
+                &params.safesearch,
+                config.safe_search,
+            );
+
+            // Closure wrapping the results function capturing local references
+            let get_results = |page| results(&config, &cache, query, page, &search_settings);
 
             // .max(1) makes sure that the page >= 0.
             let page = params.page.unwrap_or(1).max(1) - 1;
@@ -105,25 +123,19 @@ async fn results(
     cache: &web::Data<SharedCache>,
     query: &str,
     page: u32,
-    req: HttpRequest,
-    safe_search: &Option<u8>,
+    search_settings: &server_models::Cookie<'_>,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     // eagerly parse cookie value to evaluate safe search level
-    let cookie_value = req.cookie("appCookie");
-
-    let cookie_value: Option<Cookie<'_>> = cookie_value
-        .as_ref()
-        .and_then(|cv| serde_json::from_str(cv.name_value().1).ok());
-
-    let safe_search_level = get_safesearch_level(
-        safe_search,
-        &cookie_value.as_ref().map(|cv| cv.safe_search_level),
-        config.safe_search,
-    );
+    let safe_search_level = search_settings.safe_search_level;
 
     let cache_key = format!(
-        "http://{}:{}/search?q={}&page={}&safesearch={}",
-        config.binding_ip, config.port, query, page, safe_search_level
+        "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
+        config.binding_ip,
+        config.port,
+        query,
+        page,
+        safe_search_level,
+        search_settings.engines.join(",")
     );
 
     // fetch the cached results json.
@@ -151,51 +163,28 @@ async fn results(
             // default selected upstream search engines from the config file otherwise
             // parse the non-empty cookie and grab the user selected engines from the
             // UI and use that.
-            let mut results: SearchResults = match cookie_value {
-                Some(cookie_value) => {
-                    let engines: Vec<EngineHandler> = cookie_value
-                        .engines
-                        .iter()
-                        .filter_map(|name| EngineHandler::new(name).ok())
-                        .collect();
-
-                    match engines.is_empty() {
-                        false => {
-                            aggregate(
-                                query,
-                                page,
-                                config.aggregator.random_delay,
-                                config.debug,
-                                &engines,
-                                config.request_timeout,
-                                safe_search_level,
-                            )
-                            .await?
-                        }
-                        true => {
-                            let mut search_results = SearchResults::default();
-                            search_results.set_no_engines_selected();
-                            search_results
-                        }
-                    }
+            let mut results: SearchResults = match search_settings.engines.is_empty() {
+                false => {
+                    aggregate(
+                        query,
+                        page,
+                        config.aggregator.random_delay,
+                        config.debug,
+                        &search_settings
+                            .engines
+                            .iter()
+                            .filter_map(|engine| EngineHandler::new(&engine).ok())
+                            .collect::<Vec<EngineHandler>>(),
+                        config.request_timeout,
+                        safe_search_level,
+                    )
+                    .await?
                 }
-                None => aggregate(
-                    query,
-                    page,
-                    config.aggregator.random_delay,
-                    config.debug,
-                    &config
-                        .upstream_search_engines
-                        .clone()
-                        .into_iter()
-                        .filter_map(|(key, value)| value.then_some(key))
-                        .map(|engine| EngineHandler::new(&engine))
-                        .collect::<Result<Vec<EngineHandler>, error_stack::Report<EngineError>>>(
-                        )?,
-                    config.request_timeout,
-                    safe_search_level,
-                )
-                .await?,
+                true => {
+                    let mut search_results = SearchResults::default();
+                    search_results.set_no_engines_selected();
+                    search_results
+                }
             };
             if results.engine_errors_info().is_empty()
                 && results.results().is_empty()
@@ -237,23 +226,24 @@ fn is_match_from_filter_list(
     Ok(false)
 }
 
-/// A helper function which returns the safe search level based on the url params
-/// and cookie value.
+/// A helper function to modify the safe search level based on the url params.
+/// The `safe_search` is the one in the user's cookie or
+/// the default set by the server config if the cookie was missing.
 ///
 /// # Argurments
 ///
-/// * `safe_search` - Safe search level from the url.
-/// * `cookie` - User's cookie
-/// * `default` - Safe search level to fall back to
-fn get_safesearch_level(safe_search: &Option<u8>, cookie: &Option<u8>, default: u8) -> u8 {
-    match safe_search {
-        Some(ss) => {
-            if *ss >= 3 {
-                default
+/// * `url_level` - Safe search level from the url.
+/// * `safe_search` - User's cookie, or the safe search level set by the server
+/// * `config_level` - Safe search level to fall back to
+fn get_safesearch_level(cookie_level: &Option<u8>, url_level: &Option<u8>, config_level: u8) -> u8 {
+    match url_level {
+        Some(url_level) => {
+            if *url_level >= 3 {
+                config_level
             } else {
-                *ss
+                *url_level
             }
         }
-        None => cookie.unwrap_or(default),
+        None => cookie_level.unwrap_or(config_level),
     }
 }
