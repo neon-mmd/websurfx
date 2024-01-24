@@ -337,7 +337,11 @@ impl Cacher for RedisCache {
         urls: &[String],
     ) -> Result<(), Report<CacheError>> {
         use base64::Engine;
-        let mut bytes = Vec::with_capacity(3);
+
+        // size of search_results is expected to be equal to size of urls -> key/value pairs  for cache;
+        let search_results_len = search_results.len();
+
+        let mut bytes = Vec::with_capacity(search_results_len);
 
         for result in search_results {
             let processed = self.pre_process_search_results(result)?;
@@ -348,7 +352,7 @@ impl Cacher for RedisCache {
             .iter()
             .map(|bytes_vec| base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes_vec));
 
-        let mut hashed_url_strings = Vec::with_capacity(3);
+        let mut hashed_url_strings = Vec::with_capacity(search_results_len);
 
         for url in urls {
             let hash = self.hash_url(url);
