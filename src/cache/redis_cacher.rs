@@ -118,14 +118,18 @@ impl RedisCache {
     /// on a failure.
     pub async fn cache_json(
         &mut self,
-        json_results: &str,
-        key: &str,
+        json_results: impl Iterator<Item = String>,
+        keys: impl Iterator<Item = String>,
     ) -> Result<(), Report<CacheError>> {
         self.current_connection = Default::default();
+        let mut pipeline = redis::Pipeline::with_capacity(3);
 
-        let mut result: Result<(), RedisError> = self.connection_pool
-            [self.current_connection as usize]
-            .set_ex(key, json_results, self.cache_ttl.into())
+        for (key, json_result) in keys.zip(json_results) {
+            pipeline.set_ex(key, json_result, self.cache_ttl.into());
+        }
+
+        let mut result: Result<(), RedisError> = pipeline
+            .query_async(&mut self.connection_pool[self.current_connection as usize])
             .await;
 
         // Code to check whether the current connection being used is dropped with connection error
@@ -145,8 +149,10 @@ impl RedisCache {
                                 CacheError::PoolExhaustionWithConnectionDropError,
                             ));
                         }
-                        result = self.connection_pool[self.current_connection as usize]
-                            .set_ex(key, json_results, 60)
+                        result = pipeline
+                            .query_async(
+                                &mut self.connection_pool[self.current_connection as usize],
+                            )
                             .await;
                         continue;
                     }

@@ -4,6 +4,7 @@
 use error_stack::Report;
 #[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
+use mini_moka::sync::ConcurrentCacheExt;
 
 #[cfg(feature = "memory-cache")]
 use std::time::Duration;
@@ -61,8 +62,8 @@ pub trait Cacher: Send + Sync {
     /// failure.
     async fn cache_results(
         &mut self,
-        search_results: &SearchResults,
-        url: &str,
+        search_results: &[SearchResults],
+        urls: &[String],
     ) -> Result<(), Report<CacheError>>;
 
     /// A helper function which computes the hash of the url and formats and returns it as string.
@@ -332,14 +333,33 @@ impl Cacher for RedisCache {
 
     async fn cache_results(
         &mut self,
-        search_results: &SearchResults,
-        url: &str,
+        search_results: &[SearchResults],
+        urls: &[String],
     ) -> Result<(), Report<CacheError>> {
         use base64::Engine;
-        let bytes = self.pre_process_search_results(search_results)?;
-        let base64_string = base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes);
-        let hashed_url_string = self.hash_url(url);
-        self.cache_json(&base64_string, &hashed_url_string).await
+
+        // size of search_results is expected to be equal to size of urls -> key/value pairs  for cache;
+        let search_results_len = search_results.len();
+
+        let mut bytes = Vec::with_capacity(search_results_len);
+
+        for result in search_results {
+            let processed = self.pre_process_search_results(result)?;
+            bytes.push(processed);
+        }
+
+        let base64_strings = bytes
+            .iter()
+            .map(|bytes_vec| base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes_vec));
+
+        let mut hashed_url_strings = Vec::with_capacity(search_results_len);
+
+        for url in urls {
+            let hash = self.hash_url(url);
+            hashed_url_strings.push(hash);
+        }
+        self.cache_json(base64_strings, hashed_url_strings.into_iter())
+            .await
     }
 }
 /// TryInto implementation for SearchResults from Vec<u8>
@@ -391,12 +411,16 @@ impl Cacher for InMemoryCache {
 
     async fn cache_results(
         &mut self,
-        search_results: &SearchResults,
-        url: &str,
+        search_results: &[SearchResults],
+        urls: &[String],
     ) -> Result<(), Report<CacheError>> {
-        let hashed_url_string = self.hash_url(url);
-        let bytes = self.pre_process_search_results(search_results)?;
-        self.cache.insert(hashed_url_string, bytes);
+        for (url, search_result) in urls.iter().zip(search_results.iter()) {
+            let hashed_url_string = self.hash_url(url);
+            let bytes = self.pre_process_search_results(search_result)?;
+            self.cache.insert(hashed_url_string, bytes);
+        }
+
+        self.cache.sync();
         Ok(())
     }
 }
@@ -434,11 +458,13 @@ impl Cacher for HybridCache {
 
     async fn cache_results(
         &mut self,
-        search_results: &SearchResults,
-        url: &str,
+        search_results: &[SearchResults],
+        urls: &[String],
     ) -> Result<(), Report<CacheError>> {
-        self.redis_cache.cache_results(search_results, url).await?;
-        self.memory_cache.cache_results(search_results, url).await?;
+        self.redis_cache.cache_results(search_results, urls).await?;
+        self.memory_cache
+            .cache_results(search_results, urls)
+            .await?;
 
         Ok(())
     }
@@ -460,8 +486,8 @@ impl Cacher for DisabledCache {
 
     async fn cache_results(
         &mut self,
-        _search_results: &SearchResults,
-        _url: &str,
+        _search_results: &[SearchResults],
+        _urls: &[String],
     ) -> Result<(), Report<CacheError>> {
         Ok(())
     }
@@ -519,11 +545,11 @@ impl SharedCache {
     /// on a failure.
     pub async fn cache_results(
         &self,
-        search_results: &SearchResults,
-        url: &str,
+        search_results: &[SearchResults],
+        urls: &[String],
     ) -> Result<(), Report<CacheError>> {
         let mut mut_cache = self.cache.lock().await;
-        mut_cache.cache_results(search_results, url).await
+        mut_cache.cache_results(search_results, urls).await
     }
 }
 

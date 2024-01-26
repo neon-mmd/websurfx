@@ -40,6 +40,7 @@ pub async fn search(
     config: web::Data<Config>,
     cache: web::Data<SharedCache>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    use std::sync::Arc;
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
     match &params.q {
         Some(query) => {
@@ -79,12 +80,50 @@ pub async fn search(
 
             // .max(1) makes sure that the page >= 0.
             let page = params.page.unwrap_or(1).max(1) - 1;
+            let previous_page = page.saturating_sub(1);
+            let next_page = page + 1;
 
-            let (_, results, _) = join!(
-                get_results(page.saturating_sub(1)),
-                get_results(page),
-                get_results(page + 1)
-            );
+            let mut results = Arc::new((SearchResults::default(), String::default()));
+            if page != previous_page {
+                let (previous_results, current_results, next_results) = join!(
+                    get_results(previous_page),
+                    get_results(page),
+                    get_results(next_page)
+                );
+                let (parsed_previous_results, parsed_next_results) =
+                    (previous_results?, next_results?);
+
+                let (cache_keys, results_list) = (
+                    [
+                        parsed_previous_results.1,
+                        results.1.clone(),
+                        parsed_next_results.1,
+                    ],
+                    [
+                        parsed_previous_results.0,
+                        results.0.clone(),
+                        parsed_next_results.0,
+                    ],
+                );
+
+                results = Arc::new(current_results?);
+
+                tokio::spawn(async move { cache.cache_results(&results_list, &cache_keys).await });
+            } else {
+                let (current_results, next_results) =
+                    join!(get_results(page), get_results(page + 1));
+
+                let parsed_next_results = next_results?;
+
+                results = Arc::new(current_results?);
+
+                let (cache_keys, results_list) = (
+                    [results.1.clone(), parsed_next_results.1.clone()],
+                    [results.0.clone(), parsed_next_results.0],
+                );
+
+                tokio::spawn(async move { cache.cache_results(&results_list, &cache_keys).await });
+            }
 
             Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
                 crate::templates::views::search::search(
@@ -92,7 +131,7 @@ pub async fn search(
                     &config.style.theme,
                     &config.style.animation,
                     query,
-                    &results?,
+                    &results.0,
                 )
                 .0,
             ))
@@ -124,7 +163,7 @@ async fn results(
     query: &str,
     page: u32,
     search_settings: &server_models::Cookie<'_>,
-) -> Result<SearchResults, Box<dyn std::error::Error>> {
+) -> Result<(SearchResults, String), Box<dyn std::error::Error>> {
     // eagerly parse cookie value to evaluate safe search level
     let safe_search_level = search_settings.safe_search_level;
 
@@ -143,7 +182,7 @@ async fn results(
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     match cached_results {
-        Ok(results) => Ok(results),
+        Ok(results) => Ok((results, cache_key)),
         Err(_) => {
             if safe_search_level == 4 {
                 let mut results: SearchResults = SearchResults::default();
@@ -153,9 +192,11 @@ async fn results(
                 // Return early when query contains disallowed words,
                 if flag {
                     results.set_disallowed();
-                    cache.cache_results(&results, &cache_key).await?;
+                    cache
+                        .cache_results(&[results.clone()], &[cache_key.clone()])
+                        .await?;
                     results.set_safe_search_level(safe_search_level);
-                    return Ok(results);
+                    return Ok((results, cache_key));
                 }
             }
 
@@ -173,7 +214,7 @@ async fn results(
                         &search_settings
                             .engines
                             .iter()
-                            .filter_map(|engine| EngineHandler::new(&engine).ok())
+                            .filter_map(|engine| EngineHandler::new(engine).ok())
                             .collect::<Vec<EngineHandler>>(),
                         config.request_timeout,
                         safe_search_level,
@@ -192,9 +233,11 @@ async fn results(
             {
                 results.set_filtered();
             }
-            cache.cache_results(&results, &cache_key).await?;
+            cache
+                .cache_results(&[results.clone()], &[cache_key.clone()])
+                .await?;
             results.set_safe_search_level(safe_search_level);
-            Ok(results)
+            Ok((results, cache_key))
         }
     }
 }
