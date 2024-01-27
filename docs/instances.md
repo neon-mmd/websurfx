@@ -11,6 +11,5 @@ This page provides a list of `Websurfx` instances provided by us and our communi
 |https://websurfx.instance.pp.ua|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/7/status"></a>|✅|✅||
 |https://alamin655-websurfx.hf.space|www|stable|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/6/status"></a>|✅|❌||
 
-Check the Uptime of the Instances - https://status.websurfx.pp.ua
 
 [⬅️ Go back to Home](./README.md)
