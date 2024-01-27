@@ -267,7 +267,7 @@ We would like to thank the following people for their contributions and support:
 
 <p>
   <a href="https://github.com/neon-mmd/websurfx/stargazers">
-    <img src="https://reporoster.com/stars/dark/neon-mmd/websurfx" />
+    <img src="http://reporoster.com/stars/dark/neon-mmd/websurfx"/>
   </a>
 </p>
 
