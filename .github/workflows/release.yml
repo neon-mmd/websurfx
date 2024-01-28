@@ -29,7 +29,7 @@ jobs:
           WITH_V: true
           DEFAULT_BUMP: patch
           PRERELEASE: false
-          DEFAULT_BRANCH: rolling
+          RELEASE_BRANCHES: rolling
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
