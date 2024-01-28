@@ -1,0 +1,90 @@
+name: Bump release version
+on:
+  pull_request:
+    branches: [rolling]
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+concurrency: production
+
+jobs:
+  build:
+    name: Create Release  
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Taking the Latest Release Tag number
+        id: releaseVersion
+        run: |
+              repo="${{ github.repository }}"
+              release_json=$(curl -s "https://api.github.com/repos/$repo/releases")
+              
+              if [ "$(echo "$release_json" | jq '. | length')" -eq 0 ]; then
+                Release_tag="0.1.0"
+                echo "No releases found. Setting default version to $Release_tag"
+              else
+                Release_tag=$(echo "$release_json" | jq -r '.[0].tag_name')
+                echo "Latest Tag is : $Release_tag"
+              fi
+              
+              echo "::set-output name=Release_tag::$Release_tag"
+                
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Bumping Major Index
+        id: bump_version_major
+        if: contains(github.event.pull_request.title, 'major')
+        uses: christian-draeger/increment-semantic-version@1.1.0
+        with:
+          current-version: ${{ steps.releaseVersion.outputs.Release_tag }}
+          version-fragment: 'major'
+                    
+      - name: Bumping Minor Index
+        id: bump_version_minor
+        if: contains(github.event.pull_request.title, 'feat') 
+
+        uses: christian-draeger/increment-semantic-version@1.1.0
+        with:
+          current-version: ${{ steps.releaseVersion.outputs.Release_tag }}
+          version-fragment: 'feature'
+          
+      - name: Bumping Patch Index 
+        id: bump_version_patch
+        if: |
+            ${{ contains(github.event.pull_request.title, 'patch') ||
+            contains(github.event.pull_request.title, 'build') ||
+            contains(github.event.pull_request.title, 'chore') ||
+            contains(github.event.pull_request.title, 'ci') ||
+            contains(github.event.pull_request.title, 'docs') ||
+            contains(github.event.pull_request.title, 'style') ||
+            contains(github.event.pull_request.title, 'refactor') ||
+            contains(github.event.pull_request.title, 'perf') ||
+            contains(github.event.pull_request.title, 'test') }}
+        uses: christian-draeger/increment-semantic-version@1.1.0
+        with:
+          current-version: ${{ steps.releaseVersion.outputs.Release_tag }}
+          version-fragment: 'bug'
+          
+      - name: Create release version for bump_version_major
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          create_release() {
+            curl \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${repo}/releases \
+              -d '{"tag_name":"'"${1}"'","target_commitish":"'"${branch}"'","name":"'"${1}"'","body":"","draft":false,"prerelease":false,"generate_release_notes":true}'
+          }
+
+          repo=${{ github.repository }}
+          branch=${{ github.head_ref }}
+          
+          create_release "${{ steps.bump_version_major.outputs.next-version }}"
+          create_release "${{ steps.bump_version_minor.outputs.next-version }}"
+          create_release "${{ steps.bump_version_patch.outputs.next-version }}"
