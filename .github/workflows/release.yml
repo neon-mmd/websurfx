@@ -32,6 +32,7 @@ jobs:
           RELEASE_BRANCHES: rolling
           DEFAULT_BRANCH: rolling
           pre_release: false
+          PRERELEASE_SUFFIX: ''
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
