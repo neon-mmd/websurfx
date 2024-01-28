@@ -36,7 +36,7 @@ jobs:
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PRERELEASE_SUFFIX: 
+          PRERELEASE: false
           RELEASE_BRANCHES: rolling,stable
         with:
           tag_name: ${{ steps.version-bump.outputs.new_tag }}
