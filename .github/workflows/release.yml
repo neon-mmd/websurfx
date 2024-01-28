@@ -21,15 +21,11 @@ jobs:
         
       - name:  'Automated Version Bump'
         id: version-bump
-        uses:  'phips28/gh-action-bump-version@master'
+        uses: anothrNick/github-tag-action@1.36.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          major-wording:  'MAJOR,major-change'
-          minor-wording:  'feat,'
-          patch-wording:  'patch,fix,build,chore,ci,docs,style,refactor,perf,test'     # Providing patch-wording will override commits
-          tag-prefix:  'v'
-          default: patch
+          WITH_V: true
+          DEFAULT_BUMP: patch
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
@@ -41,8 +37,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.version-bump.outputs.newTag }}
-          release_name: ${{ steps.version-bump.outputs.newTag }}
+          tag_name: ${{ steps.version-bump.outputs.new_tag }}
+          release_name: ${{ steps.version-bump.outputs.new_tag }}
           body: |
             ${{ steps.Changelog.outputs.changelog }}
           draft: false
