@@ -29,7 +29,7 @@ jobs:
                 Release_tag="v0.1.0"
               elif [ -z "$latest_release" ]; then
                 echo "No releases found. Using latest tag version."
-                Release_tag=$latest_release
+                Release_tag=$latest_tag
               elif [ -z "$latest_tag" ]; then
                 echo "No tags found. Using latest release version."
                 Release_tag=$latest_release
@@ -85,17 +85,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           create_release() {
-            curl \
-              -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              https://api.github.com/repos/${repo}/releases \
-              -d '{"tag_name":"'"${1}"'","target_commitish":"'"${branch}"'","name":"'"${1}"'","body":"","draft":false,"prerelease":false,"generate_release_notes":true}'
+          local version="${1}"
+          if [ -n "${version}" ]; then
+            version="V${version}"
+          fi
+          curl \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${repo}/releases \
+            -d '{"tag_name":"'"${version}"'","target_commitish":"'"${branch}"'","name":"'"${version}"'","body":"","draft":false,"prerelease":false,"generate_release_notes":true}'
           }
 
           repo=${{ github.repository }}
           branch=${{ github.head_ref }}
-          
-          create_release "${{ steps.bump_version_major.outputs.next-version }}"
-          create_release "${{ steps.bump_version_minor.outputs.next-version }}"
-          create_release "${{ steps.bump_version_patch.outputs.next-version }}"
+
+          # Check if steps are defined before calling create_release so we don't do unnecessary steps
+          if [ -n "${{ steps.bump_version_major.outputs.next-version }}" ]; then
+            create_release "${{ steps.bump_version_major.outputs.next-version }}"
+          fi
+
+          if [ -n "${{ steps.bump_version_minor.outputs.next-version }}" ]; then
+            create_release "${{ steps.bump_version_minor.outputs.next-version }}"
+          fi
+
+          if [ -n "${{ steps.bump_version_patch.outputs.next-version }}" ]; then
+            create_release "${{ steps.bump_version_patch.outputs.next-version }}"
+          fi
