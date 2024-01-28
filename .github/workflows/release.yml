@@ -24,7 +24,7 @@ jobs:
       - name: Bump version and push tag
         uses: hennejg/github-tag-action@v4.1.jh1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
