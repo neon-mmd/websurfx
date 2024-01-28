@@ -38,6 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PRERELEASE: false
           RELEASE_BRANCHES: rolling,stable
+          PRERELEASE_SUFFIX: ''
         with:
           tag_name: ${{ steps.version-bump.outputs.new_tag }}
           release_name: ${{ steps.version-bump.outputs.new_tag }}
