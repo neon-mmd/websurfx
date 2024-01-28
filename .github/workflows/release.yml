@@ -22,6 +22,7 @@ jobs:
           ref: ${{ github.sha }} ## this seems to be required due to https://github.com/anothrNick/github-tag-action/issues/266
           fetch-depth: 0
       - name: Bump version and push tag
+        id: version-bump
         uses: hennejg/github-tag-action@v4.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
