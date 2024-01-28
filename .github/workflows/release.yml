@@ -21,18 +21,10 @@ jobs:
         with:
           ref: ${{ github.sha }} ## this seems to be required due to https://github.com/anothrNick/github-tag-action/issues/266
           fetch-depth: 0
-      - name:  'Automated Version Bump'
-        id: version-bump
-        uses: anothrNick/github-tag-action@1.36.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          PRERELEASE: false
-          RELEASE_BRANCHES: rolling
-          DEFAULT_BRANCH: rolling
-          pre_release: false
-          PRERELEASE_SUFFIX: ''
+      - name: Bump version and push tag
+        uses: hennejg/github-tag-action@v4.1.jh1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
