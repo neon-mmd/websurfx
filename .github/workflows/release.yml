@@ -87,7 +87,7 @@ jobs:
           create_release() {
           local version="${1}"
           if [ -n "${version}" ]; then
-            version="V${version}"
+            version="v${version}"
           fi
           curl \
             -X POST \
