@@ -30,6 +30,8 @@ jobs:
           DEFAULT_BUMP: patch
           PRERELEASE: false
           RELEASE_BRANCHES: rolling
+          DEFAULT_BRANCH: rolling
+          pre_release: false
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
