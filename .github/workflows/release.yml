@@ -20,14 +20,25 @@ jobs:
         id: releaseVersion
         run: |
               repo="${{ github.repository }}"
-              release_json=$(curl -s "https://api.github.com/repos/$repo/releases")
+              latest_release=$(curl -s "https://api.github.com/repos/$repo/releases" | jq -r '.[0].name' )
+              latest_tag=$(curl -s "https://api.github.com/repos/$repo/tags" | jq -r '.[0].tag_name')
+
               
-              if [ "$(echo "$release_json" | jq '. | length')" -eq 0 ]; then
-                Release_tag="0.1.0"
-                echo "No releases found. Setting default version to $Release_tag"
+              if [ -z "$latest_release" ] && [ -z "$latest_tag" ]; then
+                echo "No releases or tags found. Setting default version to 0.1.0"
+                Release_tag="v0.1.0"
+              elif [ -z "$latest_release" ]; then
+                echo "No releases found. Using latest tag version."
+                Release_tag=$latest_release
+              elif [ -z "$latest_tag" ]; then
+                echo "No tags found. Using latest release version."
+                Release_tag=$latest_release
+              elif [[ "$latest_release" > "$latest_tag" ]]; then
+                echo "Latest release is newer. Using release version."
+                Release_tag=$latest_tag
               else
-                Release_tag=$(echo "$release_json" | jq -r '.[0].tag_name')
-                echo "Latest Tag is : $Release_tag"
+                echo "Latest tag is newer. Using tag version."
+                Release_tag=$latest_tag
               fi
               
               echo "::set-output name=Release_tag::$Release_tag"
