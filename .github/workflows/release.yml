@@ -35,7 +35,7 @@ jobs:
                 Release_tag=$latest_release
               elif [[ "$latest_release" > "$latest_tag" ]]; then
                 echo "Latest release is newer. Using release version."
-                Release_tag=$latest_tag
+                Release_tag=$latest_release
               else
                 echo "Latest tag is newer. Using tag version."
                 Release_tag=$latest_tag
