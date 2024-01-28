@@ -26,6 +26,7 @@ jobs:
         uses: hennejg/github-tag-action@v4.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: rolling
       - name: Changelog
         uses: scottbrenner/generate-changelog-action@master
         id: Changelog
