@@ -27,18 +27,26 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: rolling
-      - name: get-app-version
-        id: package-version
-        run: |
-          LF_VERSION=$(cat package.json | jq -r '.version')
-          echo "current-version=$LF_VERSION" >> "$GITHUB_OUTPUT"
       - name: update cargo.toml
         run: |
           appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | sed 's/[v]//')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
       - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: rolling
+      # create PR using GitHub CLI
+      - name: create PR with release info
+        if: steps.changelog.outputs.skipped == 'false'
+        id: create-pr
+        run: gh pr create --base main --head release-from-${{ github.sha }} --title 'Merge new release into main' --body 'Created by Github action'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # merge PR using GitHub CLI
+      - name: merge PR with release info
+        if: steps.changelog.outputs.skipped == 'false'
+        id: merge-pr
+        run: gh pr merge --admin --merge --subject 'Merge release info' --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
