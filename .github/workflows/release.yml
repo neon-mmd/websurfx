@@ -39,7 +39,6 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: rolling
-          tagging_message: ${{ steps.version-bump.outputs.new_tag }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
