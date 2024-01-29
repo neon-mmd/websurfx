@@ -39,7 +39,10 @@ jobs:
         run: |
           appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | sed 's/[v]//')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: auto commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: feature-123
       # create PR using GitHub CLI
       - name: create PR with update info
         id: create-pr
