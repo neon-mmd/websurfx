@@ -37,6 +37,9 @@ jobs:
           appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | sed 's/[v]//')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
       - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: rolling
+          tagging_message: ${{ steps.version-bump.outputs.new_tag }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
