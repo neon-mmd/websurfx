@@ -42,7 +42,7 @@ jobs:
       - name: auto commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          branch: feature-123
+          branch: update-from-${{ github.sha }}
       # create PR using GitHub CLI
       - name: create PR with update info
         id: create-pr
