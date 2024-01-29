@@ -54,7 +54,7 @@ jobs:
         id: merge-pr
         run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
