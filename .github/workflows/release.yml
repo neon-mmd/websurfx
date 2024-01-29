@@ -34,14 +34,12 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
       # create PR using GitHub CLI
       - name: create PR with release info
-        if: steps.changelog.outputs.skipped == 'false'
         id: create-pr
         run: gh pr create --base main --head release-from-${{ github.sha }} --title 'Merge new release into main' --body 'Created by Github action'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # merge PR using GitHub CLI
       - name: merge PR with release info
-        if: steps.changelog.outputs.skipped == 'false'
         id: merge-pr
         run: gh pr merge --admin --merge --subject 'Merge release info' --delete-branch
         env:
