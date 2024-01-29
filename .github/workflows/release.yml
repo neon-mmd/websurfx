@@ -29,21 +29,27 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: rolling
+      - name: create branch 
+        uses: peterjgrainger/action-create-branch@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: update-from-${{ github.sha }}
       - name: update cargo.toml
         run: |
           appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | sed 's/[v]//')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
       - uses: stefanzweifel/git-auto-commit-action@v5
       # create PR using GitHub CLI
-      - name: create PR with release info
+      - name: create PR with update info
         id: create-pr
-        run: gh pr create --base main --head release-from-${{ github.sha }} --title 'Merge new release into main' --body 'Created by Github action'
+        run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # merge PR using GitHub CLI
-      - name: merge PR with release info
+      - name: merge PR with update info
         id: merge-pr
-        run: gh pr merge --admin --merge --subject 'Merge release info' --delete-branch
+        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
