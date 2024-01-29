@@ -15,7 +15,7 @@ concurrency: production
 jobs:
   build:
     name: bump tag version and release  
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,6 +42,7 @@ jobs:
       - name: auto commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          commit_message: "[skip ci] Automated Change"
           branch: update-from-${{ github.sha }}
       # create PR using GitHub CLI
       - name: create PR with update info
