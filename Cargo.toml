@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.9.6"
+version = "2.0.10"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
