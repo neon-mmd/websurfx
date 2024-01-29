@@ -34,7 +34,7 @@ jobs:
           echo "current-version=$LF_VERSION" >> "$GITHUB_OUTPUT"
       - name: update cargo.toml
         run: |
-          appversion=$(${{ steps.version-bump.outputs.new_tag }} | sed 's/[v]//')
+          appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | sed 's/[v]//')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
       - name: Create Release
         uses: softprops/action-gh-release@v1
