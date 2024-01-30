@@ -32,7 +32,7 @@
   <a href=""
     ><img
       alt="Maintenance"
-      src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
+      src="https://img.shields.io/maintenance/yes/2024?style=flat-square"
     />
   </a>
   <a href="https://www.codefactor.io/repository/github/neon-mmd/websurfx">
