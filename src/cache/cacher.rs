@@ -4,6 +4,7 @@
 use error_stack::Report;
 #[cfg(feature = "memory-cache")]
 use mini_moka::sync::Cache as MokaCache;
+#[cfg(feature = "memory-cache")]
 use mini_moka::sync::ConcurrentCacheExt;
 
 #[cfg(feature = "memory-cache")]
