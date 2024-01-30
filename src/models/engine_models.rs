@@ -86,6 +86,42 @@ pub trait SearchEngine: Sync + Send {
             .change_context(EngineError::RequestError)?)
     }
 
+    /// This helper function fetches/requests the json search results from the upstream search engine as a vector of bytes.
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - It takes the url of the upstream search engine with the user requested search
+    /// query appended in the search parameters.
+    /// * `header_map` - It takes the http request headers to be sent to the upstream engine in
+    /// order to prevent being detected as a bot. It takes the header as a HeaderMap type.
+    /// * `request_timeout` - It takes the request timeout value as seconds which is used to limit
+    /// the amount of time for each request to remain connected when until the results can be provided
+    /// by the upstream engine.
+    ///
+    /// # Error
+    ///
+    /// It returns the html data as a vector of bytes if the upstream engine provides the data as expected
+    /// otherwise it returns a custom `EngineError`.
+    async fn fetch_json_as_bytes_from_upstream(
+        &self,
+        url: &str,
+        header_map: reqwest::header::HeaderMap,
+        client: &Client,
+    ) -> Result<Vec<u8>, EngineError> {
+        // fetch the json response from upstream search engine
+
+        Ok(client
+            .get(url)
+            .headers(header_map) // add spoofed headers to emulate human behavior
+            .send()
+            .await
+            .change_context(EngineError::RequestError)?
+            .bytes()
+            .await
+            .change_context(EngineError::RequestError)?
+            .to_vec())
+    }
+
     /// This function scrapes results from the upstream engine and puts all the scraped results like
     /// title, visiting_url (href in html),engine (from which engine it was fetched from) and description
     /// in a RawSearchResult and then adds that to HashMap whose keys are url and values are RawSearchResult
