@@ -42,7 +42,7 @@ jobs:
       - name: auto commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "[skip ci] Automated Change"
+          commit_message: "[skip ci] update Cargo.toml to ${{ steps.version-bump.outputs.new_tag }}"
           branch: update-from-${{ github.sha }}
       # create PR using GitHub CLI
       - name: create PR with update info
@@ -56,7 +56,6 @@ jobs:
         run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
