@@ -32,7 +32,7 @@
   <a href=""
     ><img
       alt="Maintenance"
-      src="https://img.shields.io/maintenance/yes/2023?style=flat-square"
+      src="https://img.shields.io/maintenance/yes/2024?style=flat-square"
     />
   </a>
   <a href="https://www.codefactor.io/repository/github/neon-mmd/websurfx">
@@ -141,7 +141,7 @@ redis-server --port 8082 &
 
 Once you have started the server, open your preferred web browser and navigate to <http://127.0.0.1:8080> to start using Websurfx.
 
-> **Note**
+> [!Note]
 >
 > 1. The project is no longer in the testing phase and is now ready for production use.
 > 2. There are many features still missing, like `support for image search`, `different categories`, `quick apps`, etc., but they will be added soon as part of future releases.
@@ -166,7 +166,7 @@ Websurfx comes loaded with several themes and color schemes, which you can apply
 
 # Multi-Language Support 🌍
 
-> **Note**
+> [!Note]
 > Currently, we do not support other languages, but we will start accepting contributions regarding language support in the future. We believe language should never be a barrier to entry.
 
 **[⬆️ Back to Top](#--)**
@@ -218,7 +218,7 @@ Several areas that we need a bit of help with at the moment are:
 
 # Documentation 📘
 
-> **Note**
+> [!Note]
 > We welcome any contributions to the [documentation](docs) as this will benefit everyone who uses this project.
 
 **[⬆️ Back to Top](#--)**
@@ -267,7 +267,7 @@ We would like to thank the following people for their contributions and support:
 
 <p>
   <a href="https://github.com/neon-mmd/websurfx/stargazers">
-    <img src="https://reporoster.com/stars/dark/neon-mmd/websurfx" />
+    <img src="http://reporoster.com/stars/dark/neon-mmd/websurfx"/>
   </a>
 </p>
 

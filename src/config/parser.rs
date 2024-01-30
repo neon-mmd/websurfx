@@ -98,6 +98,7 @@ impl Config {
 
         #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
         let parsed_cet = globals.get::<_, u16>("cache_expiry_time")?;
+        #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
         let cache_expiry_time = match parsed_cet {
             0..=59 => {
                 log::error!(
