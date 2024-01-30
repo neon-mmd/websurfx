@@ -39,9 +39,7 @@ jobs:
         run: |
           appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
           sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
-      - uses: actions/checkout@v4
       - run: rustup toolchain install stable --profile minimal
-      - uses: actions/checkout@v4
       - run: rustup update stable && rustup default stable
       - name: regenerate cargo.lock
         run: cargo generate-lockfile
