@@ -1,0 +1,72 @@
+name: Bump release version
+on:
+  pull_request:
+    branches: [rolling]
+    types:
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+  repository-projects: write
+
+concurrency: production
+
+jobs:
+  build:
+    name: bump tag version and release  
+    if: github.event.pull_request.merged == true 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Bump version and push tag
+        id: version-bump
+        uses: hennejg/github-tag-action@v4.3.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: rolling
+      - name: create branch 
+        uses: peterjgrainger/action-create-branch@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: update-from-${{ github.sha }}
+      - name: update cargo.toml
+        run: |
+          appversion=$(echo "${{ steps.version-bump.outputs.new_tag }}" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          sed -i -e "s/^version = .*/version = \"$appversion\"/" Cargo.toml
+      - run: rustup toolchain install stable --profile minimal
+      - run: rustup update stable && rustup default stable
+      - name: regenerate cargo.lock
+        run: cargo generate-lockfile
+      - name: auto commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[skip ci] updating app version to ${{ steps.version-bump.outputs.new_tag }}"
+          branch: update-from-${{ github.sha }}
+      # create PR using GitHub CLI
+      - name: create PR with update info
+        id: create-pr
+        run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # merge PR using GitHub CLI
+      - name: merge PR with update info
+        id: merge-pr
+        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          name: ${{ steps.version-bump.outputs.new_tag }}
+          tag_name: ${{ steps.version-bump.outputs.new_tag }}
+          prerelease: false
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
