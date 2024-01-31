@@ -27,12 +27,12 @@ jobs:
         id: version-bump
         uses: hennejg/github-tag-action@v4.3.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           release_branches: rolling
       - name: create branch 
         uses: peterjgrainger/action-create-branch@v2.2.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
         with:
           branch: update-from-${{ github.sha }}
       - name: update cargo.toml
@@ -53,7 +53,7 @@ jobs:
         id: create-pr
         run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
       # merge PR using GitHub CLI
       - name: merge PR with update info
         id: merge-pr
@@ -63,7 +63,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           generate_release_notes: true
           name: ${{ steps.version-bump.outputs.new_tag }}
           tag_name: ${{ steps.version-bump.outputs.new_tag }}
