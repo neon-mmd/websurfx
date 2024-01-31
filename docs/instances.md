@@ -4,7 +4,7 @@
 
 This page provides a list of `Websurfx` instances provided by us and our community. 
 
-|URL|Network|Version|Location|Behind Cloudflare?|Status|TLS|IPv6|Comment|
+|URL|Network|Version|Location|Behind Cloudflare?|Status|Maintained By|TLS|IPv6|Comment|
 |-|-|-|-|-|-|-|-|-|
 |https://websurfx.co|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/2/status"></a>|✅|❌||
 |https://alamin655-spacex.hf.space|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/5/status"></a>|✅|❌||
