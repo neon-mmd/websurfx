@@ -6,21 +6,10 @@ This page provides a list of `Websurfx` instances provided by us and our communi
 
 |URL|Network|Version|Location|Behind Cloudflare?|Status|Maintained By|TLS|IPv6|Comment|
 |-|-|-|-|-|-|-|-|-|-|
-|https://websurfx.co|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/2/status"></a>||✅|❌||
-|https://alamin655-spacex.hf.space|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/5/status"></a>||✅|❌||
-|https://websurfx.instance.pp.ua|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://status.websurfx.pp.ua/api/badge/7/status"></a>||✅|✅||
-|https://alamin655-websurfx.hf.space|www|stable|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img id="status-badge" src="https://status.websurfx.pp.ua/api/badge/6/status?cache_buster="></a>||✅|❌||
+|https://websurfx.co|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://img.shields.io/website?url=https%3A%2F%2Fwebsurfx.co&label=Status"></a>||✅|❌||
+|https://alamin655-spacex.hf.space|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://img.shields.io/website?url=https%3A%2F%2Falamin655-spacex.hf.space&label=Status"></a>||✅|❌||
+|https://websurfx.instance.pp.ua|www|rolling|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://img.shields.io/website?url=https%3A%2F%2Fwebsurfx.instance.pp.ua&label=Status"></a>||✅|✅||
+|https://alamin655-surfx.hf.space|www|stable|🇺🇸 US||<a href="https://status.websurfx.pp.ua"><img src="https://img.shields.io/website?url=https%3A%2F%2Falamin655-surfx.hf.space&label=Status"></a>||✅|❌||
 
 
 [⬅️ Go back to Home](./README.md)
-
-<script>
-  // Generate a random number between 0 and 10000
-  var cacheBuster = Math.floor(Math.random() * 10000);
-
-  // Get the badge image element
-  var badge = document.getElementById("status-badge");
-
-  // Update the src attribute of the badge image with the random number
-  badge.src = badge.src + cacheBuster;
-</script>
