@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
       - name: Bump version and push tag
         id: version-bump
-        uses: hennejg/github-tag-action@v4.3.1
+        uses: hennejg/github-tag-action@v4.4.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: rolling
