@@ -31,7 +31,7 @@ dependencies = [
  "futures-util",
  "log",
  "once_cell",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -99,7 +99,7 @@ dependencies = [
  "pin-project-lite",
  "rand 0.8.5",
  "sha1",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
  "tokio 1.35.1",
  "tokio-util",
  "tracing",
@@ -210,7 +210,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded 0.7.1",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
  "socket2",
  "time 0.3.31",
  "url 2.5.0",
@@ -956,7 +956,7 @@ dependencies = [
  "dtoa-short",
  "itoa 1.0.10",
  "phf 0.11.2",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -969,7 +969,7 @@ dependencies = [
  "dtoa-short",
  "itoa 1.0.10",
  "phf 0.11.2",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -1448,7 +1448,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "quanta",
  "rand 0.8.5",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -1875,7 +1875,7 @@ dependencies = [
  "parcel_selectors",
  "paste",
  "pathdiff",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -2077,7 +2077,7 @@ dependencies = [
  "crossbeam-utils 0.8.18",
  "dashmap",
  "skeptic",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
  "tagptr",
  "triomphe",
 ]
@@ -2337,7 +2337,7 @@ dependencies = [
  "phf 0.10.1",
  "phf_codegen 0.10.0",
  "precomputed-hash",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -2385,7 +2385,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "libc",
  "redox_syscall 0.4.1",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
  "windows-targets 0.48.5",
 ]
 
@@ -3208,7 +3208,7 @@ dependencies = [
  "phf_codegen 0.10.0",
  "precomputed-hash",
  "servo_arc",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
 ]
 
 [[package]]
@@ -3366,9 +3366,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.11.2"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
+checksum = "e6ecd384b10a64542d77071bd64bd7b231f4ed5940fba55e98c3de13824cf3d7"
 dependencies = [
  "serde",
 ]
@@ -4180,7 +4180,7 @@ dependencies = [
  "scraper",
  "serde",
  "serde_json",
- "smallvec 1.11.2",
+ "smallvec 1.13.1",
  "tempfile",
  "tokio 1.35.1",
 ]
