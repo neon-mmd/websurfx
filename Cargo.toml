@@ -50,7 +50,7 @@ criterion = {version="0.5.1", default-features=false}
 tempfile = {version="3.8.0", default-features=false}
 
 [build-dependencies]
-lightningcss = {version="1.0.0-alpha.50", default-features=false, features=["grid"]}
+lightningcss = {version="1.0.0-alpha.52", default-features=false, features=["grid"]}
 minify-js = {version="0.6.0", default-features=false}
 
 [profile.dev]
