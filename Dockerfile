@@ -8,6 +8,7 @@ WORKDIR /app
 
 FROM chef AS planner
 COPY ./Cargo.toml ./Cargo.lock ./
+COPY .cargo/config ./.cargo/config
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM --platform=$BUILDPLATFORM chef AS builder
