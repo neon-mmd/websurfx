@@ -12,7 +12,10 @@ const PUBLIC_DIRECTORY_NAME: &str = "public";
 /// The constant holding the name of the common folder.
 const COMMON_DIRECTORY_NAME: &str = "websurfx";
 /// The constant holding the name of the config file.
+#[cfg(feature = "lua-config")]
 const CONFIG_FILE_NAME: &str = "config.lua";
+#[cfg(feature = "json-config")]
+const CONFIG_FILE_NAME: &str = "config.json";
 /// The constant holding the name of the AllowList text file.
 const ALLOWLIST_FILE_NAME: &str = "allowlist.txt";
 /// The constant holding the name of the BlockList text file.

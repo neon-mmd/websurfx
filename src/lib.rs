@@ -5,6 +5,11 @@
 #![deny(missing_docs, clippy::missing_docs_in_private_items, clippy::perf)]
 #![warn(clippy::cognitive_complexity, rust_2018_idioms)]
 
+#[cfg(all(feature = "lua-config", feature = "json-config"))]
+compile_error!(
+    r#"feature "lua-config" and feature "json-config" cannot be enabled at the same time, please disable the "lua-config" feature to use the "json-config" feature"#
+);
+
 pub mod cache;
 pub mod config;
 pub mod engines;
@@ -28,7 +33,7 @@ use actix_web::{
     web, App, HttpServer,
 };
 use cache::cacher::{Cacher, SharedCache};
-use config::parser::Config;
+use config::Config;
 use handler::{file_path, FileType};
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
@@ -45,7 +50,7 @@ use handler::{file_path, FileType};
 ///
 /// ```rust
 /// use std::net::TcpListener;
-/// use websurfx::{config::parser::Config, run, cache::cacher::create_cache};
+/// use websurfx::{config::Config, run, cache::cacher::create_cache};
 ///
 /// #[tokio::main]
 /// async fn main(){
@@ -62,7 +67,7 @@ pub fn run(
 ) -> std::io::Result<Server> {
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
-    let cloned_config_threads_opt: u8 = config.threads;
+    let cloned_config_threads_opt = config.server.threads;
 
     let cache = web::Data::new(SharedCache::new(cache));
 
@@ -86,8 +91,8 @@ pub fn run(
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()
-                    .per_second(config.rate_limiter.time_limit as u64)
-                    .burst_size(config.rate_limiter.number_of_requests as u32)
+                    .per_second(config.server.rate_limiter.time_limit as u64)
+                    .burst_size(config.server.rate_limiter.number_of_requests as u32)
                     .finish()
                     .unwrap(),
             ))
@@ -107,7 +112,7 @@ pub fn run(
             .service(router::settings) // settings page
             .default_service(web::route().to(router::not_found)) // error page
     })
-    .workers(cloned_config_threads_opt as usize)
+    .workers(cloned_config_threads_opt.get().into())
     // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
     .listen(listener)?
     .run();

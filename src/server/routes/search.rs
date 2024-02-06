@@ -2,7 +2,7 @@
 
 use crate::{
     cache::cacher::SharedCache,
-    config::parser::Config,
+    config::Config,
     handler::{file_path, FileType},
     models::{
         aggregation_models::SearchResults,
@@ -59,20 +59,21 @@ pub async fn search(
                     server_models::Cookie::build(
                         &config.style,
                         config
+                            .search
                             .upstream_search_engines
                             .iter()
                             .filter_map(|(engine, enabled)| {
                                 enabled.then_some(Cow::Borrowed(engine.as_str()))
                             })
                             .collect(),
-                        config.safe_search,
+                        config.search.safe_search,
                     )
                 });
 
             search_settings.safe_search_level = get_safesearch_level(
                 &Some(search_settings.safe_search_level),
                 &params.safesearch,
-                config.safe_search,
+                config.search.safe_search,
             );
 
             // Closure wrapping the results function capturing local references
@@ -169,8 +170,8 @@ async fn results(
 
     let cache_key = format!(
         "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
-        config.binding_ip,
-        config.port,
+        config.server.binding_ip,
+        config.server.port,
         query,
         page,
         safe_search_level,
@@ -209,14 +210,14 @@ async fn results(
                     aggregate(
                         query,
                         page,
-                        config.aggregator.random_delay,
-                        config.debug,
+                        config.server.aggregator.random_delay,
+                        config.server.debug,
                         &search_settings
                             .engines
                             .iter()
                             .filter_map(|engine| EngineHandler::new(engine).ok())
                             .collect::<Vec<EngineHandler>>(),
-                        config.request_timeout,
+                        config.server.request_timeout,
                         safe_search_level,
                     )
                     .await?

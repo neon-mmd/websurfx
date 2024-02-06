@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 
-use websurfx::{config::parser::Config, run, templates::views};
+use websurfx::{config::Config, run, templates::views};
 
 // Starts a new instance of the HTTP server, bound to a random available port
 async fn spawn_app() -> String {

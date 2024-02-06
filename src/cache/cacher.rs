@@ -11,7 +11,7 @@ use mini_moka::sync::ConcurrentCacheExt;
 use std::time::Duration;
 use tokio::sync::Mutex;
 
-use crate::{config::parser::Config, models::aggregation_models::SearchResults};
+use crate::{config::Config, models::aggregation_models::SearchResults};
 
 use super::error::CacheError;
 #[cfg(feature = "redis-cache")]
@@ -397,7 +397,7 @@ impl Cacher for InMemoryCache {
 
         InMemoryCache {
             cache: MokaCache::builder()
-                .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
+                .time_to_live(Duration::from_secs(config.caching.cache_expiry_time.into()))
                 .build(),
         }
     }

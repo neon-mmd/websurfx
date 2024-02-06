@@ -3,7 +3,7 @@
 //! when requested.
 
 use crate::{
-    config::parser::Config,
+    config::Config,
     handler::{file_path, FileType},
 };
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
@@ -67,11 +67,11 @@ pub async fn settings(
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
         crate::templates::views::settings::settings(
-            config.safe_search,
+            config.search.safe_search,
             &config.style.colorscheme,
             &config.style.theme,
             &config.style.animation,
-            &config.upstream_search_engines,
+            &config.search.upstream_search_engines,
         )?
         .0,
     ))

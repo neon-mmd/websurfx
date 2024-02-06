@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 use serde::Deserialize;
 
-use super::parser_models::Style;
+use crate::config::style::Style;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
 #[derive(Deserialize)]

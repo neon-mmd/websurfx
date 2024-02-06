@@ -4,5 +4,4 @@
 
 pub mod aggregation_models;
 pub mod engine_models;
-pub mod parser_models;
 pub mod server_models;
