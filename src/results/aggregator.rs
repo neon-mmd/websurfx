@@ -11,19 +11,18 @@ use error_stack::Report;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::{fs::File, io::BufRead};
 use std::{
-    collections::HashMap,
     io::{BufReader, Read},
     time::Duration,
 };
-use std::{fs::File, io::BufRead};
 use tokio::task::JoinHandle;
 
 /// A constant for holding the prebuilt Client globally in the app.
 static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
 /// Aliases for long type annotations
-type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<EngineError>>>>;
+type FutureVec = Vec<JoinHandle<Result<Vec<(String, SearchResult)>, Report<EngineError>>>>;
 
 /// The function aggregates the scraped results from the user-selected upstream search engines.
 /// These engines can be chosen either from the user interface (UI) or from the configuration file.
@@ -36,7 +35,7 @@ type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<Eng
 ///
 /// Additionally, the function eliminates duplicate results. If two results are identified as coming from
 /// multiple engines, their names are combined to indicate that the results were fetched from these upstream
-/// engines. After this, all the data in the `HashMap` is removed and placed into a struct that contains all
+/// engines. After this, all the data in the `Vec` is removed and placed into a struct that contains all
 /// the aggregated results in a vector. Furthermore, the query used is also added to the struct. This step is
 /// necessary to ensure that the search bar in the search remains populated even when searched from the query URL.
 ///
@@ -117,7 +116,7 @@ pub async fn aggregate(
     }
 
     // aggregate search results, removing duplicates and handling errors the upstream engines returned
-    let mut result_map: HashMap<String, SearchResult> = HashMap::new();
+    let mut result_map: Vec<(String, SearchResult)> = Vec::new();
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
     let mut handle_error = |error: &Report<EngineError>, engine_name: &'static str| {
@@ -134,35 +133,27 @@ pub async fn aggregate(
 
         if result_map.is_empty() {
             match response {
-                Ok(results) => {
-                    result_map = results.clone();
-                }
-                Err(error) => {
-                    handle_error(&error, engine);
-                }
-            }
+                Ok(results) => result_map = results,
+                Err(error) => handle_error(&error, engine),
+            };
             continue;
         }
 
         match response {
             Ok(result) => {
                 result.into_iter().for_each(|(key, value)| {
-                    result_map
-                        .entry(key)
-                        .and_modify(|result| {
-                            result.add_engines(engine);
-                        })
-                        .or_insert_with(|| -> SearchResult { value });
+                    match result_map.iter().find(|(key_s, _)| key_s == &key) {
+                        Some(value) => value.1.to_owned().add_engines(engine),
+                        None => result_map.push((key, value)),
+                    };
                 });
             }
-            Err(error) => {
-                handle_error(&error, engine);
-            }
-        }
+            Err(error) => handle_error(&error, engine),
+        };
     }
 
     if safe_search >= 3 {
-        let mut blacklist_map: HashMap<String, SearchResult> = HashMap::new();
+        let mut blacklist_map: Vec<(String, SearchResult)> = Vec::new();
         filter_with_lists(
             &mut result_map,
             &mut blacklist_map,
@@ -178,7 +169,7 @@ pub async fn aggregate(
         drop(blacklist_map);
     }
 
-    let results: Vec<SearchResult> = result_map.into_values().collect();
+    let results: Vec<SearchResult> = result_map.iter().map(|(_, value)| value.clone()).collect();
 
     Ok(SearchResults::new(results, &engine_errors_info))
 }
@@ -187,16 +178,16 @@ pub async fn aggregate(
 ///
 /// # Arguments
 ///
-/// * `map_to_be_filtered` - A mutable reference to a `HashMap` of search results to filter, where the filtered results will be removed from.
-/// * `resultant_map` - A mutable reference to a `HashMap` to hold the filtered results.
+/// * `map_to_be_filtered` - A mutable reference to a `Vec` of search results to filter, where the filtered results will be removed from.
+/// * `resultant_map` - A mutable reference to a `Vec` to hold the filtered results.
 /// * `file_path` - A `&str` representing the path to a file containing regex patterns to use for filtering.
 ///
 /// # Errors
 ///
 /// Returns an error if the file at `file_path` cannot be opened or read, or if a regex pattern is invalid.
 pub fn filter_with_lists(
-    map_to_be_filtered: &mut HashMap<String, SearchResult>,
-    resultant_map: &mut HashMap<String, SearchResult>,
+    map_to_be_filtered: &mut Vec<(String, SearchResult)>,
+    resultant_map: &mut Vec<(String, SearchResult)>,
     file_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = BufReader::new(File::open(file_path)?);
@@ -205,16 +196,13 @@ pub fn filter_with_lists(
         let re = Regex::new(line?.trim())?;
 
         // Iterate over each search result in the map and check if it matches the regex pattern
-        for (url, search_result) in map_to_be_filtered.clone().into_iter() {
+        for (index, (url, search_result)) in map_to_be_filtered.clone().into_iter().enumerate() {
             if re.is_match(&url.to_lowercase())
                 || re.is_match(&search_result.title.to_lowercase())
                 || re.is_match(&search_result.description.to_lowercase())
             {
                 // If the search result matches the regex pattern, move it from the original map to the resultant map
-                resultant_map.insert(
-                    url.to_owned(),
-                    map_to_be_filtered.remove(&url.to_owned()).unwrap(),
-                );
+                resultant_map.push(map_to_be_filtered.remove(index));
             }
         }
     }
@@ -226,15 +214,14 @@ pub fn filter_with_lists(
 mod tests {
     use super::*;
     use smallvec::smallvec;
-    use std::collections::HashMap;
     use std::io::Write;
     use tempfile::NamedTempFile;
 
     #[test]
     fn test_filter_with_lists() -> Result<(), Box<dyn std::error::Error>> {
         // Create a map of search results to filter
-        let mut map_to_be_filtered = HashMap::new();
-        map_to_be_filtered.insert(
+        let mut map_to_be_filtered = Vec::new();
+        map_to_be_filtered.push((
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
@@ -243,15 +230,15 @@ mod tests {
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
-        );
-        map_to_be_filtered.insert(
+        ));
+        map_to_be_filtered.push((
             "https://www.rust-lang.org/".to_owned(),
             SearchResult {
                 title: "Rust Programming Language".to_owned(),
                 url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
-            },
+            },)
         );
 
         // Create a temporary file with regex patterns
@@ -260,7 +247,7 @@ mod tests {
         writeln!(file, "rust")?;
         file.flush()?;
 
-        let mut resultant_map = HashMap::new();
+        let mut resultant_map = Vec::new();
         filter_with_lists(
             &mut map_to_be_filtered,
             &mut resultant_map,
@@ -268,8 +255,12 @@ mod tests {
         )?;
 
         assert_eq!(resultant_map.len(), 2);
-        assert!(resultant_map.contains_key("https://www.example.com"));
-        assert!(resultant_map.contains_key("https://www.rust-lang.org/"));
+        assert!(resultant_map
+            .iter()
+            .any(|(key, _)| key == "https://www.example.com"));
+        assert!(resultant_map
+            .iter()
+            .any(|(key, _)| key == "https://www.rust-lang.org/"));
         assert_eq!(map_to_be_filtered.len(), 0);
 
         Ok(())
@@ -277,8 +268,8 @@ mod tests {
 
     #[test]
     fn test_filter_with_lists_wildcard() -> Result<(), Box<dyn std::error::Error>> {
-        let mut map_to_be_filtered = HashMap::new();
-        map_to_be_filtered.insert(
+        let mut map_to_be_filtered = Vec::new();
+        map_to_be_filtered.push((
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
@@ -287,8 +278,8 @@ mod tests {
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
-        );
-        map_to_be_filtered.insert(
+        ));
+        map_to_be_filtered.push((
             "https://www.rust-lang.org/".to_owned(),
             SearchResult {
                 title: "Rust Programming Language".to_owned(),
@@ -296,14 +287,14 @@ mod tests {
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
             },
-        );
+        ));
 
         // Create a temporary file with a regex pattern containing a wildcard
         let mut file = NamedTempFile::new()?;
         writeln!(file, "ex.*le")?;
         file.flush()?;
 
-        let mut resultant_map = HashMap::new();
+        let mut resultant_map = Vec::new();
 
         filter_with_lists(
             &mut map_to_be_filtered,
@@ -312,18 +303,22 @@ mod tests {
         )?;
 
         assert_eq!(resultant_map.len(), 1);
-        assert!(resultant_map.contains_key("https://www.example.com"));
+        assert!(resultant_map
+            .iter()
+            .any(|(key, _)| key == "https://www.example.com"));
         assert_eq!(map_to_be_filtered.len(), 1);
-        assert!(map_to_be_filtered.contains_key("https://www.rust-lang.org/"));
+        assert!(map_to_be_filtered
+            .iter()
+            .any(|(key, _)| key == "https://www.rust-lang.org/"));
 
         Ok(())
     }
 
     #[test]
     fn test_filter_with_lists_file_not_found() {
-        let mut map_to_be_filtered = HashMap::new();
+        let mut map_to_be_filtered = Vec::new();
 
-        let mut resultant_map = HashMap::new();
+        let mut resultant_map = Vec::new();
 
         // Call the `filter_with_lists` function with a non-existent file path
         let result = filter_with_lists(
@@ -337,8 +332,8 @@ mod tests {
 
     #[test]
     fn test_filter_with_lists_invalid_regex() {
-        let mut map_to_be_filtered = HashMap::new();
-        map_to_be_filtered.insert(
+        let mut map_to_be_filtered = Vec::new();
+        map_to_be_filtered.push((
             "https://www.example.com".to_owned(),
             SearchResult {
                 title: "Example Domain".to_owned(),
@@ -347,9 +342,9 @@ mod tests {
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
-        );
+        ));
 
-        let mut resultant_map = HashMap::new();
+        let mut resultant_map = Vec::new();
 
         // Create a temporary file with an invalid regex pattern
         let mut file = NamedTempFile::new().unwrap();

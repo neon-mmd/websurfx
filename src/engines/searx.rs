@@ -43,7 +43,7 @@ impl SearchEngine for Searx {
         user_agent: &str,
         client: &Client,
         mut safe_search: u8,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
+    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         if safe_search == 3 {
