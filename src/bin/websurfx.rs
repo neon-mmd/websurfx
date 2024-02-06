@@ -5,7 +5,7 @@
 #[cfg(not(feature = "dhat-heap"))]
 use mimalloc::MiMalloc;
 
-use std::net::TcpListener;
+use std::{net::TcpListener, sync::OnceLock};
 use websurfx::{cache::cacher::create_cache, config::parser::Config, run};
 
 /// A dhat heap memory profiler
@@ -16,6 +16,9 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 #[cfg(not(feature = "dhat-heap"))]
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
+
+/// A static constant for holding the parsed config.
+static CONFIG: OnceLock<Config> = OnceLock::new();
 
 /// The function that launches the main server and registers all the routes of the website.
 ///
@@ -29,10 +32,10 @@ async fn main() -> std::io::Result<()> {
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
 
-    // Initialize the parsed config file.
-    let config = Config::parse(false).unwrap();
+    // Initialize the parsed config globally.
+    let config = CONFIG.get_or_init(|| Config::parse(false).unwrap());
 
-    let cache = create_cache(&config).await;
+    let cache = create_cache(config).await;
 
     log::info!(
         "started server on port {} and IP {}",

@@ -37,8 +37,8 @@ use tokio::join;
 #[get("/search")]
 pub async fn search(
     req: HttpRequest,
-    config: web::Data<Config>,
-    cache: web::Data<SharedCache>,
+    config: web::Data<&'static Config>,
+    cache: web::Data<&'static SharedCache>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     use std::sync::Arc;
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
@@ -158,8 +158,8 @@ pub async fn search(
 /// It returns the `SearchResults` struct if the search results could be successfully fetched from
 /// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
-    config: &Config,
-    cache: &web::Data<SharedCache>,
+    config: &'static Config,
+    cache: &'static SharedCache,
     query: &str,
     page: u32,
     search_settings: &server_models::Cookie<'_>,

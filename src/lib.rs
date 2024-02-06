@@ -14,7 +14,7 @@ pub mod results;
 pub mod server;
 pub mod templates;
 
-use std::net::TcpListener;
+use std::{net::TcpListener, sync::OnceLock};
 
 use crate::server::router;
 
@@ -30,6 +30,9 @@ use actix_web::{
 use cache::cacher::{Cacher, SharedCache};
 use config::parser::Config;
 use handler::{file_path, FileType};
+
+/// A static constant for holding the cache struct.
+static SHARED_CACHE: OnceLock<SharedCache> = OnceLock::new();
 
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
@@ -57,14 +60,14 @@ use handler::{file_path, FileType};
 /// ```
 pub fn run(
     listener: TcpListener,
-    config: Config,
+    config: &'static Config,
     cache: impl Cacher + 'static,
 ) -> std::io::Result<Server> {
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
     let cloned_config_threads_opt: u8 = config.threads;
 
-    let cache = web::Data::new(SharedCache::new(cache));
+    let cache = SHARED_CACHE.get_or_init(|| SharedCache::new(cache));
 
     let server = HttpServer::new(move || {
         let cors: Cors = Cors::default()
@@ -81,8 +84,8 @@ pub fn run(
             // Compress the responses provided by the server for the client requests.
             .wrap(Compress::default())
             .wrap(Logger::default()) // added logging middleware for logging.
-            .app_data(web::Data::new(config.clone()))
-            .app_data(cache.clone())
+            .app_data(web::Data::new(config))
+            .app_data(web::Data::new(cache))
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()
