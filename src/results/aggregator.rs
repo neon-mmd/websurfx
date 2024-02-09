@@ -8,6 +8,7 @@ use crate::models::{
     engine_models::{EngineError, EngineHandler},
 };
 use error_stack::Report;
+use futures::stream::FuturesUnordered;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -22,7 +23,9 @@ use tokio::task::JoinHandle;
 static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
 /// Aliases for long type annotations
-type FutureVec = Vec<JoinHandle<Result<Vec<(String, SearchResult)>, Report<EngineError>>>>;
+
+type FutureVec =
+    FuturesUnordered<JoinHandle<Result<Vec<(String, SearchResult)>, Report<EngineError>>>>;
 
 /// The function aggregates the scraped results from the user-selected upstream search engines.
 /// These engines can be chosen either from the user interface (UI) or from the configuration file.
@@ -93,7 +96,7 @@ pub async fn aggregate(
     let mut names: Vec<&str> = Vec::with_capacity(0);
 
     // create tasks for upstream result fetching
-    let mut tasks: FutureVec = FutureVec::new();
+    let tasks: FutureVec = FutureVec::new();
 
     for engine_handler in upstream_search_engines {
         let (name, search_engine) = engine_handler.to_owned().into_name_engine();
