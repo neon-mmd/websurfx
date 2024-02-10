@@ -1,11 +1,10 @@
 //! This module provides the functionality to cache the aggregated results fetched and aggregated
 //! from the upstream search engines in a json format.
 
-use error_stack::Report;
-use futures::future::try_join_all;
-use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
-
 use super::error::CacheError;
+use error_stack::Report;
+use futures::stream::FuturesUnordered;
+use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
 
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
@@ -41,14 +40,22 @@ impl RedisCache {
         cache_ttl: u16,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let client = Client::open(redis_connection_url)?;
-        let mut tasks: Vec<_> = Vec::new();
+        let tasks: FuturesUnordered<_> = FuturesUnordered::new();
 
         for _ in 0..pool_size {
-            tasks.push(client.get_connection_manager());
+            let client_partially_cloned = client.clone();
+            tasks.push(tokio::spawn(async move {
+                client_partially_cloned.get_tokio_connection_manager().await
+            }));
+        }
+
+        let mut outputs = Vec::new();
+        for task in tasks {
+            outputs.push(task.await??);
         }
 
         let redis_cache = RedisCache {
-            connection_pool: try_join_all(tasks).await?,
+            connection_pool: outputs,
             pool_size,
             current_connection: Default::default(),
             cache_ttl,
