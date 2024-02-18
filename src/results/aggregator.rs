@@ -71,6 +71,7 @@ pub async fn aggregate(
     upstream_search_engines: &[EngineHandler],
     request_timeout: u8,
     safe_search: u8,
+    adaptive_window: bool,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
         ClientBuilder::new()
@@ -78,6 +79,7 @@ pub async fn aggregate(
             .https_only(true)
             .gzip(true)
             .brotli(true)
+            .http2_adaptive_window(adaptive_window)
             .build()
             .unwrap()
     });

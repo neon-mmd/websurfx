@@ -14,6 +14,8 @@ rate_limiter = {
 	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
 }
+-- Set whether the server will use an adaptive/dynamic TCP window size
+adaptive_window = true
 
 -- ### Search ###
 -- Filter results based on different levels. The levels provided are:

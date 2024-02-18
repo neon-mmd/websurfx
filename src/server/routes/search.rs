@@ -218,6 +218,7 @@ async fn results(
                             .collect::<Vec<EngineHandler>>(),
                         config.request_timeout,
                         safe_search_level,
+                        config.adaptive_window,
                     )
                     .await?
                 }
