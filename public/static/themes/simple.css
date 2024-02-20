@@ -1,42 +1,46 @@
 /* @import url('./catppuccin-mocha.css'); */
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 200;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
   optional: sans-serif
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
   optional: sans-serif
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
   optional: sans-serif
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
   optional: sans-serif
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
   optional: sans-serif
 }
 
@@ -56,7 +60,7 @@ body {
   justify-content: space-between;
   align-items: center;
   min-height: 100vh;
-  font-family: 'Rubik', sans-serif;
+  font-family: Rubik, sans-serif;
   background-color: var(--background-color);
 }
 
@@ -848,39 +852,49 @@ input:checked + .slider::before {
   border-radius: 50%;
 }
 
-@media only screen and (max-width: 1135px) {
+@media only screen and (width <= 1135px) {
   .hero-text-container {
     width: unset;
   }
+
   .features {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-@media only screen and (max-width: 705px) {
+
+@media only screen and (width <= 705px) {
   .about-container article .logo-container svg {
     width: clamp(200px, 290px, 815px);
   }
+
   .about-container article .text-block .text-block-title {
     font-size: 33px;
   }
+
   .hero-text {
     font-size: 22px;
   }
+
   .about-container {
     width: unset;
   }
+
   .feature-list-title {
     font-size: 33px;
   }
+
   .features {
     grid-template-columns: 1fr;
   }
+
   .feature-list {
     padding: 35px 0;
   }
+
   .feature-card {
     border-radius: 0;
   }
+
   .about-footnote {
     padding: 0 15px;
   }
