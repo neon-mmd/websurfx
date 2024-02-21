@@ -30,7 +30,7 @@ pub struct Config {
     pub logging: bool,
     /// It stores the option to whether enable or disable debug mode.
     pub debug: bool,
-    /// It toggles whether to use adaptive TCP windows
+    /// It toggles whether to use adaptive HTTP windows
     pub adaptive_window: bool,
     /// It stores all the engine names that were enabled by the user.
     pub upstream_search_engines: HashMap<String, bool>,
