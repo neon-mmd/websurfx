@@ -1,6 +1,6 @@
 //! A module that handles the view for the about page in the `websurfx` frontend.
 
-use maud::{html, Markup};
+use maud::{html, Markup, PreEscaped};
 
 use crate::templates::partials::{footer::footer, header::header};
 
@@ -15,33 +15,141 @@ use crate::templates::partials::{footer::footer, header::header};
 ///
 /// It returns the compiled html markup code as a result.
 pub fn about(colorscheme: &str, theme: &str, animation: &Option<String>) -> Markup {
+    let logo_svg = r#"
+        <svg viewBox="0 0 173 57" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M77.8201 21.4277L73.4513 35.5049H70.3855L67.5496 25.1067L64.7137 35.5049H61.6479L57.2536 21.4277H60.2172L63.1553 32.7457L66.1444 21.4277H69.1847L72.0461 32.6946L74.9586 21.4277H77.8201ZM92.8986 28.1214C92.8986 28.6494 92.8645 29.1263 92.7964 29.5521H82.0405C82.1257 30.6762 82.543 31.5789 83.2924 32.2602C84.0418 32.9415 84.9616 33.2822 86.0516 33.2822C87.6186 33.2822 88.7257 32.6264 89.3729 31.3149H92.5154C92.0896 32.6094 91.3146 33.6739 90.1905 34.5085C89.0834 35.326 87.7038 35.7348 86.0516 35.7348C84.7061 35.7348 83.4968 35.4368 82.4238 34.8406C81.3678 34.2275 80.5332 33.3758 79.92 32.2858C79.3239 31.1787 79.0258 29.9013 79.0258 28.4535C79.0258 27.0058 79.3154 25.7369 79.8945 24.6468C80.4906 23.5397 81.3167 22.6881 82.3727 22.092C83.4457 21.4958 84.672 21.1978 86.0516 21.1978C87.3801 21.1978 88.5639 21.4873 89.6029 22.0664C90.6418 22.6455 91.4509 23.4631 92.03 24.5191C92.6091 25.558 92.8986 26.7588 92.8986 28.1214ZM89.8583 27.2016C89.8413 26.1286 89.4581 25.2685 88.7087 24.6213C87.9592 23.974 87.031 23.6504 85.9239 23.6504C84.919 23.6504 84.0589 23.974 83.3435 24.6213C82.6281 25.2515 82.2023 26.1116 82.0661 27.2016H89.8583ZM98.6773 23.5227C99.1713 22.8414 99.844 22.2878 100.696 21.862C101.564 21.4192 102.527 21.1978 103.583 21.1978C104.826 21.1978 105.95 21.4958 106.955 22.092C107.96 22.6881 108.752 23.5397 109.331 24.6468C109.91 25.7369 110.2 26.9887 110.2 28.4024C110.2 29.8161 109.91 31.085 109.331 32.2091C108.752 33.3162 107.951 34.1849 106.929 34.8151C105.925 35.4282 104.809 35.7348 103.583 35.7348C102.493 35.7348 101.522 35.5219 100.67 35.0961C99.8355 34.6703 99.1713 34.1253 98.6773 33.461V35.5049H95.7648V16.5991H98.6773V23.5227ZM107.236 28.4024C107.236 27.4316 107.032 26.597 106.623 25.8987C106.231 25.1833 105.703 24.6468 105.039 24.2891C104.392 23.9144 103.693 23.7271 102.944 23.7271C102.212 23.7271 101.513 23.9144 100.849 24.2891C100.202 24.6638 99.6737 25.2089 99.265 25.9242C98.8732 26.6396 98.6773 27.4827 98.6773 28.4535C98.6773 29.4244 98.8732 30.276 99.265 31.0084C99.6737 31.7237 100.202 32.2688 100.849 32.6435C101.513 33.0182 102.212 33.2055 102.944 33.2055C103.693 33.2055 104.392 33.0182 105.039 32.6435C105.703 32.2517 106.231 31.6897 106.623 30.9573C107.032 30.2249 107.236 29.3733 107.236 28.4024ZM118.19 35.7348C117.082 35.7348 116.086 35.5389 115.2 35.1472C114.332 34.7384 113.642 34.1934 113.131 33.5121C112.62 32.8138 112.347 32.0388 112.313 31.1872H115.328C115.379 31.7833 115.66 32.2858 116.171 32.6946C116.699 33.0863 117.355 33.2822 118.138 33.2822C118.956 33.2822 119.586 33.1289 120.029 32.8223C120.489 32.4987 120.719 32.0899 120.719 31.596C120.719 31.068 120.463 30.6762 119.952 30.4207C119.458 30.1653 118.666 29.8842 117.576 29.5777C116.52 29.2881 115.66 29.0071 114.996 28.7346C114.332 28.462 113.753 28.0447 113.259 27.4827C112.782 26.9206 112.543 26.1797 112.543 25.26C112.543 24.5105 112.765 23.8293 113.208 23.2161C113.65 22.5859 114.281 22.092 115.098 21.7343C115.933 21.3766 116.887 21.1978 117.96 21.1978C119.561 21.1978 120.847 21.6065 121.817 22.4241C122.805 23.2246 123.333 24.3232 123.401 25.7198H120.489C120.438 25.0896 120.182 24.5872 119.722 24.2125C119.263 23.8378 118.641 23.6504 117.857 23.6504C117.091 23.6504 116.503 23.7952 116.095 24.0847C115.686 24.3743 115.481 24.7575 115.481 25.2344C115.481 25.6091 115.618 25.9242 115.89 26.1797C116.163 26.4352 116.495 26.6396 116.887 26.7929C117.278 26.9291 117.857 27.108 118.624 27.3294C119.646 27.6019 120.48 27.8829 121.128 28.1725C121.792 28.445 122.362 28.8538 122.839 29.3988C123.316 29.9438 123.563 30.6677 123.58 31.5704C123.58 32.3709 123.359 33.0863 122.916 33.7165C122.473 34.3467 121.843 34.8406 121.025 35.1983C120.225 35.556 119.28 35.7348 118.19 35.7348ZM139.476 21.4277V35.5049H136.563V33.8442C136.104 34.4233 135.499 34.8832 134.75 35.2239C134.017 35.5475 133.234 35.7093 132.399 35.7093C131.292 35.7093 130.296 35.4793 129.41 35.0195C128.541 34.5596 127.851 33.8783 127.34 32.9756C126.847 32.0729 126.6 30.9828 126.6 29.7054V21.4277H129.487V29.2711C129.487 30.5315 129.802 31.5023 130.432 32.1836C131.062 32.8478 131.922 33.18 133.012 33.18C134.102 33.18 134.962 32.8478 135.593 32.1836C136.24 31.5023 136.563 30.5315 136.563 29.2711V21.4277H139.476ZM146.231 23.4716C146.657 22.7562 147.219 22.2027 147.918 21.8109C148.633 21.4022 149.476 21.1978 150.447 21.1978V24.2125H149.706C148.565 24.2125 147.696 24.502 147.1 25.0811C146.521 25.6602 146.231 26.6651 146.231 28.0958V35.5049H143.319V21.4277H146.231V23.4716ZM159.026 23.8037H156.42V35.5049H153.482V23.8037H151.821V21.4277H153.482V20.4313C153.482 18.8133 153.907 17.638 154.759 16.9056C155.628 16.1562 156.982 15.7815 158.821 15.7815V18.2086C157.936 18.2086 157.314 18.3789 156.956 18.7196C156.599 19.0432 156.42 19.6138 156.42 20.4313V21.4277H159.026V23.8037ZM167.636 28.3769L172.184 35.5049H168.888L165.848 30.7273L162.986 35.5049H159.946L164.494 28.5813L159.946 21.4277H163.242L166.282 26.2053L169.144 21.4277H172.184L167.636 28.3769Z" fill="currentColor"/>
+            <path d="M2.21486 42.7894C1.15271 43.0507 0.550463 44.1151 1.00616 45.1192C4.17619 52.1035 11.5005 54.9673 23.3646 52.0493C35.2399 49.1285 47.5128 41.4358 47.2254 33.7293C47.1854 32.6562 46.0226 32.0146 44.9605 32.2759L2.21486 42.7894Z" fill="currentColor"/>
+            <path d="M20.1227 10.0027C21.9192 10.8048 23.7313 11.7606 25.4259 12.8819C28.7827 15.1031 31.9178 18.1341 33.329 22.1366C34.1626 24.5009 34.0742 26.7513 33.2144 28.7679C32.4048 30.6666 30.9903 32.178 29.4212 33.3664C37.6699 31.0439 47.0335 26.0679 44.0686 17.608C40.9417 8.68557 29.3768 3.38405 21.266 1.04683C19.3981 0.508566 17.8191 2.37853 18.4252 4.22557C18.9773 5.90835 19.5596 7.85665 20.1227 10.0027Z" fill="currentColor"/>
+            <path d="M8.27125 34.3558C8.02834 30.0503 7.01551 25.8501 5.987 22.6653C5.38101 20.7888 6.95924 18.8318 8.8458 19.4057C13.6444 20.8655 19.4581 23.6235 21.1736 27.928C23.1268 32.8287 16.4467 35.584 11.1405 36.7375C9.66674 37.0579 8.35621 35.8616 8.27125 34.3558Z" fill="currentColor"/>
+            <path d="M12.5601 18.017C14.2332 18.6725 15.9372 19.4786 17.5019 20.4515C19.9805 21.9927 22.38 24.1208 23.5241 26.9914C24.2516 28.8168 24.2152 30.6223 23.4834 32.2482C23.1213 33.0529 22.6157 33.7553 22.0354 34.3669C27.6731 32.3348 32.9532 28.6804 30.9428 22.9781C28.6334 16.428 20.4047 12.4027 14.1807 10.4674C12.3234 9.88988 10.7357 11.7563 11.3182 13.6121C11.7303 14.9248 12.1549 16.4076 12.5601 18.017Z" fill="currentColor" fill-opacity="0.89"/>
+        </svg>
+    "#;
+    let feature_lightning = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 256 256"><path fill="currentColor" d="m213.85 125.46l-112 120a8 8 0 0 1-13.69-7l14.66-73.33l-57.63-21.64a8 8 0 0 1-3-13l112-120a8 8 0 0 1 13.69 7l-14.7 73.41l57.63 21.61a8 8 0 0 1 3 12.95Z"/></svg>
+    "#;
+    let feature_secure = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M1.25 12a5.75 5.75 0 0 1 10.8-2.75H21c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-.75.75h-2.25V16a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1-.75-.75v-1.75h-3.457A5.751 5.751 0 0 1 1.25 12M7 10a2 2 0 1 0 0 4a2 2 0 0 0 0-4" clip-rule="evenodd"/></svg>
+    "#;
+    let feature_clean = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 24 24"><path fill="currentColor" d="M8.665 15.735c.245.173.537.265.836.264v-.004a1.441 1.441 0 0 0 1.327-.872l.613-1.864a2.87 2.87 0 0 1 1.817-1.812l1.778-.578a1.442 1.442 0 0 0-.052-2.74l-1.755-.57a2.877 2.877 0 0 1-1.822-1.823l-.578-1.777a1.446 1.446 0 0 0-2.732.022l-.583 1.792a2.877 2.877 0 0 1-1.77 1.786l-1.777.57a1.444 1.444 0 0 0 .017 2.735l1.754.569a2.887 2.887 0 0 1 1.822 1.826l.578 1.775c.099.283.283.527.527.7m7.667 5.047a1.123 1.123 0 0 1-.41-.55l-.328-1.006a1.292 1.292 0 0 0-.821-.823l-.991-.323a1.148 1.148 0 0 1-.781-1.083a1.142 1.142 0 0 1 .771-1.08l1.006-.326a1.3 1.3 0 0 0 .8-.82l.324-.991a1.143 1.143 0 0 1 2.157-.021l.329 1.014a1.299 1.299 0 0 0 .82.816l.992.323a1.141 1.141 0 0 1 .039 2.165l-1.014.329a1.3 1.3 0 0 0-.818.822l-.322.989c-.078.23-.226.43-.425.57a1.14 1.14 0 0 1-1.328-.005"/></svg>
+    "#;
+    let feature_privacy = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 24 24"><path fill="currentColor" d="M4.19 4.47C3.47 4.79 3 5.51 3 6.3V11c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V6.3c0-.79-.47-1.51-1.19-1.83l-7-3.11c-.52-.23-1.11-.23-1.62 0zM12 7c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1m0 4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1s-1-.45-1-1v-4c0-.55.45-1 1-1"/></svg>
+    "#;
+    let feature_foss = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 24 24"><path fill="currentColor" d="M12.001 2c5.523 0 10 4.477 10 10c0 4.13-2.504 7.676-6.077 9.201l-2.518-6.55A3 3 0 0 0 12 9a3 3 0 0 0-1.404 5.652l-2.518 6.55A10.003 10.003 0 0 1 2 12C2 6.477 6.477 2 12 2"/></svg>
+    "#;
+    let feature_customizable = r#"
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" viewBox="0 0 20 20"><path fill="currentColor" d="M18.33 3.57s.27-.8-.31-1.36c-.53-.52-1.22-.24-1.22-.24c-.61.3-5.76 3.47-7.67 5.57c-.86.96-2.06 3.79-1.09 4.82c.92.98 3.96-.17 4.79-1c2.06-2.06 5.21-7.17 5.5-7.79M1.4 17.65c2.37-1.56 1.46-3.41 3.23-4.64c.93-.65 2.22-.62 3.08.29c.63.67.8 2.57-.16 3.46c-1.57 1.45-4 1.55-6.15.89"/></svg>
+    "#;
     html!(
         (header(colorscheme, theme, animation))
         main class="about-container"{
          article {
-             div{
-                h1{"Websurfx"}
-                hr size="4" width="100%" color="#a6e3a1"{}
-             }
-             p{"A modern-looking, lightning-fast, privacy-respecting, secure meta search engine written in Rust. It provides a fast and secure search experience while respecting user privacy."br{}" It aggregates results from multiple search engines and presents them in an unbiased manner, filtering out trackers and ads."
+             div class="logo-container" {
+                (PreEscaped(logo_svg))
              }
 
-             h2{"Some of the Top Features:"}
+             div class="text-block" {
+                h3 class="text-block-title" {"Why Websurfx?"}
+                div class="hero-text-container" {
+                    p class="hero-text" {"Websurfx aggregates results from multiple search engines and presents them in an unbiased manner, filtering out trackers and ads."}
+                }
+            }
 
-             ul{strong{"Lightning fast "}"- Results load within milliseconds for an instant search experience."}
+            div class="feature-list" {
+                h3 class="feature-list-title" {"Features"}
+                div class="features" {
 
-             ul{strong{"Secure search"}" - All searches are performed over an encrypted connection to prevent snooping."}
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_lightning)) }
+                            h4 {
+                                "Lightning-fast"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "Results load within milliseconds for an instant search experience."
+                            }
+                        }
+                    }
 
-             ul{strong{"Ad free results"}" - All search results are ad free and clutter free for a clean search experience."}
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_secure)) }
+                            h4 {
+                                "Secure Search"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "All searches are performed over an encrypted connection to prevent snooping."
+                            }
+                        }
+                    }
 
-             ul{strong{"Privacy focused"}" - Websurfx does not track, store or sell your search data. Your privacy is our priority."}
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_clean)) }
+                            h4 {
+                                "Ad-free Results"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "All search results are ad free and clutter free for a clean search experience."
+                            }
+                        }
+                    }
 
-             ul{strong{"Free and Open source"}" - The entire project's code is open source and available for free on "{a href="https://github.com/neon-mmd/websurfx"{"GitHub"}}" under an GNU Affero General Public License."}
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_privacy)) }
+                            h4 {
+                                "Privacy-focused"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "Websurfx does not track, store or sell your search data. Your privacy is our priority."
+                            }
+                        }
+                    }
 
-             ul{strong{"Highly customizable"}" - Websurfx comes with 9 built-in color themes and supports creating custom themes effortlessly."}
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_foss)) }
+                            h4 {
+                                "Free and Open-source"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "The entire project's code is open source and available for free on "{a href="https://github.com/neon-mmd/websurfx"{"GitHub"}}"."
+                            }
+                        }
+                    }
+
+                    div class="feature-card" {
+                        div class="feature-card-header" {
+                            div class="feature-card-icon" { (PreEscaped(feature_customizable)) }
+                            h4 {
+                                "Highly Customizable"
+                            }
+                        }
+                        div class="feature-card-body" {
+                            p {
+                                "Websurfx comes with 9 built-in color themes and supports creating custom themes effortlessly."
+                            }
+                        }
+                    }
+                }
+             }
+
          }
 
-         h3{"Devoloped by: "{a href="https://github.com/neon-mmd/websurfx"{"Websurfx team"}}}
+         h3 class="about-footnote" {"Developed by the "{a href="https://github.com/neon-mmd/websurfx"{"Websurfx team"}}}
         }
         (footer())
     )
