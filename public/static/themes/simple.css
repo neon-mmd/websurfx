@@ -1,38 +1,42 @@
 /* @import url('./catppuccin-mocha.css'); */
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 200;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
 }
+
 @font-face {
-  font-family: 'Rubik';
+  font-family: Rubik;
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2) format('woff2');
+  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
 }
 
 * {
@@ -51,7 +55,7 @@ body {
   justify-content: space-between;
   align-items: center;
   min-height: 100vh;
-  font-family: 'Rubik', sans-serif;
+  font-family: Rubik, sans-serif;
   background-color: var(--background-color);
 }
 
@@ -93,7 +97,7 @@ button {
   height: 3rem;
   outline: none;
   border: none;
-  box-shadow: rgb(0 0 0 / 1);
+  box-shadow: rgb(0 0 0 / 100%);
   background-color: var(--color-one);
   color: var(--foreground-color);
   outline-offset: 3px;
@@ -231,7 +235,7 @@ button {
 }
 
 .error_box .dropdown_error_box .error_item:hover {
-  box-shadow: inset 0 0 100px 100px rgb(255 255 255 / 0.1);
+  box-shadow: inset 0 0 100px 100px rgb(255 255 255 / 10%);
 }
 
 .error_box .error_item .severity_color {
@@ -843,37 +847,50 @@ input:checked + .slider::before {
   border-radius: 50%;
 }
 
-@media only screen and (max-width: 1135px) {
+@media screen and (width <= 1136px) {
+
   .hero-text-container {
     width: unset;
   }
+
   .features {
     grid-template-columns: repeat(2, 1fr);
   }
+
 }
-@media only screen and (max-width: 705px) {
+
+@media screen and (width <= 706px) {
+
   .about-container article .logo-container svg {
     width: clamp(200px, 290px, 815px);
   }
+
   .about-container article .text-block .text-block-title {
     font-size: 33px;
   }
+
   .hero-text {
     font-size: 22px;
   }
+
   .about-container {
     width: unset;
   }
+
   .feature-list-title {
     font-size: 33px;
   }
+
   .features {
     grid-template-columns: 1fr;
   }
+  
   .feature-list {
     padding: 35px 0;
   }
+
   .feature-card {
     border-radius: 0;
   }
+
 }
