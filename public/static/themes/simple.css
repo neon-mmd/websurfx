@@ -2,41 +2,10 @@
 @font-face {
   font-family: Rubik;
   font-style: normal;
-  font-weight: 200;
+  font-weight: 200 600;
+  font-stretch: 0% 200%;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
-}
-
-@font-face {
-  font-family: Rubik;
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
-}
-
-@font-face {
-  font-family: Rubik;
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
-}
-
-@font-face {
-  font-family: Rubik;
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
-}
-
-@font-face {
-  font-family: Rubik;
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nBrXw.woff2") format('woff2');
+  src: url(https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nErXyi0A.woff2) format('woff2');
 }
 
 * {
