@@ -2,6 +2,7 @@
 //! search engines and then removes duplicate results.
 
 use super::user_agent::random_user_agent;
+use crate::config::parser::Config;
 use crate::handler::{file_path, FileType};
 use crate::models::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
@@ -66,20 +67,17 @@ type FutureVec = Vec<JoinHandle<Result<HashMap<String, SearchResult>, Report<Eng
 pub async fn aggregate(
     query: &str,
     page: u32,
-    random_delay: bool,
-    debug: bool,
+    config: &Config,
     upstream_search_engines: &[EngineHandler],
-    request_timeout: u8,
     safe_search: u8,
-    adaptive_window: bool,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
         ClientBuilder::new()
-            .timeout(Duration::from_secs(request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .https_only(true)
             .gzip(true)
             .brotli(true)
-            .http2_adaptive_window(adaptive_window)
+            .http2_adaptive_window(config.adaptive_window)
             .build()
             .unwrap()
     });
@@ -87,7 +85,7 @@ pub async fn aggregate(
     let user_agent: &str = random_user_agent();
 
     // Add a random delay before making the request.
-    if random_delay || !debug {
+    if config.aggregator.random_delay || !config.debug {
         let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
         let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
         tokio::time::sleep(Duration::from_secs(delay)).await;

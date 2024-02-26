@@ -209,16 +209,13 @@ async fn results(
                     aggregate(
                         query,
                         page,
-                        config.aggregator.random_delay,
-                        config.debug,
+                        config,
                         &search_settings
                             .engines
                             .iter()
                             .filter_map(|engine| EngineHandler::new(engine).ok())
                             .collect::<Vec<EngineHandler>>(),
-                        config.request_timeout,
                         safe_search_level,
-                        config.adaptive_window,
                     )
                     .await?
                 }
