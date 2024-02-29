@@ -72,8 +72,24 @@ impl SearchEngine for Mojeek {
             "Yep",
             "You",
         ];
+
         let qss = search_engines.join("%2C");
-        let safe = if safe_search == 0 { "0" } else { "1" };
+
+        // A branchless condition to check whether the `safe_search` parameter has the
+        // value 0 or not. If it is zero then it sets the value 0 otherwise it sets
+        // the value to 1 for all other values of `safe_search`
+        //
+        // Moreover, the below branchless code is equivalent to the following code below:
+        //
+        // ```rust
+        // let safe = if safe_search == 0 { 0 } else { 1 }.to_string();
+        // ```
+        //
+        // For more information on branchless programming. See:
+        //
+        // * https://piped.video/watch?v=bVJ-mWWL7cE
+        let safe =
+            &((u8::from(safe_search == 0) * 0) + (u8::from(safe_search != 0) * 1)).to_string();
 
         // Mojeek detects automated requests, these are preferences that are
         // able to circumvent the countermeasure. Some of these are

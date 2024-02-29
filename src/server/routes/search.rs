@@ -70,8 +70,8 @@ pub async fn search(
                 });
 
             search_settings.safe_search_level = get_safesearch_level(
-                &Some(search_settings.safe_search_level),
-                &params.safesearch,
+                params.safesearch,
+                search_settings.safe_search_level,
                 config.safe_search,
             );
 
@@ -227,12 +227,12 @@ async fn results(
                     search_results
                 }
             };
-            if results.engine_errors_info().is_empty()
-                && results.results().is_empty()
-                && !results.no_engines_selected()
-            {
-                results.set_filtered();
-            }
+            let (engine_errors_info, results_empty_check, no_engines_selected) = (
+                results.engine_errors_info().is_empty(),
+                results.results().is_empty(),
+                results.no_engines_selected(),
+            );
+            results.set_filtered(engine_errors_info & results_empty_check & !no_engines_selected);
             cache
                 .cache_results(&[results.clone()], &[cache_key.clone()])
                 .await?;
@@ -269,24 +269,29 @@ fn is_match_from_filter_list(
     Ok(false)
 }
 
-/// A helper function to modify the safe search level based on the url params.
-/// The `safe_search` is the one in the user's cookie or
-/// the default set by the server config if the cookie was missing.
+/// A helper function to choose the safe search level value based on the URL parameters,
+/// cookie value and config value.
 ///
 /// # Argurments
 ///
-/// * `url_level` - Safe search level from the url.
-/// * `safe_search` - User's cookie, or the safe search level set by the server
-/// * `config_level` - Safe search level to fall back to
-fn get_safesearch_level(cookie_level: &Option<u8>, url_level: &Option<u8>, config_level: u8) -> u8 {
-    match url_level {
-        Some(url_level) => {
-            if *url_level >= 3 {
-                config_level
-            } else {
-                *url_level
-            }
-        }
-        None => cookie_level.unwrap_or(config_level),
-    }
+/// * `safe_search_level_from_url` - Safe search level from the URL parameters.
+/// * `cookie_safe_search_level` - Safe search level value from the cookie.
+/// * `config_safe_search_level` - Safe search level value from the config file.
+///
+/// # Returns
+///
+/// Returns an appropriate safe search level value based on the safe search level values
+/// from the URL parameters, cookie and the config file.
+fn get_safesearch_level(
+    safe_search_level_from_url: Option<u8>,
+    cookie_safe_search_level: u8,
+    config_safe_search_level: u8,
+) -> u8 {
+    (u8::from(safe_search_level_from_url.is_some())
+        * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+            + (u8::from(config_safe_search_level < 3)
+                * safe_search_level_from_url.unwrap_or_else(|| 0))))
+        + (u8::from(safe_search_level_from_url.is_none())
+            * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)))
 }
