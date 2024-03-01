@@ -295,3 +295,70 @@ fn get_safesearch_level(
             * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
                 + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)))
 }
+
+#[cfg(test)]
+mod tests {
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+    /// A helper function which creates a random mock safe search level value.
+    ///
+    /// # Returns
+    ///
+    /// Returns an optional u8 value.
+    fn mock_safe_search_level_value() -> Option<u8> {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or(Duration::default())
+            .subsec_nanos() as f32;
+        let delay = ((nanos / 1_0000_0000 as f32).floor() as i8) - 1;
+
+        match delay {
+            -1 => None,
+            some_num => Some(if some_num > 4 { some_num - 4 } else { some_num } as u8),
+        }
+    }
+
+    #[test]
+    /// A test function to test whether the output of the branchless and branched code
+    /// for the code to choose the appropriate safe search level is same or not.
+    fn get_safesearch_level_branched_branchless_code_test() {
+        // Get mock values for the safe search level values for URL parameters, cookie
+        // and config.
+        let safe_search_level_from_url = mock_safe_search_level_value();
+        let cookie_safe_search_level = mock_safe_search_level_value().unwrap_or(0);
+        let config_safe_search_level = mock_safe_search_level_value().unwrap_or(0);
+
+        // Branched code
+        let safe_search_level_value_from_branched_code = match safe_search_level_from_url {
+            Some(safe_search_level_from_url_parsed) => {
+                if config_safe_search_level >= 3 {
+                    config_safe_search_level
+                } else {
+                    safe_search_level_from_url_parsed
+                }
+            }
+            None => {
+                if config_safe_search_level >= 3 {
+                    config_safe_search_level
+                } else {
+                    cookie_safe_search_level
+                }
+            }
+        };
+
+        // branchless code
+        let safe_search_level_value_from_branchless_code =
+            (u8::from(safe_search_level_from_url.is_some())
+                * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                    + (u8::from(config_safe_search_level < 3)
+                        * safe_search_level_from_url.unwrap_or(0))))
+                + (u8::from(safe_search_level_from_url.is_none())
+                    * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                        + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)));
+
+        assert_eq!(
+            safe_search_level_value_from_branched_code,
+            safe_search_level_value_from_branchless_code
+        );
+    }
+}
