@@ -198,15 +198,23 @@ pub fn filter_with_lists(
     for line in reader.by_ref().lines() {
         let re = Regex::new(line?.trim())?;
 
+        let mut length = map_to_be_filtered.len();
+        let mut idx: usize = Default::default();
         // Iterate over each search result in the map and check if it matches the regex pattern
-        for (index, (url, search_result)) in map_to_be_filtered.clone().into_iter().enumerate() {
-            if re.is_match(&url.to_lowercase())
-                || re.is_match(&search_result.title.to_lowercase())
-                || re.is_match(&search_result.description.to_lowercase())
+        while idx < length {
+            let ele = &map_to_be_filtered[idx];
+            let ele_inner = &ele.1;
+            match re.is_match(&ele.0.to_lowercase())
+                || re.is_match(&ele_inner.title.to_lowercase())
+                || re.is_match(&ele_inner.description.to_lowercase())
             {
-                // If the search result matches the regex pattern, move it from the original map to the resultant map
-                resultant_map.push(map_to_be_filtered.remove(index));
-            }
+                true => {
+                    // If the search result matches the regex pattern, move it from the original map to the resultant map
+                    resultant_map.push(map_to_be_filtered.swap_remove(idx));
+                    length -= 1;
+                }
+                false => idx += 1,
+            };
         }
     }
 
