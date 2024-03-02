@@ -47,7 +47,7 @@ cfg-if = {version="1.0.0", default-features=false,optional=true}
 [dev-dependencies]
 rusty-hook = {version="^0.11.2", default-features=false}
 criterion = {version="0.5.1", default-features=false}
-tempfile = {version="3.8.0", default-features=false}
+tempfile = {version="3.10.1", default-features=false}
 
 [build-dependencies]
 lightningcss = {version="1.0.0-alpha.52", default-features=false, features=["grid"]}
