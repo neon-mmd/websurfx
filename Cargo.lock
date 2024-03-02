@@ -2968,9 +2968,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.23"
+version = "0.11.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37b1ae8d9ac08420c66222fb9096fc5de435c3c48542bc5336c51892cffafb41"
+checksum = "c6920094eb85afde5e4a138be3f2de8bbdf28000f0029e72c45025a56b042251"
 dependencies = [
  "async-compression",
  "base64 0.21.5",
@@ -2995,6 +2995,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded 0.7.1",
+ "sync_wrapper",
  "system-configuration",
  "tokio 1.35.1",
  "tokio-rustls",
@@ -3506,6 +3507,12 @@ dependencies = [
  "quote 1.0.35",
  "unicode-ident",
 ]
+
+[[package]]
+name = "sync_wrapper"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2047c6ded9c721764247e62cd3b03c09ffc529b2ba5b10ec482ae507a4a70160"
 
 [[package]]
 name = "synstructure"
@@ -4184,7 +4191,7 @@ dependencies = [
  "mlua",
  "redis",
  "regex",
- "reqwest 0.11.23",
+ "reqwest 0.11.24",
  "rusty-hook",
  "scraper",
  "serde",
