@@ -289,8 +289,7 @@ fn get_safesearch_level(
 ) -> u8 {
     (u8::from(safe_search_level_from_url.is_some())
         * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
-            + (u8::from(config_safe_search_level < 3)
-                * safe_search_level_from_url.unwrap_or_else(|| 0))))
+            + (u8::from(config_safe_search_level < 3) * safe_search_level_from_url.unwrap_or(0))))
         + (u8::from(safe_search_level_from_url.is_none())
             * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
                 + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)))
@@ -298,7 +297,7 @@ fn get_safesearch_level(
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+    use std::time::{SystemTime, UNIX_EPOCH};
 
     /// A helper function which creates a random mock safe search level value.
     ///
@@ -308,7 +307,7 @@ mod tests {
     fn mock_safe_search_level_value() -> Option<u8> {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap_or(Duration::default())
+            .unwrap_or_default()
             .subsec_nanos() as f32;
         let delay = ((nanos / 1_0000_0000 as f32).floor() as i8) - 1;
 

@@ -88,8 +88,7 @@ impl SearchEngine for Mojeek {
         // For more information on branchless programming. See:
         //
         // * https://piped.video/watch?v=bVJ-mWWL7cE
-        let safe =
-            &((u8::from(safe_search == 0) * 0) + (u8::from(safe_search != 0) * 1)).to_string();
+        let safe = u8::from(safe_search != 0).to_string();
 
         // Mojeek detects automated requests, these are preferences that are
         // able to circumvent the countermeasure. Some of these are
@@ -105,7 +104,7 @@ impl SearchEngine for Mojeek {
             ("hp", "minimal"),
             ("lb", "en"),
             ("qss", &qss),
-            ("safe", safe),
+            ("safe", &safe),
         ];
 
         let mut query_params_string = String::new();
