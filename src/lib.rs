@@ -47,15 +47,19 @@ static SHARED_CACHE: OnceLock<SharedCache> = OnceLock::new();
 /// # Example
 ///
 /// ```rust
-/// use std::net::TcpListener;
+/// use std::{net::TcpListener, sync::OnceLock};
 /// use websurfx::{config::parser::Config, run, cache::cacher::create_cache};
+///
+/// /// A static constant for holding the parsed config.
+/// static CONFIG: OnceLock<Config> = OnceLock::new();
 ///
 /// #[tokio::main]
 /// async fn main(){
-///     let config = Config::parse(true).unwrap();
+///     // Initialize the parsed config globally.
+///     let config = CONFIG.get_or_init(|| Config::parse(true).unwrap());
 ///     let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind address");
-///     let cache = create_cache(&config).await;
-///     let server = run(listener,config,cache).expect("Failed to start server");
+///     let cache = create_cache(config).await;
+///     let server = run(listener,&config,cache).expect("Failed to start server");
 /// }
 /// ```
 pub fn run(
