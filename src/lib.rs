@@ -69,8 +69,6 @@ pub fn run(
 ) -> std::io::Result<Server> {
     let public_folder_path: &str = file_path(FileType::Theme)?;
 
-    let cloned_config_threads_opt: u8 = config.threads;
-
     let cache = SHARED_CACHE.get_or_init(|| SharedCache::new(cache));
 
     let server = HttpServer::new(move || {
@@ -114,7 +112,7 @@ pub fn run(
             .service(router::settings) // settings page
             .default_service(web::route().to(router::not_found)) // error page
     })
-    .workers(cloned_config_threads_opt as usize)
+    .workers(config.threads as usize)
     // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
     .listen(listener)?
     .run();

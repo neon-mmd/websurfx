@@ -48,7 +48,7 @@ async fn main() -> std::io::Result<()> {
         config.port,
     );
 
-    let listener = TcpListener::bind((config.binding_ip.clone(), config.port))?;
+    let listener = TcpListener::bind((config.binding_ip.as_str(), config.port))?;
 
     run(listener, config, cache)?.await
 }

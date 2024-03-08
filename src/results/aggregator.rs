@@ -12,6 +12,7 @@ use error_stack::Report;
 use futures::stream::FuturesUnordered;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{fs::File, io::BufRead};
 use std::{
@@ -98,13 +99,20 @@ pub async fn aggregate(
     // create tasks for upstream result fetching
     let tasks: FutureVec = FutureVec::new();
 
+    let query: Arc<String> = Arc::new(query.to_string());
     for engine_handler in upstream_search_engines {
-        let (name, search_engine) = engine_handler.to_owned().into_name_engine();
+        let (name, search_engine) = engine_handler.clone().into_name_engine();
         names.push(name);
-        let query: String = query.to_owned();
+        let query_partially_cloned = query.clone();
         tasks.push(tokio::spawn(async move {
             search_engine
-                .results(&query, page, user_agent, client, safe_search)
+                .results(
+                    &query_partially_cloned,
+                    page,
+                    user_agent,
+                    client,
+                    safe_search,
+                )
                 .await
         }));
     }

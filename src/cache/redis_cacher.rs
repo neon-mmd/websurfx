@@ -11,7 +11,6 @@ const REDIS_PIPELINE_SIZE: usize = 3;
 
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
-#[derive(Clone)]
 pub struct RedisCache {
     /// It stores a pool of connections ready to be used.
     connection_pool: Vec<ConnectionManager>,

@@ -10,7 +10,7 @@
 /// order to allow the deserializing the json back to struct in aggregate function in
 /// aggregator.rs and create a new struct out of it and then serialize it back to json and pass
 /// it to the template files.
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Style {
     /// It stores the parsed theme option used to set a theme for the website.
     pub theme: String,
@@ -40,7 +40,6 @@ impl Style {
 }
 
 /// Configuration options for the aggregator.
-#[derive(Clone)]
 pub struct AggregatorConfig {
     /// It stores the option to whether enable or disable random delays between
     /// requests.
@@ -48,7 +47,6 @@ pub struct AggregatorConfig {
 }
 
 /// Configuration options for the rate limiter middleware.
-#[derive(Clone)]
 pub struct RateLimiter {
     /// The number of request that are allowed within a provided time limit.
     pub number_of_requests: u8,

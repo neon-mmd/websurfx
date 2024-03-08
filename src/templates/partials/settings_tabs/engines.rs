@@ -55,7 +55,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                               input type="checkbox" class="engine" checked;
                               span class="slider round"{}
                            }
-                           (format!("{}{}",engine_name[..1].to_uppercase().to_owned(), engine_name[1..].to_owned()))
+                           (format!("{}{}",&engine_name[..1].to_uppercase(), &engine_name[1..]))
                        }
                    }
                    @else {
@@ -64,7 +64,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                               input type="checkbox" class="engine";
                               span class="slider round"{}
                            }
-                           (format!("{}{}",engine_name[..1].to_uppercase().to_owned(), engine_name[1..].to_owned()))
+                           (format!("{}{}",&engine_name[..1], &engine_name[1..]))
                        }
                    }
                }

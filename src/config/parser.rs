@@ -9,7 +9,6 @@ use mlua::Lua;
 use std::{collections::HashMap, fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
-#[derive(Clone)]
 pub struct Config {
     /// It stores the parsed port number option on which the server should launch.
     pub port: u16,
