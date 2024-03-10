@@ -7,7 +7,7 @@ use crate::{
     handler::{file_path, FileType},
 };
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
-use std::fs::read_to_string;
+use tokio::fs::read_to_string;
 
 /// Handles the route of index page or main page of the `websurfx` meta search engine website.
 #[get("/")]
@@ -43,7 +43,7 @@ pub async fn not_found(
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let page_content: String =
-        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?))?;
+        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme)?)).await?;
     Ok(HttpResponse::Ok()
         .content_type(ContentType::plaintext())
         .body(page_content))

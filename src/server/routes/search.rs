@@ -13,12 +13,12 @@ use crate::{
 };
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
-use std::{
-    borrow::Cow,
+use std::borrow::Cow;
+use tokio::{
     fs::File,
-    io::{BufRead, BufReader, Read},
+    io::{AsyncBufReadExt, BufReader},
+    join,
 };
-use tokio::join;
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
@@ -188,7 +188,7 @@ async fn results(
                 let mut results: SearchResults = SearchResults::default();
 
                 let flag: bool =
-                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
+                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query).await?;
                 // Return early when query contains disallowed words,
                 if flag {
                     results.set_disallowed();
@@ -252,13 +252,14 @@ async fn results(
 ///
 /// Returns a bool indicating whether the results were found in the list or not on success
 /// otherwise returns a standard error type on a failure.
-fn is_match_from_filter_list(
+async fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let mut reader = BufReader::new(File::open(file_path)?);
-    for line in reader.by_ref().lines() {
-        let re = Regex::new(&line?)?;
+    let reader = BufReader::new(File::open(file_path).await?);
+    let mut lines = reader.lines();
+    while let Some(line) = lines.next_line().await? {
+        let re = Regex::new(&line)?;
         if re.is_match(query) {
             return Ok(true);
         }

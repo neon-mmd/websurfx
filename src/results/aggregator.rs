@@ -14,12 +14,12 @@ use regex::Regex;
 use reqwest::{Client, ClientBuilder};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{fs::File, io::BufRead};
-use std::{
-    io::{BufReader, Read},
+use tokio::{
+    fs::File,
+    io::{AsyncBufReadExt, BufReader},
+    task::JoinHandle,
     time::Duration,
 };
-use tokio::task::JoinHandle;
 
 /// A constant for holding the prebuilt Client globally in the app.
 static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
@@ -169,13 +169,15 @@ pub async fn aggregate(
             &mut result_map,
             &mut blacklist_map,
             file_path(FileType::BlockList)?,
-        )?;
+        )
+        .await?;
 
         filter_with_lists(
             &mut blacklist_map,
             &mut result_map,
             file_path(FileType::AllowList)?,
-        )?;
+        )
+        .await?;
 
         drop(blacklist_map);
     }
@@ -196,15 +198,16 @@ pub async fn aggregate(
 /// # Errors
 ///
 /// Returns an error if the file at `file_path` cannot be opened or read, or if a regex pattern is invalid.
-pub fn filter_with_lists(
+pub async fn filter_with_lists(
     map_to_be_filtered: &mut Vec<(String, SearchResult)>,
     resultant_map: &mut Vec<(String, SearchResult)>,
     file_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut reader = BufReader::new(File::open(file_path)?);
+    let reader = BufReader::new(File::open(file_path).await?);
+    let mut lines = reader.lines();
 
-    for line in reader.by_ref().lines() {
-        let re = Regex::new(line?.trim())?;
+    while let Some(line) = lines.next_line().await? {
+        let re = Regex::new(line.trim())?;
 
         let mut length = map_to_be_filtered.len();
         let mut idx: usize = Default::default();
@@ -236,8 +239,8 @@ mod tests {
     use std::io::Write;
     use tempfile::NamedTempFile;
 
-    #[test]
-    fn test_filter_with_lists() -> Result<(), Box<dyn std::error::Error>> {
+    #[tokio::test]
+    async fn test_filter_with_lists() -> Result<(), Box<dyn std::error::Error>> {
         // Create a map of search results to filter
         let mut map_to_be_filtered = Vec::new();
         map_to_be_filtered.push((
@@ -271,7 +274,8 @@ mod tests {
             &mut map_to_be_filtered,
             &mut resultant_map,
             file.path().to_str().unwrap(),
-        )?;
+        )
+        .await?;
 
         assert_eq!(resultant_map.len(), 2);
         assert!(resultant_map
@@ -285,8 +289,8 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_filter_with_lists_wildcard() -> Result<(), Box<dyn std::error::Error>> {
+    #[tokio::test]
+    async fn test_filter_with_lists_wildcard() -> Result<(), Box<dyn std::error::Error>> {
         let mut map_to_be_filtered = Vec::new();
         map_to_be_filtered.push((
             "https://www.example.com".to_owned(),
@@ -319,7 +323,8 @@ mod tests {
             &mut map_to_be_filtered,
             &mut resultant_map,
             file.path().to_str().unwrap(),
-        )?;
+        )
+        .await?;
 
         assert_eq!(resultant_map.len(), 1);
         assert!(resultant_map
@@ -333,8 +338,8 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_filter_with_lists_file_not_found() {
+    #[tokio::test]
+    async fn test_filter_with_lists_file_not_found() {
         let mut map_to_be_filtered = Vec::new();
 
         let mut resultant_map = Vec::new();
@@ -346,11 +351,11 @@ mod tests {
             "non-existent-file.txt",
         );
 
-        assert!(result.is_err());
+        assert!(result.await.is_err());
     }
 
-    #[test]
-    fn test_filter_with_lists_invalid_regex() {
+    #[tokio::test]
+    async fn test_filter_with_lists_invalid_regex() {
         let mut map_to_be_filtered = Vec::new();
         map_to_be_filtered.push((
             "https://www.example.com".to_owned(),
@@ -376,6 +381,6 @@ mod tests {
             file.path().to_str().unwrap(),
         );
 
-        assert!(result.is_err());
+        assert!(result.await.is_err());
     }
 }
