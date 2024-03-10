@@ -87,4 +87,4 @@ redis-cache = ["dep:redis","dep:base64"]
 compress-cache-results = ["dep:brotli","dep:cfg-if"]
 encrypt-cache-results = ["dep:chacha20poly1305","dep:chacha20"]
 cec-cache-results = ["compress-cache-results","encrypt-cache-results"]
-
+experimental-io-uring = ["actix-web/experimental-io-uring"]
