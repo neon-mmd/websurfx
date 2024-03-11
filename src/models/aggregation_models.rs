@@ -154,8 +154,8 @@ impl SearchResults {
     }
 
     /// A setter function that sets the filtered to true.
-    pub fn set_filtered(&mut self) {
-        self.filtered = true;
+    pub fn set_filtered(&mut self, filtered: bool) {
+        self.filtered = filtered;
     }
 
     /// A getter function that gets the value of `engine_errors_info`.

@@ -43,12 +43,21 @@ impl SearchEngine for Searx {
         user_agent: &str,
         client: &Client,
         mut safe_search: u8,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
-        // Page number can be missing or empty string and so appropriate handling is required
-        // so that upstream server recieves valid page number.
-        if safe_search == 3 {
-            safe_search = 2;
-        };
+    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+        // A branchless condition to check whether the `safe_search` parameter has the
+        // value greater than equal to three or not. If it is, then it modifies the
+        // `safesearch` parameters value to 2.
+        //
+        // Moreover, the below branchless code is equivalent to the following code below:
+        //
+        // ```rust
+        // safe_search = u8::from(safe_search == 3) * 2;
+        // ```
+        //
+        // For more information on branchless programming. See:
+        //
+        // * https://piped.video/watch?v=bVJ-mWWL7cE
+        safe_search = u8::from(safe_search >= 3) * 2;
 
         let url: String = format!(
             "https://searx.be/search?q={query}&pageno={}&safesearch={safe_search}",

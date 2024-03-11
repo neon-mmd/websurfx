@@ -1,5 +1,4 @@
 //! This modules provides helper functionalities for parsing a html document into internal SearchResult.
-use std::collections::HashMap;
 
 use crate::models::{aggregation_models::SearchResult, engine_models::EngineError};
 use error_stack::{Report, Result};
@@ -47,7 +46,7 @@ impl SearchResultParser {
         &self,
         document: &Html,
         builder: impl Fn(&ElementRef<'_>, &ElementRef<'_>, &ElementRef<'_>) -> Option<SearchResult>,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
+    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
         let res = document
             .select(&self.results)
             .filter_map(|result| {
