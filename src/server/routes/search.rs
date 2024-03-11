@@ -13,12 +13,12 @@ use crate::{
 };
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use regex::Regex;
-use std::{
-    borrow::Cow,
+use std::borrow::Cow;
+use tokio::{
     fs::File,
-    io::{BufRead, BufReader, Read},
+    io::{AsyncBufReadExt, BufReader},
+    join,
 };
-use tokio::join;
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
@@ -37,8 +37,8 @@ use tokio::join;
 #[get("/search")]
 pub async fn search(
     req: HttpRequest,
-    config: web::Data<Config>,
-    cache: web::Data<SharedCache>,
+    config: web::Data<&'static Config>,
+    cache: web::Data<&'static SharedCache>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     use std::sync::Arc;
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
@@ -70,8 +70,8 @@ pub async fn search(
                 });
 
             search_settings.safe_search_level = get_safesearch_level(
-                &Some(search_settings.safe_search_level),
-                &params.safesearch,
+                params.safesearch,
+                search_settings.safe_search_level,
                 config.safe_search,
             );
 
@@ -158,8 +158,8 @@ pub async fn search(
 /// It returns the `SearchResults` struct if the search results could be successfully fetched from
 /// the cache or from the upstream search engines otherwise it returns an appropriate error.
 async fn results(
-    config: &Config,
-    cache: &web::Data<SharedCache>,
+    config: &'static Config,
+    cache: &'static SharedCache,
     query: &str,
     page: u32,
     search_settings: &server_models::Cookie<'_>,
@@ -188,7 +188,7 @@ async fn results(
                 let mut results: SearchResults = SearchResults::default();
 
                 let flag: bool =
-                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query)?;
+                    !is_match_from_filter_list(file_path(FileType::BlockList)?, query).await?;
                 // Return early when query contains disallowed words,
                 if flag {
                     results.set_disallowed();
@@ -225,12 +225,12 @@ async fn results(
                     search_results
                 }
             };
-            if results.engine_errors_info().is_empty()
-                && results.results().is_empty()
-                && !results.no_engines_selected()
-            {
-                results.set_filtered();
-            }
+            let (engine_errors_info, results_empty_check, no_engines_selected) = (
+                results.engine_errors_info().is_empty(),
+                results.results().is_empty(),
+                results.no_engines_selected(),
+            );
+            results.set_filtered(engine_errors_info & results_empty_check & !no_engines_selected);
             cache
                 .cache_results(&[results.clone()], &[cache_key.clone()])
                 .await?;
@@ -252,13 +252,14 @@ async fn results(
 ///
 /// Returns a bool indicating whether the results were found in the list or not on success
 /// otherwise returns a standard error type on a failure.
-fn is_match_from_filter_list(
+async fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let mut reader = BufReader::new(File::open(file_path)?);
-    for line in reader.by_ref().lines() {
-        let re = Regex::new(&line?)?;
+    let reader = BufReader::new(File::open(file_path).await?);
+    let mut lines = reader.lines();
+    while let Some(line) = lines.next_line().await? {
+        let re = Regex::new(&line)?;
         if re.is_match(query) {
             return Ok(true);
         }
@@ -267,24 +268,95 @@ fn is_match_from_filter_list(
     Ok(false)
 }
 
-/// A helper function to modify the safe search level based on the url params.
-/// The `safe_search` is the one in the user's cookie or
-/// the default set by the server config if the cookie was missing.
+/// A helper function to choose the safe search level value based on the URL parameters,
+/// cookie value and config value.
 ///
 /// # Argurments
 ///
-/// * `url_level` - Safe search level from the url.
-/// * `safe_search` - User's cookie, or the safe search level set by the server
-/// * `config_level` - Safe search level to fall back to
-fn get_safesearch_level(cookie_level: &Option<u8>, url_level: &Option<u8>, config_level: u8) -> u8 {
-    match url_level {
-        Some(url_level) => {
-            if *url_level >= 3 {
-                config_level
-            } else {
-                *url_level
-            }
+/// * `safe_search_level_from_url` - Safe search level from the URL parameters.
+/// * `cookie_safe_search_level` - Safe search level value from the cookie.
+/// * `config_safe_search_level` - Safe search level value from the config file.
+///
+/// # Returns
+///
+/// Returns an appropriate safe search level value based on the safe search level values
+/// from the URL parameters, cookie and the config file.
+fn get_safesearch_level(
+    safe_search_level_from_url: Option<u8>,
+    cookie_safe_search_level: u8,
+    config_safe_search_level: u8,
+) -> u8 {
+    (u8::from(safe_search_level_from_url.is_some())
+        * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+            + (u8::from(config_safe_search_level < 3) * safe_search_level_from_url.unwrap_or(0))))
+        + (u8::from(safe_search_level_from_url.is_none())
+            * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    /// A helper function which creates a random mock safe search level value.
+    ///
+    /// # Returns
+    ///
+    /// Returns an optional u8 value.
+    fn mock_safe_search_level_value() -> Option<u8> {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .subsec_nanos() as f32;
+        let delay = ((nanos / 1_0000_0000 as f32).floor() as i8) - 1;
+
+        match delay {
+            -1 => None,
+            some_num => Some(if some_num > 4 { some_num - 4 } else { some_num } as u8),
         }
-        None => cookie_level.unwrap_or(config_level),
+    }
+
+    #[test]
+    /// A test function to test whether the output of the branchless and branched code
+    /// for the code to choose the appropriate safe search level is same or not.
+    fn get_safesearch_level_branched_branchless_code_test() {
+        // Get mock values for the safe search level values for URL parameters, cookie
+        // and config.
+        let safe_search_level_from_url = mock_safe_search_level_value();
+        let cookie_safe_search_level = mock_safe_search_level_value().unwrap_or(0);
+        let config_safe_search_level = mock_safe_search_level_value().unwrap_or(0);
+
+        // Branched code
+        let safe_search_level_value_from_branched_code = match safe_search_level_from_url {
+            Some(safe_search_level_from_url_parsed) => {
+                if config_safe_search_level >= 3 {
+                    config_safe_search_level
+                } else {
+                    safe_search_level_from_url_parsed
+                }
+            }
+            None => {
+                if config_safe_search_level >= 3 {
+                    config_safe_search_level
+                } else {
+                    cookie_safe_search_level
+                }
+            }
+        };
+
+        // branchless code
+        let safe_search_level_value_from_branchless_code =
+            (u8::from(safe_search_level_from_url.is_some())
+                * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                    + (u8::from(config_safe_search_level < 3)
+                        * safe_search_level_from_url.unwrap_or(0))))
+                + (u8::from(safe_search_level_from_url.is_none())
+                    * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
+                        + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)));
+
+        assert_eq!(
+            safe_search_level_value_from_branched_code,
+            safe_search_level_value_from_branchless_code
+        );
     }
 }

@@ -47,7 +47,7 @@ impl SearchEngine for Startpage {
         user_agent: &str,
         client: &Client,
         _safe_search: u8,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
+    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = format!(

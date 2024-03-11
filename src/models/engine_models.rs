@@ -4,7 +4,7 @@
 use super::aggregation_models::SearchResult;
 use error_stack::{Report, Result, ResultExt};
 use reqwest::Client;
-use std::{collections::HashMap, fmt};
+use std::fmt;
 
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
@@ -147,7 +147,7 @@ pub trait SearchEngine: Sync + Send {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<HashMap<String, SearchResult>, EngineError>;
+    ) -> Result<Vec<(String, SearchResult)>, EngineError>;
 }
 
 /// A named struct which stores the engine struct with the name of the associated engine.

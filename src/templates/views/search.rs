@@ -38,7 +38,7 @@ pub fn search(
                          small{(result.url)}
                          p{(PreEscaped(&result.description))}
                          .upstream_engines{
-                            @for name in result.clone().engine{
+                            @for name in &result.engine {
                                span{(name)}
                             }
                          }

@@ -44,7 +44,7 @@ impl SearchEngine for Brave {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<HashMap<String, SearchResult>, EngineError> {
+    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
         let url = format!("https://search.brave.com/search?q={query}&offset={page}");
 
         let safe_search_level = match safe_search {
