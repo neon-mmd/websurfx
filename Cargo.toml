@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.10.9"
+version = "1.11.0"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -87,4 +87,4 @@ redis-cache = ["dep:redis","dep:base64"]
 compress-cache-results = ["dep:async-compression","dep:cfg-if"]
 encrypt-cache-results = ["dep:chacha20poly1305","dep:chacha20"]
 cec-cache-results = ["compress-cache-results","encrypt-cache-results"]
-
+experimental-io-uring = ["actix-web/experimental-io-uring"]

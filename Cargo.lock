@@ -136,6 +136,7 @@ checksum = "28f32d40287d3f402ae0028a9d54bef51af15c8769492826a69d28f81893151d"
 dependencies = [
  "futures-core",
  "tokio 1.36.0",
+ "tokio-uring",
 ]
 
 [[package]]
@@ -150,8 +151,9 @@ dependencies = [
  "futures-core",
  "futures-util",
  "mio 0.8.11",
- "socket2",
+ "socket2 0.5.6",
  "tokio 1.36.0",
+ "tokio-uring",
  "tracing",
 ]
 
@@ -211,7 +213,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded 0.7.1",
  "smallvec 1.13.1",
- "socket2",
+ "socket2 0.5.6",
  "time 0.3.34",
  "url 2.5.0",
 ]
@@ -1667,7 +1669,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.10",
  "pin-project-lite",
- "socket2",
+ "socket2 0.5.6",
  "tokio 1.36.0",
  "tower-service",
  "tracing",
@@ -1760,6 +1762,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a0c10553d664a4d0bcff9f4215d0aac67a639cc68ef660840afe309b807bc9f5"
 dependencies = [
  "generic-array",
+]
+
+[[package]]
+name = "io-uring"
+version = "0.5.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd1e1a01cfb924fd8c5c43b6827965db394f5a3a16c599ce03452266e1cf984c"
+dependencies = [
+ "bitflags 1.3.2",
+ "libc",
 ]
 
 [[package]]
@@ -3128,6 +3140,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scoped-tls"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1cf6437eb19a8f4a6cc0f7dca544973b0b78843adbfeb3683d1a94a0024a294"
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3370,6 +3388,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6ecd384b10a64542d77071bd64bd7b231f4ed5940fba55e98c3de13824cf3d7"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "socket2"
+version = "0.4.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7916fc008ca5542385b89a3d3ce689953c143e9304a9bf8beec1de48994c0d"
+dependencies = [
+ "libc",
+ "winapi 0.3.9",
 ]
 
 [[package]]
@@ -3685,7 +3713,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "pin-project-lite",
  "signal-hook-registry",
- "socket2",
+ "socket2 0.5.6",
  "tokio-macros",
  "windows-sys 0.48.0",
 ]
@@ -3834,6 +3862,20 @@ dependencies = [
  "futures 0.1.31",
  "slab",
  "tokio-executor",
+]
+
+[[package]]
+name = "tokio-uring"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d5e02bb137e030b3a547c65a3bd2f1836d66a97369fdcc69034002b10e155ef"
+dependencies = [
+ "io-uring",
+ "libc",
+ "scoped-tls",
+ "slab",
+ "socket2 0.4.10",
+ "tokio 1.36.0",
 ]
 
 [[package]]
@@ -4157,7 +4199,7 @@ checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
 
 [[package]]
 name = "websurfx"
-version = "1.10.9"
+version = "1.11.0"
 dependencies = [
  "actix-cors",
  "actix-files",
