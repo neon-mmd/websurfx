@@ -77,7 +77,7 @@ panic = 'abort'
 incremental = false
 codegen-units = 1
 rpath = false
-strip = "debuginfo"
+strip = "symbols"
 
 [features]
 default = ["memory-cache"]
