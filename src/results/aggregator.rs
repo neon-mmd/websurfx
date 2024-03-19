@@ -73,10 +73,12 @@ pub async fn aggregate(
     config: &Config,
     upstream_search_engines: &[EngineHandler],
     safe_search: u8,
+    tcp_connection_keepalive: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
         ClientBuilder::new()
             .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .tcp_keepalive(Duration::from_secs(tcp_connection_keepalive as u64))
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .https_only(true)
             .gzip(true)

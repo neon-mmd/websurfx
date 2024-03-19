@@ -10,6 +10,7 @@ production_use = false -- whether to use production mode or not (in other words 
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
+tcp_connection_keepalive = 30 -- the amount of time the tcp connection should remain alive (or connected to the server). (value in seconds).
 rate_limiter = {
 	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
