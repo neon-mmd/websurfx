@@ -40,29 +40,10 @@ impl SearchResult {
             title: title.to_owned(),
             url: url.to_owned(),
             description: description.to_owned(),
-            engine: engine.iter().map(|name| name.to_string()).collect(),
             relevance_score: 0.0,
+            engine: engine.iter().map(|name| name.to_string()).collect(),
         }
     }
-
-    /// A function which adds the engine name provided as a string into a vector of strings.
-    ///
-    /// # Arguments
-    ///
-    /// * `engine` - Takes an engine name provided as a String.
-    pub fn add_engines(&mut self, engine: &str) {
-        self.engine.push(engine.to_owned())
-    }
-
-    /// A function which returns the engine name stored from the struct as a string.
-    ///
-    /// # Returns
-    ///
-    /// An engine name stored as a string from the struct.
-    pub fn engine(&mut self) -> String {
-        std::mem::take(&mut self.engine[0])
-    }
-
     /// calculates and update the relevance score of the current search.
 
     /// # Arguments
@@ -101,6 +82,24 @@ impl SearchResult {
         ];
 
         self.relevance_score = calculate_tf_idf(query, &documents, &stop_words, &punctuation);
+    }
+
+    /// A function which adds the engine name provided as a string into a vector of strings.
+    ///
+    /// # Arguments
+    ///
+    /// * `engine` - Takes an engine name provided as a String.
+    pub fn add_engines(&mut self, engine: &str) {
+        self.engine.push(engine.to_owned())
+    }
+
+    /// A function which returns the engine name stored from the struct as a string.
+    ///
+    /// # Returns
+    ///
+    /// An engine name stored as a string from the struct.
+    pub fn engine(&mut self) -> String {
+        std::mem::take(&mut self.engine[0])
     }
 }
 

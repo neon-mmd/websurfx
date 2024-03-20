@@ -8,6 +8,7 @@ use crate::models::{
     aggregation_models::{EngineErrorInfo, SearchResult, SearchResults},
     engine_models::{EngineError, EngineHandler},
 };
+
 use error_stack::Report;
 use futures::stream::FuturesUnordered;
 use regex::Regex;
@@ -241,7 +242,6 @@ pub async fn filter_with_lists(
 
     Ok(())
 }
-
 /// Sorts  SearchResults by relevance score.
 /// <br> sort_unstable is used as its faster,stability is not an issue on our side.
 /// For reasons why, check out [`this`](https://rust-lang.github.io/rfcs/1884-unstable-sort.html)
@@ -275,8 +275,8 @@ mod tests {
                 url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
-                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
                 relevance_score: 0.0,
+                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
             },
         ));
         map_to_be_filtered.push((
