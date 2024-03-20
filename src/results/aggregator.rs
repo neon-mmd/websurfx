@@ -182,7 +182,17 @@ pub async fn aggregate(
         drop(blacklist_map);
     }
 
-    let results: Vec<SearchResult> = result_map.iter().map(|(_, value)| value.clone()).collect();
+    let mut results: Vec<SearchResult> = result_map
+        .iter()
+        .map(|(_, value)| {
+            let mut copy = value.clone();
+            if !copy.url.contains("temu.com") {
+                copy.calculate_relevance(query.as_str())
+            }
+            copy
+        })
+        .collect();
+    sort_search_results(&mut results);
 
     Ok(SearchResults::new(results, &engine_errors_info))
 }
@@ -232,6 +242,21 @@ pub async fn filter_with_lists(
     Ok(())
 }
 
+/// Sorts  SearchResults by relevance score.
+/// <br> sort_unstable is used as its faster,stability is not an issue on our side.
+/// For reasons why, check out [`this`](https://rust-lang.github.io/rfcs/1884-unstable-sort.html)
+///  # Arguments
+///  * `results` - A mutable slice or Vec of SearchResults
+///  
+fn sort_search_results(results: &mut [SearchResult]) {
+    results.sort_unstable_by(|a, b| {
+        use std::cmp::Ordering;
+
+        b.relevance_score
+            .partial_cmp(&a.relevance_score)
+            .unwrap_or(Ordering::Less)
+    })
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -251,6 +276,7 @@ mod tests {
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                relevance_score: 0.0,
             },
         ));
         map_to_be_filtered.push((
@@ -260,6 +286,7 @@ mod tests {
                 url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                relevance_score:0.0
             },)
         );
 
@@ -300,6 +327,7 @@ mod tests {
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                relevance_score: 0.0,
             },
         ));
         map_to_be_filtered.push((
@@ -309,6 +337,7 @@ mod tests {
                 url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
                 engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                relevance_score:0.0
             },
         ));
 
@@ -365,6 +394,7 @@ mod tests {
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                relevance_score: 0.0,
             },
         ));
 
