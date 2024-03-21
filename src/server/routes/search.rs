@@ -216,7 +216,6 @@ async fn results(
                             .filter_map(|engine| EngineHandler::new(engine).ok())
                             .collect::<Vec<EngineHandler>>(),
                         safe_search_level,
-                        30,
                     )
                     .await?
                 }
