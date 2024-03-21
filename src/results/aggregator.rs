@@ -73,7 +73,6 @@ pub async fn aggregate(
     config: &Config,
     upstream_search_engines: &[EngineHandler],
     safe_search: u8,
-    tcp_connection_keepalive: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
         ClientBuilder::new()
