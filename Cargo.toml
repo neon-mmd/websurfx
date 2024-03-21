@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.11.0"
+version = "1.12.1"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -126,7 +126,7 @@ panic = 'abort'
 incremental = false
 codegen-units = 1
 rpath = false
-strip = "debuginfo"
+strip = "symbols"
 
 [features]
 default = ["memory-cache"]
