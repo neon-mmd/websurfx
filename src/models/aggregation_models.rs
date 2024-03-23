@@ -270,9 +270,5 @@ fn calculate_tf_idf(
 
     let result = total_score / (search_tokens.len() as f32);
 
-    if result.is_nan() {
-        0.0
-    } else {
-        result
-    }
+    f32::from(!result.is_nan()) * result
 }
