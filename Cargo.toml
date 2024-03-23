@@ -85,7 +85,9 @@ keyword_extraction = { version = "1.3.0", default-features = false, features = [
 
 ] }
 
-stop-words = "0.8.0"
+stop-words = { version = "0.8.0", default-features = false, features = [
+     "iso",
+]}
 thesaurus = { version = "0.5.2", default-features = false, optional = true, features = [
     "wordnet",
     "static",
