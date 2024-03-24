@@ -43,7 +43,7 @@ pub struct Config {
     /// search results.
     pub safe_search: u8,
     /// It stores the TCP connection keepalive duration in seconds.
-    pub tcp_connection_keepalive: u64,
+    pub tcp_connection_keepalive: u8,
 }
 
 impl Config {
