@@ -482,6 +482,7 @@ footer div {
 
 .about-container article .logo-container svg {
   width: clamp(200px, 530px, 815px);
+  color: var(--logo-color);
 }
 
 .about-container article .text-block {
