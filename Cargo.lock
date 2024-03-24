@@ -3665,17 +3665,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e33ea271e53da683cd3439c04ff3b734f3d6052ea33a65ec9e0fa89a4f96369"
 dependencies = [
  "lazy_static",
- "thesaurus-wordnet",
+ "thesaurus-moby",
 ]
 
 [[package]]
-name = "thesaurus-wordnet"
+name = "thesaurus-moby"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e0b5b98479fc7554a0cedad4c03264b1caeecc7af51b4e44945c759bab43e35"
+checksum = "28f7806d5dbe7d9b627e332f88269a014a6a1d40ec411d4ea66cb702aabce4cf"
 dependencies = [
  "libflate",
- "serde_json",
 ]
 
 [[package]]

@@ -85,12 +85,9 @@ keyword_extraction = { version = "1.3.0", default-features = false, features = [
 
 ] }
 
-stop-words = { version = "0.8.0", default-features = false, features = [
-     "iso",
-]}
+stop-words = { version = "0.8.0", default-features = false, features = ["iso"] }
 thesaurus = { version = "0.5.2", default-features = false, optional = true, features = [
     "moby",
-    "static",
 ] }
 
 [dev-dependencies]
@@ -131,6 +128,7 @@ rpath = false
 strip = "symbols"
 
 [features]
+use-synonyms-search = ["thesaurus/static"]
 default = ["memory-cache"]
 dhat-heap = ["dep:dhat"]
 memory-cache = ["dep:mini-moka"]
@@ -139,5 +137,4 @@ compress-cache-results = ["dep:async-compression", "dep:cfg-if"]
 encrypt-cache-results = ["dep:chacha20poly1305", "dep:chacha20"]
 cec-cache-results = ["compress-cache-results", "encrypt-cache-results"]
 experimental-io-uring = ["actix-web/experimental-io-uring"]
-use-synonyms-search = ["dep:thesaurus\static"]
-use-non-static-synonyms-search = ["dep:thesaurus"]
+use-non-static-synonyms-search = ["thesaurus"]

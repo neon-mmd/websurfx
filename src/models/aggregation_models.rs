@@ -4,7 +4,10 @@
 use super::engine_models::EngineError;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
-#[cfg(feature = "use-synonyms-search")]
+#[cfg(any(
+    feature = "use-synonyms-search",
+    feature = "use-non-static-synonyms-search"
+))]
 use thesaurus::synonyms;
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
@@ -254,7 +257,10 @@ fn calculate_tf_idf(
     let mut search_tokens = vec![];
 
     for token in query_tokens {
-        #[cfg(feature = "use-synonyms-search")]
+        #[cfg(any(
+            feature = "use-synonyms-search",
+            feature = "use-non-static-synonyms-search"
+        ))]
         {
             // find some synonyms and add them to the search  (from wordnet or moby if feature is enabled)
             let synonyms = synonyms(&token);
