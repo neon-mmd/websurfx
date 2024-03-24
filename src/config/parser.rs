@@ -133,7 +133,7 @@ impl Config {
             upstream_search_engines: globals
                 .get::<_, HashMap<String, bool>>("upstream_search_engines")?,
             request_timeout: globals.get::<_, u8>("request_timeout")?,
-            tcp_connection_keepalive: globals.get::<_, u64>("tcp_connection_keepalive")?,
+            tcp_connection_keepalive: globals.get::<_, u8>("tcp_connection_keepalive")?,
             threads,
             rate_limiter: RateLimiter {
                 number_of_requests: rate_limiter["number_of_requests"],
