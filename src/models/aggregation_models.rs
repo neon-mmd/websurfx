@@ -4,7 +4,11 @@
 use super::engine_models::EngineError;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
-
+#[cfg(any(
+    feature = "use-synonyms-search",
+    feature = "use-non-static-synonyms-search"
+))]
+use thesaurus::synonyms;
 /// A named struct to store the raw scraped search results scraped search results from the
 /// upstream search engines before aggregating it.It derives the Clone trait which is needed
 /// to write idiomatic rust using `Iterators`.
@@ -20,6 +24,8 @@ pub struct SearchResult {
     pub description: String,
     /// The names of the upstream engines from which this results were provided.
     pub engine: SmallVec<[String; 0]>,
+    /// The td-tdf score of the result in regards to the title, url and description and the user's query
+    pub relevance_score: f32,
 }
 
 impl SearchResult {
@@ -37,8 +43,48 @@ impl SearchResult {
             title: title.to_owned(),
             url: url.to_owned(),
             description: description.to_owned(),
+            relevance_score: 0.0,
             engine: engine.iter().map(|name| name.to_string()).collect(),
         }
+    }
+    /// calculates and update the relevance score of the current search.
+
+    /// # Arguments
+    ///
+    /// * query -  the query string  used to obtain the results
+    ///
+    ///
+
+    pub fn calculate_relevance(&mut self, query: &str) {
+        use stop_words::{get, LANGUAGE};
+        // when language settings can change to any of the ones supported on this crate: https://docs.rs/crate/stop-words/0.8.0
+        let documents = [
+            self.title.clone(),
+            self.url.clone(),
+            self.description.clone(),
+        ];
+
+        let stop_words = get(LANGUAGE::English);
+        let punctuation = [
+            ".".to_owned(),
+            ",".to_owned(),
+            ":".to_owned(),
+            ";".to_owned(),
+            "!".to_owned(),
+            "?".to_owned(),
+            "(".to_owned(),
+            ")".to_owned(),
+            "[".to_owned(),
+            "]".to_owned(),
+            "{".to_owned(),
+            "}".to_owned(),
+            "\"".to_owned(),
+            "'".to_owned(),
+            "<".to_owned(),
+            ">".to_owned(),
+        ];
+
+        self.relevance_score = calculate_tf_idf(query, &documents, &stop_words, &punctuation);
     }
 
     /// A function which adds the engine name provided as a string into a vector of strings.
@@ -181,4 +227,54 @@ impl SearchResults {
     pub fn set_no_engines_selected(&mut self) {
         self.no_engines_selected = true;
     }
+}
+
+/// Helper function to calculate the tf-idf for the search query.
+/// <br> The approach is  as [`as`](https://en.wikipedia.org/wiki/Tf%E2%80%93idf).
+///  <br> Find a sample article about TF-IDF [`here`](https://medium.com/analytics-vidhya/tf-idf-term-frequency-technique-easiest-explanation-for-text-classification-in-nlp-with-code-8ca3912e58c3)
+/// ### Arguments
+/// * `query` -  a user's search query
+/// * `documents` -  a list of text used for comparision (url, title, description)
+/// * `stop_words` - A list of language specific stop words.
+/// * `punctuation` - list of punctuation symbols.
+/// ### Returns
+/// * `score` - The average tf-idf score of the word tokens (and synonyms) in the query
+fn calculate_tf_idf(
+    query: &str,
+    documents: &[String],
+    stop_words: &[String],
+    punctuation: &[String],
+) -> f32 {
+    use keyword_extraction::{
+        tf_idf::{TfIdf, TfIdfParams},
+        tokenizer::Tokenizer,
+    };
+
+    let params = TfIdfParams::UnprocessedDocuments(documents, stop_words, Some(punctuation));
+    let tf_idf = TfIdf::new(params);
+    let tokener = Tokenizer::new(query, stop_words, Some(punctuation));
+    let query_tokens = tokener.split_into_words();
+    let mut search_tokens = vec![];
+
+    for token in query_tokens {
+        #[cfg(any(
+            feature = "use-synonyms-search",
+            feature = "use-non-static-synonyms-search"
+        ))]
+        {
+            // find some synonyms and add them to the search  (from wordnet or moby if feature is enabled)
+            let synonyms = synonyms(&token);
+            search_tokens.extend(synonyms)
+        }
+        search_tokens.push(token);
+    }
+
+    let mut total_score = 0.0f32;
+    for token in search_tokens.iter() {
+        total_score += tf_idf.get_score(token);
+    }
+
+    let result = total_score / (search_tokens.len() as f32);
+
+    f32::from(!result.is_nan()) * result
 }
