@@ -78,6 +78,9 @@ pub async fn aggregate(
     let client = CLIENT.get_or_init(|| {
         ClientBuilder::new()
             .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .pool_idle_timeout(Duration::from_secs(
+                config.pool_idle_connection_timeout as u64,
+            ))
             .tcp_keepalive(Duration::from_secs(config.tcp_connection_keepalive as u64))
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .https_only(true)
