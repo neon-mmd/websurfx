@@ -16,9 +16,8 @@ rate_limiter = {
 	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
 }
--- Set whether the server will use an adaptive/dynamic HTTPS window size, see https://httpwg.org/specs/rfc9113.html#fc-principles
 https_adaptive_window_size = false
-
+number_of_https_connections = 10 -- the number of https connections that should be available in the connection pool.
 -- ### Search ###
 -- Filter results based on different levels. The levels provided are:
 -- {{
