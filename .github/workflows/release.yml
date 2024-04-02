@@ -61,7 +61,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           generate_release_notes: true
