@@ -72,11 +72,11 @@ impl SearchEngine for LibreX {
 
         // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([
-            ("USER_AGENT".to_string(), user_agent.to_string()),
-            ("REFERER".to_string(), "https://google.com/".to_string()),
-            ("CONTENT_TYPE".to_string(), "application/x-www-form-urlencoded".to_string()),
+            ("User-Agent".to_string(), user_agent.to_string()),
+            ("Referer".to_string(), "https://google.com/".to_string()),
+            ("Content-Type".to_string(), "application/x-www-form-urlencoded".to_string()),
             (
-                "COOKIE".to_string(),
+                "Cookie".to_string(),
                 "theme=amoled; disable_special=on; disable_frontends=on; language=en; number_of_results=10; safe_search=on; save=1".to_string(),
             ),
         ]))
