@@ -52,7 +52,7 @@ blake3 = { version = "1.5.0", default-features = false }
 error-stack = { version = "0.4.0", default-features = false, features = [
     "std",
 ] }
-async-trait = { version = "0.1.76", default-features = false }
+async-trait = { version = "0.1.80", default-features = false }
 regex = { version = "1.9.4", features = ["perf"], default-features = false }
 smallvec = { version = "1.13.1", features = [
     "union",
