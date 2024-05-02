@@ -79,13 +79,13 @@ impl SearchEngine for Bing {
         }
 
         let header_map = HeaderMap::try_from(&HashMap::from([
-            ("USER_AGENT".to_string(), user_agent.to_string()),
-            ("REFERER".to_string(), "https://google.com/".to_string()),
+            ("User-Agent".to_string(), user_agent.to_string()),
+            ("Referer".to_string(), "https://google.com/".to_string()),
             (
-                "CONTENT_TYPE".to_string(),
+                "Content-Type".to_string(),
                 "application/x-www-form-urlencoded".to_string(),
             ),
-            ("COOKIE".to_string(), cookie_string),
+            ("Cookie".to_string(), cookie_string),
         ]))
         .change_context(EngineError::UnexpectedError)?;
 
