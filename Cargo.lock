@@ -996,9 +996,9 @@ dependencies = [
 
 [[package]]
 name = "data-encoding"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
+checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "deranged"
@@ -2123,8 +2123,7 @@ dependencies = [
 [[package]]
 name = "minify-js"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1fa5546ee8bd66024113e506cabe4230e76635a094c06ea2051b66021dda92e"
+source = "git+https://github.com/RuairidhWilliamson/minify-js?branch=master#8637df12fdb1d86d7586dde8adf4b8a5d39e7067"
 dependencies = [
  "aho-corasick 0.7.20",
  "lazy_static",
@@ -2431,9 +2430,9 @@ dependencies = [
 
 [[package]]
 name = "parse-js"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2742b5e32dcb5930447ed9f9e401a7dfd883867fc079c4fac44ae8ba3593710e"
+checksum = "26f2abaec4434c4c5ec8bb3abfa112c9779f774b54ef3d9a6321e022cfcced5f"
 dependencies = [
  "aho-corasick 0.7.20",
  "bumpalo",
