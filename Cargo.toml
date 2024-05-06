@@ -132,7 +132,7 @@ inherits = "release"
 opt-level = "s"
 
 [profile.bsr2]
-inherits = "bsr"
+inherits = "bsr1"
 opt-level = "z"
 
 [profile.lpcb1]
