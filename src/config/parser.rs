@@ -37,13 +37,15 @@ pub struct Config {
     pub request_timeout: u8,
     /// It stores the number of threads which controls the app will use to run.
     pub threads: u8,
+    /// Set the keep-alive time for client connections to the HTTP server
+    pub client_connection_keep_alive: u8,
     /// It stores configuration options for the ratelimiting middleware.
     pub rate_limiter: RateLimiter,
     /// It stores the level of safe search to be used for restricting content in the
     /// search results.
     pub safe_search: u8,
     /// It stores the TCP connection keepalive duration in seconds.
-    pub tcp_connection_keepalive: u8,
+    pub tcp_connection_keep_alive: u8,
     /// It stores the pool idle connection timeout in seconds.
     pub pool_idle_connection_timeout: u8,
 }
@@ -135,9 +137,10 @@ impl Config {
             upstream_search_engines: globals
                 .get::<_, HashMap<String, bool>>("upstream_search_engines")?,
             request_timeout: globals.get::<_, u8>("request_timeout")?,
-            tcp_connection_keepalive: globals.get::<_, u8>("tcp_connection_keepalive")?,
+            tcp_connection_keep_alive: globals.get::<_, u8>("tcp_connection_keep_alive")?,
             pool_idle_connection_timeout: globals.get::<_, u8>("pool_idle_connection_timeout")?,
             threads,
+            client_connection_keep_alive: globals.get::<_, u8>("client_connection_keep_alive")?,
             rate_limiter: RateLimiter {
                 number_of_requests: rate_limiter["number_of_requests"],
                 time_limit: rate_limiter["time_limit"],

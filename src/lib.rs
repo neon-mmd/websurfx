@@ -14,7 +14,7 @@ pub mod results;
 pub mod server;
 pub mod templates;
 
-use std::{net::TcpListener, sync::OnceLock};
+use std::{net::TcpListener, sync::OnceLock, time::Duration};
 
 use crate::server::router;
 
@@ -113,6 +113,10 @@ pub fn run(
             .default_service(web::route().to(router::not_found)) // error page
     })
     .workers(config.threads as usize)
+    // Set the keep-alive timer for client connections
+    .keep_alive(Duration::from_secs(
+        config.client_connection_keep_alive as u64,
+    ))
     // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
     .listen(listener)?
     .run();
