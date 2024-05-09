@@ -81,7 +81,7 @@ pub async fn aggregate(
             .pool_idle_timeout(Duration::from_secs(
                 config.pool_idle_connection_timeout as u64,
             ))
-            .tcp_keepalive(Duration::from_secs(config.tcp_connection_keepalive as u64))
+            .tcp_keepalive(Duration::from_secs(config.tcp_connection_keep_alive as u64))
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .https_only(true)
             .gzip(true)
