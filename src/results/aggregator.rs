@@ -291,15 +291,15 @@ mod tests {
             },
         ));
         map_to_be_filtered.push((
-			"https://www.rust-lang.org/".to_owned(),
-			SearchResult {
-				title: "Rust Programming Language".to_owned(),
-				url: "https://www.rust-lang.org/".to_owned(),
-				description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-				engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
-				relevance_score: 0.0,
-			}, )
-		);
+            "https://www.rust-lang.org/".to_owned(),
+            SearchResult {
+                title: "Rust Programming Language".to_owned(),
+                url: "https://www.rust-lang.org/".to_owned(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                relevance_score: 0.0,
+            }, )
+        );
 
         // Create a temporary file with regex patterns
         let mut file = NamedTempFile::new()?;
@@ -342,15 +342,15 @@ mod tests {
             },
         ));
         map_to_be_filtered.push((
-			"https://www.rust-lang.org/".to_owned(),
-			SearchResult {
-				title: "Rust Programming Language".to_owned(),
-				url: "https://www.rust-lang.org/".to_owned(),
-				description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-				engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
-				relevance_score: 0.0,
-			},
-		));
+            "https://www.rust-lang.org/".to_owned(),
+            SearchResult {
+                title: "Rust Programming Language".to_owned(),
+                url: "https://www.rust-lang.org/".to_owned(),
+                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                relevance_score: 0.0,
+            },
+        ));
 
         // Create a temporary file with a regex pattern containing a wildcard
         let mut file = NamedTempFile::new()?;
