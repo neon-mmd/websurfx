@@ -73,3 +73,5 @@ upstream_search_engines = {
     Mojeek = false,
     Bing = false,
 } -- select the upstream search engines from which the results should be fetched.
+
+proxy = "" -- Proxy to send outgoing requests through. Set to empty string to disable.

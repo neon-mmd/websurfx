@@ -76,7 +76,7 @@ pub async fn aggregate(
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
-        ClientBuilder::new()
+        let mut cb = ClientBuilder::new()
             .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .pool_idle_timeout(Duration::from_secs(
                 config.pool_idle_connection_timeout as u64,
@@ -86,9 +86,13 @@ pub async fn aggregate(
             .https_only(true)
             .gzip(true)
             .brotli(true)
-            .http2_adaptive_window(config.adaptive_window)
-            .build()
-            .unwrap()
+            .http2_adaptive_window(config.adaptive_window);
+
+        if config.proxy.is_some() {
+            cb = cb.proxy(config.proxy.clone().unwrap());
+        }
+
+        cb.build().unwrap()
     });
 
     let user_agent: &str = random_user_agent();
@@ -247,6 +251,7 @@ pub async fn filter_with_lists(
 
     Ok(())
 }
+
 /// Sorts  SearchResults by relevance score.
 /// <br> sort_unstable is used as its faster,stability is not an issue on our side.
 /// For reasons why, check out [`this`](https://rust-lang.github.io/rfcs/1884-unstable-sort.html)
@@ -262,6 +267,7 @@ fn sort_search_results(results: &mut [SearchResult]) {
             .unwrap_or(Ordering::Less)
     })
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -285,15 +291,15 @@ mod tests {
             },
         ));
         map_to_be_filtered.push((
-            "https://www.rust-lang.org/".to_owned(),
-            SearchResult {
-                title: "Rust Programming Language".to_owned(),
-                url: "https://www.rust-lang.org/".to_owned(),
-                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
-                relevance_score:0.0
-            },)
-        );
+			"https://www.rust-lang.org/".to_owned(),
+			SearchResult {
+				title: "Rust Programming Language".to_owned(),
+				url: "https://www.rust-lang.org/".to_owned(),
+				description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+				engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+				relevance_score: 0.0,
+			}, )
+		);
 
         // Create a temporary file with regex patterns
         let mut file = NamedTempFile::new()?;
@@ -336,15 +342,15 @@ mod tests {
             },
         ));
         map_to_be_filtered.push((
-            "https://www.rust-lang.org/".to_owned(),
-            SearchResult {
-                title: "Rust Programming Language".to_owned(),
-                url: "https://www.rust-lang.org/".to_owned(),
-                description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
-                relevance_score:0.0
-            },
-        ));
+			"https://www.rust-lang.org/".to_owned(),
+			SearchResult {
+				title: "Rust Programming Language".to_owned(),
+				url: "https://www.rust-lang.org/".to_owned(),
+				description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
+				engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+				relevance_score: 0.0,
+			},
+		));
 
         // Create a temporary file with a regex pattern containing a wildcard
         let mut file = NamedTempFile::new()?;

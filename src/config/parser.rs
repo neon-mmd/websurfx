@@ -6,6 +6,7 @@ use crate::handler::{file_path, FileType};
 use crate::models::parser_models::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
 use mlua::Lua;
+use reqwest::Proxy;
 use std::{collections::HashMap, fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
@@ -48,6 +49,9 @@ pub struct Config {
     pub tcp_connection_keep_alive: u8,
     /// It stores the pool idle connection timeout in seconds.
     pub pool_idle_connection_timeout: u8,
+
+    /// Url of the proxy to use for outgoing requests.
+    pub proxy: Option<Proxy>,
 }
 
 impl Config {
@@ -118,6 +122,15 @@ impl Config {
             _ => parsed_cet,
         };
 
+        let proxy_str = globals.get::<_, String>("proxy")?;
+        let proxy = match Proxy::all(proxy_str) {
+            Ok(proxy) => Some(proxy),
+            Err(_) => {
+                log::error!("Invalid proxy url, defaulting to no proxy.");
+                None
+            }
+        };
+
         Ok(Config {
             port: globals.get::<_, u16>("port")?,
             binding_ip: globals.get::<_, String>("binding_ip")?,
@@ -148,6 +161,7 @@ impl Config {
             safe_search,
             #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
             cache_expiry_time,
+            proxy,
         })
     }
 }
