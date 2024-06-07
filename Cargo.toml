@@ -44,7 +44,7 @@ mlua = { version = "0.9.1", features = [
     "luajit",
     "vendored",
 ], default-features = false }
-redis = { version = "0.24.0", features = [
+redis = { version = "0.25.4", features = [
     "tokio-comp",
     "connection-manager",
 ], default-features = false, optional = true }
