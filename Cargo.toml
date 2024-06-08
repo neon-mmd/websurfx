@@ -96,7 +96,7 @@ criterion = { version = "0.5.1", default-features = false }
 tempfile = { version = "3.10.1", default-features = false }
 
 [build-dependencies]
-lightningcss = { version = "1.0.0-alpha.55", default-features = false, features = [
+lightningcss = { version = "1.0.0-alpha.57", default-features = false, features = [
     "grid",
 ] }
 # Disabled until bug fixing update
