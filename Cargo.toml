@@ -67,7 +67,7 @@ actix-governor = { version = "0.5.0", default-features = false }
 mini-moka = { version = "0.10", optional = true, default-features = false, features = [
     "sync",
 ] }
-async-compression = { version = "0.4.6", default-features = false, features = [
+async-compression = { version = "0.4.11", default-features = false, features = [
     "brotli",
     "tokio",
 ], optional = true }
