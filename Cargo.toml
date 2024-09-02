@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.12.1"
+version = "1.17.0"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -132,6 +132,50 @@ incremental = false
 codegen-units = 1
 rpath = false
 strip = "symbols"
+
+[profile.bsr1]
+inherits = "release"
+opt-level = "s"
+
+[profile.bsr2]
+inherits = "bsr1"
+opt-level = "z"
+
+[profile.lpcb1]
+inherits = "release"
+codegen-units = 16
+
+[profile.lpcb2]
+inherits = "lpcb1"
+lto = "off"
+
+[profile.lpcb3]
+inherits = "lpcb2"
+opt-level = 2
+
+[profile.bsr_and_lpcb1]
+inherits = "lpcb1"
+opt-level = "s"
+
+[profile.bsr_and_lpcb2]
+inherits = "lpcb2"
+opt-level = "s"
+
+[profile.bsr_and_lpcb3]
+inherits = "lpcb3"
+opt-level = "s"
+
+[profile.bsr_and_lpcb4]
+inherits = "lpcb1"
+opt-level = "z"
+
+[profile.bsr_and_lpcb5]
+inherits = "lpcb1"
+opt-level = "z"
+
+[profile.bsr_and_lpcb6]
+inherits = "lpcb1"
+opt-level = "z"
 
 [features]
 use-synonyms-search = ["thesaurus/static"]
