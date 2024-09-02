@@ -115,6 +115,9 @@
 - 🚀 Easy to setup with Docker or on bare metal with various installation and deployment options.
 - ⛔ Search filtering to filter search results based on four different levels.
 - 💾 Different caching levels focusing on reliability, speed and resiliancy.
+- ⬆️  Organic Search results (with ranking algorithm builtin to rerank the search results according to user's search query.).
+- 🔒 Different compression and encryption levels focusing on speed and privacy.
+- 🧪 Experimental IO-uring feature for Linux operating systems focused on performance of the engine.
 - 🔐 Fast, private, and secure
 - 🆓 100% free and open source
 - 💨 Ad-free and clean results
