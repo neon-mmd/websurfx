@@ -49,7 +49,7 @@ redis = { version = "0.25.4", features = [
     "tokio-comp",
     "connection-manager",
 ], default-features = false, optional = true }
-blake3 = { version = "1.5.0", default-features = false }
+blake3 = { version = "1.5.4", default-features = false }
 error-stack = { version = "0.4.0", default-features = false, features = [
     "std",
 ] }
