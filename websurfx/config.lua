@@ -10,14 +10,18 @@ production_use = false -- whether to use production mode or not (in other words 
 -- if production_use is set to true
 -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
 request_timeout = 30 -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
-tcp_connection_keepalive = 30 -- the amount of time the tcp connection should remain alive (or connected to the server). (value in seconds).
+tcp_connection_keep_alive = 30 -- the amount of time the tcp connection should remain alive to the upstream search engines (or connected to the server). (value in seconds).
 pool_idle_connection_timeout = 30 -- timeout for the idle connections in the reqwest HTTP connection pool (value in seconds).
 rate_limiter = {
 	number_of_requests = 20, -- The number of request that are allowed within a provided time limit.
 	time_limit = 3, -- The time limit in which the quantity of requests that should be accepted.
 }
 https_adaptive_window_size = false
+
 number_of_https_connections = 10 -- the number of https connections that should be available in the connection pool.
+-- Set keep-alive timer in seconds; keeps clients connected to the HTTP server, different from the connection to upstream search engines
+client_connection_keep_alive = 120
+
 -- ### Search ###
 -- Filter results based on different levels. The levels provided are:
 -- {{
