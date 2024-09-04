@@ -4,7 +4,10 @@
 use super::error::CacheError;
 use error_stack::Report;
 use futures::stream::FuturesUnordered;
-use redis::{aio::ConnectionManager, AsyncCommands, Client, RedisError};
+use redis::{
+    aio::ConnectionManager, AsyncCommands, Client, ExistenceCheck, RedisError, SetExpiry,
+    SetOptions,
+};
 
 /// A constant holding the redis pipeline size.
 const REDIS_PIPELINE_SIZE: usize = 3;
@@ -139,8 +142,14 @@ impl RedisCache {
         self.current_connection = Default::default();
 
         for (key, json_result) in keys.zip(json_results) {
-            self.pipeline
-                .set_ex(key, json_result, self.cache_ttl.into());
+            self.pipeline.set_options(
+                key,
+                json_result,
+                SetOptions::default()
+                    .conditional_set(ExistenceCheck::NX)
+                    .get(true)
+                    .with_expiration(SetExpiry::EX(self.cache_ttl.into())),
+            );
         }
 
         let mut result: Result<(), RedisError> = self
