@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.17.0"
+version = "1.17.20"
 edition = "2021"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -82,14 +82,13 @@ base64 = { version = "0.21.5", default-features = false, features = [
 cfg-if = { version = "1.0.0", default-features = false, optional = true }
 keyword_extraction = { version = "1.4.3", default-features = false, features = [
     "tf_idf",
-
-
 ] }
 
 stop-words = { version = "0.8.0", default-features = false, features = ["iso"] }
 thesaurus = { version = "0.5.2", default-features = false, optional = true, features = [
     "moby",
-] }
+]}
+itertools = {version = "0.13.0", default-features = false}
 
 [dev-dependencies]
 rusty-hook = { version = "^0.11.2", default-features = false }

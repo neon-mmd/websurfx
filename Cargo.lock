@@ -851,7 +851,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "is-terminal",
- "itertools",
+ "itertools 0.10.5",
  "num-traits",
  "once_cell",
  "oorandom",
@@ -870,7 +870,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
 dependencies = [
  "cast",
- "itertools",
+ "itertools 0.10.5",
 ]
 
 [[package]]
@@ -1882,6 +1882,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1983,7 +1992,7 @@ dependencies = [
  "cssparser-color",
  "data-encoding",
  "getrandom",
- "itertools",
+ "itertools 0.10.5",
  "lazy_static",
  "parcel_selectors",
  "paste",
@@ -4440,7 +4449,7 @@ dependencies = [
 
 [[package]]
 name = "websurfx"
-version = "1.17.0"
+version = "1.17.20"
 dependencies = [
  "actix-cors",
  "actix-files",
@@ -4460,6 +4469,7 @@ dependencies = [
  "error-stack",
  "fake-useragent",
  "futures 0.3.30",
+ "itertools 0.13.0",
  "keyword_extraction",
  "lightningcss",
  "log",
