@@ -14,7 +14,8 @@ use crate::{
 use actix_web::{get, http::header::ContentType, web, HttpRequest, HttpResponse};
 use itertools::Itertools;
 use regex::Regex;
-use std::borrow::Cow;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{borrow::Cow, time::Duration};
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, BufReader},
@@ -83,6 +84,13 @@ pub async fn search(
             let previous_page = page.saturating_sub(1);
             let next_page = page + 1;
 
+            // Add a random delay before making the request.
+            if config.aggregator.random_delay || !config.debug {
+                let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
+                let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
+                tokio::time::sleep(Duration::from_secs(delay)).await;
+            }
+
             let results: (SearchResults, String, bool);
             if page != previous_page {
                 let (previous_results, current_results, next_results) = join!(
@@ -97,7 +105,7 @@ pub async fn search(
                     [previous_results?, results.clone(), next_results?]
                         .into_iter()
                         .filter_map(|(result, cache_key, flag)| {
-                            dbg!(flag).then_some((result, cache_key))
+                            flag.then_some((result, cache_key))
                         })
                         .multiunzip();
 
