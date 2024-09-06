@@ -104,9 +104,7 @@ pub async fn search(
                 let (results_list, cache_keys): (Vec<SearchResults>, Vec<String>) =
                     [previous_results?, results.clone(), next_results?]
                         .into_iter()
-                        .filter_map(|(result, cache_key, flag)| {
-                            flag.then_some((result, cache_key))
-                        })
+                        .filter_map(|(result, cache_key, flag)| flag.then_some((result, cache_key)))
                         .multiunzip();
 
                 tokio::spawn(async move { cache.cache_results(&results_list, &cache_keys).await });
