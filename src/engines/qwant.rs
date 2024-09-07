@@ -2,10 +2,11 @@
 //! by querying the upstream qwant search engine with user provided query and with a page
 //! number if provided.
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 use reqwest::header::HeaderMap;
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Deserialize;
 
 use crate::models::aggregation_models::SearchResult;
@@ -118,7 +119,20 @@ impl SearchEngine for Qwant {
         let results_per_page = 10;
         let start_result = results_per_page * page;
 
-        let url: String =  format!("https://api.qwant.com/v3/search/web?q={query}&count={results_per_page}&locale=en_US&offset={start_result}&safesearch={safe_search}&device=desktop&tgp=2&displayed=true");
+        let url = Url::parse_with_params(
+            "https://api.qwant.com/v3/search/web",
+            &[
+                ("q", Cow::from(query)),
+                ("count", results_per_page.to_string().into()),
+                ("locale", "en_US".into()),
+                ("offset", start_result.to_string().into()),
+                ("safesearch", safe_search.to_string().into()),
+                ("device", "desktop".into()),
+                ("tgb", "2".into()),
+                ("displayed", "true".into()),
+            ],
+        )
+        .change_context(EngineError::UnexpectedError)?;
 
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
