@@ -11,7 +11,7 @@ use super::parser_models::Style;
 pub struct SearchParams {
     /// It stores the search parameter option `q` (or query in simple words)
     /// of the search url.
-    pub q: Option<String>,
+    pub q: Option<Cow<'static, str>>,
     /// It stores the search parameter `page` (or pageno in simple words)
     /// of the search url.
     pub page: Option<u32>,
@@ -29,7 +29,7 @@ pub struct Cookie<'a> {
     /// It stores the colorscheme name used for the website theme.
     pub colorscheme: Cow<'a, str>,
     /// It stores the user selected upstream search engines selected from the UI.
-    pub engines: Cow<'a, Vec<Cow<'a, str>>>,
+    pub engines: Cow<'a, [Cow<'a, str>]>,
     /// It stores the user selected safe search level from the UI.
     pub safe_search_level: u8,
 }
