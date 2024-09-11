@@ -17,7 +17,6 @@ reqwest = { version = "0.12.5", default-features = false, features = [
     "rustls-tls",
     "brotli",
     "gzip",
-	  "socks",
     "http2",
 ] }
 tokio = { version = "1.32.0", features = [
@@ -179,7 +178,7 @@ opt-level = "z"
 
 [features]
 use-synonyms-search = ["thesaurus/static"]
-default = ["memory-cache"]
+default = ["memory-cache", "socks"]
 dhat-heap = ["dep:dhat"]
 memory-cache = ["dep:mini-moka"]
 redis-cache = ["dep:redis", "dep:base64"]
@@ -188,3 +187,4 @@ encrypt-cache-results = ["dep:chacha20poly1305", "dep:chacha20"]
 cec-cache-results = ["compress-cache-results", "encrypt-cache-results"]
 experimental-io-uring = ["actix-web/experimental-io-uring"]
 use-non-static-synonyms-search = ["thesaurus"]
+socks = ["reqwest/socks"]
