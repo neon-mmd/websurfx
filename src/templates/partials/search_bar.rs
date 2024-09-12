@@ -12,7 +12,7 @@ const SAFE_SEARCH_LEVELS_NAME: [&str; 3] = ["None", "Low", "Moderate"];
 /// # Arguments
 ///
 /// * `engine_errors_info` - It takes the engine errors list containing errors for each upstream
-/// search engine which failed to provide results as an argument.
+///   search engine which failed to provide results as an argument.
 /// * `safe_search_level` - It takes the safe search level with values from 0-2 as an argument.
 /// * `query` - It takes the current search query provided by user as an argument.
 ///

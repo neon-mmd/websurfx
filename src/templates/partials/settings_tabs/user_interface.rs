@@ -11,9 +11,9 @@ use std::fs::read_dir;
 /// # Arguments
 ///
 /// * `style_type` - It takes the style type of the values `theme` and `colorscheme` as an
-/// argument.
+///   argument.
 /// * `selected_style` - It takes the currently selected style value provided via the config file
-/// as an argument.
+///   as an argument.
 ///
 /// # Error
 ///
