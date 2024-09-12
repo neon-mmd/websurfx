@@ -2,10 +2,9 @@
 //! from the upstream search engines in a json format.
 
 use error_stack::Report;
+use futures::future::join_all;
 #[cfg(feature = "memory-cache")]
-use mini_moka::sync::Cache as MokaCache;
-#[cfg(feature = "memory-cache")]
-use mini_moka::sync::ConcurrentCacheExt;
+use moka::future::Cache as MokaCache;
 
 #[cfg(feature = "memory-cache")]
 use std::time::Duration;
@@ -376,13 +375,13 @@ impl Cacher for RedisCache {
     }
 }
 /// TryInto implementation for SearchResults from Vec<u8>
-use std::convert::TryInto;
+use std::{convert::TryInto, sync::Arc};
 
 impl TryInto<SearchResults> for Vec<u8> {
     type Error = CacheError;
 
     fn try_into(self) -> Result<SearchResults, Self::Error> {
-        serde_json::from_slice(&self).map_err(|_| CacheError::SerializationError)
+        bincode::deserialize_from(self.as_slice()).map_err(|_| CacheError::SerializationError)
     }
 }
 
@@ -390,7 +389,7 @@ impl TryInto<Vec<u8>> for &SearchResults {
     type Error = CacheError;
 
     fn try_into(self) -> Result<Vec<u8>, Self::Error> {
-        serde_json::to_vec(self).map_err(|_| CacheError::SerializationError)
+        bincode::serialize(self).map_err(|_| CacheError::SerializationError)
     }
 }
 
@@ -398,7 +397,16 @@ impl TryInto<Vec<u8>> for &SearchResults {
 #[cfg(feature = "memory-cache")]
 pub struct InMemoryCache {
     /// The backend cache which stores data.
-    cache: MokaCache<String, Vec<u8>>,
+    cache: Arc<MokaCache<String, Vec<u8>>>,
+}
+
+#[cfg(feature = "memory-cache")]
+impl Clone for InMemoryCache {
+    fn clone(&self) -> Self {
+        Self {
+            cache: self.cache.clone(),
+        }
+    }
 }
 
 #[cfg(feature = "memory-cache")]
@@ -408,15 +416,17 @@ impl Cacher for InMemoryCache {
         log::info!("Initialising in-memory cache");
 
         InMemoryCache {
-            cache: MokaCache::builder()
-                .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
-                .build(),
+            cache: Arc::new(
+                MokaCache::builder()
+                    .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
+                    .build(),
+            ),
         }
     }
 
     async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
         let hashed_url_string = self.hash_url(url);
-        match self.cache.get(&hashed_url_string) {
+        match self.cache.get(&hashed_url_string).await {
             Some(res) => self.post_process_search_results(res).await,
             None => Err(Report::new(CacheError::MissingValue)),
         }
@@ -427,13 +437,18 @@ impl Cacher for InMemoryCache {
         search_results: &[SearchResults],
         urls: &[String],
     ) -> Result<(), Report<CacheError>> {
+        let mut tasks: Vec<_> = Vec::with_capacity(urls.len());
         for (url, search_result) in urls.iter().zip(search_results.iter()) {
             let hashed_url_string = self.hash_url(url);
             let bytes = self.pre_process_search_results(search_result).await?;
-            self.cache.insert(hashed_url_string, bytes);
+            let new_self = self.clone();
+            tasks.push(tokio::spawn(async move {
+                new_self.cache.insert(hashed_url_string, bytes).await
+            }));
         }
 
-        self.cache.sync();
+        join_all(tasks).await;
+
         Ok(())
     }
 }

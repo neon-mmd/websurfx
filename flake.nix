@@ -36,7 +36,7 @@
             haskellPackages.hadolint
             nodejs
             nodePackages_latest.cspell
-            nodePackages_latest.eslint
+            eslint
             nodePackages_latest.markdownlint-cli2
             nodePackages_latest.stylelint
             redis

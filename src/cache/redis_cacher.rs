@@ -16,7 +16,7 @@ const REDIS_PIPELINE_SIZE: usize = 3;
 /// connect to.
 pub struct RedisCache {
     /// It stores a pool of connections ready to be used.
-    connection_pool: Vec<ConnectionManager>,
+    connection_pool: Box<[ConnectionManager]>,
     /// It stores the size of the connection pool (in other words the number of
     /// connections that should be stored in the pool).
     pool_size: u8,
@@ -58,13 +58,13 @@ impl RedisCache {
             }));
         }
 
-        let mut outputs = Vec::new();
+        let mut outputs = Vec::with_capacity(tasks.len());
         for task in tasks {
             outputs.push(task.await??);
         }
 
         let redis_cache = RedisCache {
-            connection_pool: outputs,
+            connection_pool: outputs.into_boxed_slice(),
             pool_size,
             current_connection: Default::default(),
             cache_ttl,

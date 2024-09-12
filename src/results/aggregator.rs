@@ -14,7 +14,6 @@ use futures::stream::FuturesUnordered;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, BufReader},
@@ -92,13 +91,6 @@ pub async fn aggregate(
     });
 
     let user_agent: &str = random_user_agent();
-
-    // Add a random delay before making the request.
-    if config.aggregator.random_delay || !config.debug {
-        let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
-        let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
-        tokio::time::sleep(Duration::from_secs(delay)).await;
-    }
 
     let mut names: Vec<&str> = Vec::with_capacity(0);
 
@@ -188,19 +180,21 @@ pub async fn aggregate(
         drop(blacklist_map);
     }
 
-    let mut results: Vec<SearchResult> = result_map
-        .iter()
-        .map(|(_, value)| {
-            let mut copy = value.clone();
-            if !copy.url.contains("temu.com") {
-                copy.calculate_relevance(query.as_str())
+    let mut results: Box<[SearchResult]> = result_map
+        .into_iter()
+        .map(|(_, mut value)| {
+            if !value.url.contains("temu.com") {
+                value.calculate_relevance(query.as_str())
             }
-            copy
+            value
         })
         .collect();
     sort_search_results(&mut results);
 
-    Ok(SearchResults::new(results, &engine_errors_info))
+    Ok(SearchResults::new(
+        results,
+        engine_errors_info.into_boxed_slice(),
+    ))
 }
 
 /// Filters a map of search results using a list of regex patterns.
@@ -265,7 +259,6 @@ fn sort_search_results(results: &mut [SearchResult]) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use smallvec::smallvec;
     use std::io::Write;
     use tempfile::NamedTempFile;
 
@@ -281,7 +274,7 @@ mod tests {
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
                 relevance_score: 0.0,
-                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                engine: vec!["Google".to_owned(), "Bing".to_owned()],
             },
         ));
         map_to_be_filtered.push((
@@ -290,7 +283,7 @@ mod tests {
                 title: "Rust Programming Language".to_owned(),
                 url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                engine: vec!["Google".to_owned(), "DuckDuckGo".to_owned()],
                 relevance_score:0.0
             },)
         );
@@ -331,7 +324,7 @@ mod tests {
                 url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
-                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                engine: vec!["Google".to_owned(), "Bing".to_owned()],
                 relevance_score: 0.0,
             },
         ));
@@ -341,7 +334,7 @@ mod tests {
                 title: "Rust Programming Language".to_owned(),
                 url: "https://www.rust-lang.org/".to_owned(),
                 description: "A systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety.".to_owned(),
-                engine: smallvec!["Google".to_owned(), "DuckDuckGo".to_owned()],
+                engine: vec!["Google".to_owned(), "DuckDuckGo".to_owned()],
                 relevance_score:0.0
             },
         ));
@@ -398,7 +391,7 @@ mod tests {
                 url: "https://www.example.com".to_owned(),
                 description: "This domain is for use in illustrative examples in documents."
                     .to_owned(),
-                engine: smallvec!["Google".to_owned(), "Bing".to_owned()],
+                engine: vec!["Google".to_owned(), "Bing".to_owned()],
                 relevance_score: 0.0,
             },
         ));
