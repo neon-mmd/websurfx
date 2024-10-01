@@ -49,9 +49,10 @@ pub struct Config {
     pub tcp_connection_keep_alive: u8,
     /// It stores the pool idle connection timeout in seconds.
     pub pool_idle_connection_timeout: u8,
-
     /// Url of the proxy to use for outgoing requests.
     pub proxy: Option<Proxy>,
+    /// It stores the number of https connections to keep in the pool.
+    pub number_of_https_connections: u8,
 }
 
 impl Config {
@@ -61,7 +62,7 @@ impl Config {
     /// # Arguments
     ///
     /// * `logging_initialized` - It takes a boolean which ensures that the logging doesn't get
-    /// initialized twice. Pass false if the logger has not yet been initialized.
+    ///   initialized twice. Pass false if the logger has not yet been initialized.
     ///
     /// # Error
     ///
@@ -152,6 +153,7 @@ impl Config {
             request_timeout: globals.get::<_, u8>("request_timeout")?,
             tcp_connection_keep_alive: globals.get::<_, u8>("tcp_connection_keep_alive")?,
             pool_idle_connection_timeout: globals.get::<_, u8>("pool_idle_connection_timeout")?,
+            number_of_https_connections: globals.get::<_, u8>("number_of_https_connections")?,
             threads,
             client_connection_keep_alive: globals.get::<_, u8>("client_connection_keep_alive")?,
             rate_limiter: RateLimiter {

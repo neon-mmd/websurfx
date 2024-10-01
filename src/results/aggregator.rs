@@ -60,7 +60,7 @@ type FutureVec =
 /// * `debug` - Accepts a boolean value to enable or disable debug mode option.
 /// * `upstream_search_engines` - Accepts a vector of search engine names which was selected by the
 /// * `request_timeout` - Accepts a time (secs) as a value which controls the server request timeout.
-/// user through the UI or the config file.
+///   user through the UI or the config file.
 ///
 /// # Error
 ///
@@ -81,6 +81,7 @@ pub async fn aggregate(
                 config.pool_idle_connection_timeout as u64,
             ))
             .tcp_keepalive(Duration::from_secs(config.tcp_connection_keep_alive as u64))
+            .pool_max_idle_per_host(config.number_of_https_connections as usize)
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .https_only(true)
             .gzip(true)
