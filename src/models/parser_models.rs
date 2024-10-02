@@ -29,7 +29,7 @@ impl Style {
     ///
     /// * `theme` - It takes the parsed theme option used to set a theme for the website.
     /// * `colorscheme` - It takes the parsed colorscheme option used to set a colorscheme
-    /// for the theme being used.
+    ///   for the theme being used.
     pub fn new(theme: String, colorscheme: String, animation: Option<String>) -> Self {
         Style {
             theme,

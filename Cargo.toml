@@ -47,22 +47,22 @@ mlua = { version = "0.9.9", features = [
     "luajit",
     "vendored",
 ], default-features = false }
-redis = { version = "0.25.4", features = [
+redis = { version = "0.27.2", features = [
     "tokio-comp",
     "connection-manager",
     "tcp_nodelay"
 ], default-features = false, optional = true }
 blake3 = { version = "1.5.4", default-features = false }
-error-stack = { version = "0.4.0", default-features = false, features = [
+error-stack = { version = "0.5.0", default-features = false, features = [
     "std",
 ] }
 async-trait = { version = "0.1.80", default-features = false }
-regex = { version = "1.9.4", features = ["perf"], default-features = false }
+regex = { version = "1.11.0", features = ["perf"], default-features = false }
 futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
 dhat = { version = "0.3.2", optional = true, default-features = false }
 mimalloc = { version = "0.1.43", default-features = false }
 async-once-cell = { version = "0.5.3", default-features = false }
-actix-governor = { version = "0.5.0", default-features = false }
+actix-governor = { version = "0.6.0", default-features = false }
 moka = { version = "0.12.8", optional = true, default-features = false, features = [
     "future",
 ] }
@@ -92,7 +92,7 @@ itertools = {version = "0.13.0", default-features = false}
 [dev-dependencies]
 rusty-hook = { version = "^0.11.2", default-features = false }
 criterion = { version = "0.5.1", default-features = false }
-tempfile = { version = "3.10.1", default-features = false }
+tempfile = { version = "3.13.0", default-features = false }
 
 [build-dependencies]
 lightningcss = { version = "1.0.0-alpha.57", default-features = false, features = [

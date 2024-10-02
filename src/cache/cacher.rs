@@ -546,7 +546,7 @@ impl SharedCache {
     /// # Arguments
     ///
     /// * `url` - It takes the search url as an argument which will be used as the key to fetch the
-    /// cached results from the cache.
+    ///   cached results from the cache.
     ///
     /// # Error
     ///
@@ -563,9 +563,9 @@ impl SharedCache {
     /// # Arguments
     ///
     /// * `search_results` - It takes the `SearchResults` as an argument which are results that
-    /// needs to be cached.
+    ///   needs to be cached.
     /// * `url` - It takes the search url as an argument which will be used as the key for storing
-    /// results in the cache.
+    ///   results in the cache.
     ///
     /// # Error
     ///
