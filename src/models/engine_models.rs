@@ -206,6 +206,10 @@ impl EngineHandler {
                     let engine = crate::engines::bing::Bing::new()?;
                     ("bing", Box::new(engine))
                 }
+                "qwant" => {
+                    let engine = crate::engines::qwant::Qwant;
+                    ("qwant", Box::new(engine))
+                }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(
                         engine_name.to_string(),
