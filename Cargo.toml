@@ -52,7 +52,7 @@ redis = { version = "0.27.2", features = [
     "tcp_nodelay"
 ], default-features = false, optional = true }
 blake3 = { version = "1.5.4", default-features = false }
-error-stack = { version = "0.4.0", default-features = false, features = [
+error-stack = { version = "0.5.0", default-features = false, features = [
     "std",
 ] }
 async-trait = { version = "0.1.80", default-features = false }
