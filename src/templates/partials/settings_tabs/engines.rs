@@ -9,7 +9,7 @@ use maud::{html, Markup};
 /// # Arguments
 ///
 /// * `engine_names` - It takes the key value pair list of all available engine names and there corresponding
-/// selected (enabled/disabled) value as an argument.
+///   selected (enabled/disabled) value as an argument.
 ///
 /// # Returns
 ///

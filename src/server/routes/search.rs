@@ -146,7 +146,7 @@ pub async fn search(
 /// # Arguments
 ///
 /// * `url` - It takes the url of the current page that requested the search results for a
-/// particular search query.
+///   particular search query.
 /// * `config` - It takes a parsed config struct.
 /// * `query` - It takes the page number as u32 value.
 /// * `req` - It takes the `HttpRequest` struct as a value.
