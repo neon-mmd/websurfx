@@ -18,6 +18,7 @@ reqwest = { version = "0.12.5", default-features = false, features = [
     "brotli",
     "gzip",
     "http2",
+    "socks",
 ] }
 tokio = { version = "1.32.0", features = [
     "rt-multi-thread",
