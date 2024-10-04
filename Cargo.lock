@@ -3266,7 +3266,6 @@ dependencies = [
  "sync_wrapper",
  "tokio 1.40.0",
  "tokio-rustls",
- "tokio-socks",
  "tokio-util",
  "tower-service",
  "url 2.5.2",
@@ -4095,18 +4094,6 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "tokio 1.40.0",
-]
-
-[[package]]
-name = "tokio-socks"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d4770b8024672c1101b3f6733eab95b18007dbe0847a8afe341fcf79e06043f"
-dependencies = [
- "either",
- "futures-util",
- "thiserror",
- "tokio 1.38.0",
 ]
 
 [[package]]

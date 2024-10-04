@@ -174,7 +174,7 @@ opt-level = "z"
 
 [features]
 use-synonyms-search = ["thesaurus/static"]
-default = ["memory-cache", "socks"]
+default = ["memory-cache"]
 dhat-heap = ["dep:dhat"]
 memory-cache = ["dep:moka"]
 redis-cache = ["dep:redis", "dep:base64"]
