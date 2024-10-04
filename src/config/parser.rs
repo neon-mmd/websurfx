@@ -123,14 +123,12 @@ impl Config {
             _ => parsed_cet,
         };
 
-        let proxy_str = globals.get::<_, String>("proxy")?;
-        let proxy = match Proxy::all(proxy_str) {
-            Ok(proxy) => Some(proxy),
-            Err(_) => {
+                let proxy_opt = globals.get::<_, Option<String>>("proxy")?;
+        let proxy = proxy_opt.and_then(|proxy_str| {
+            Proxy::all(proxy_str).ok().and_then(|_| {
                 log::error!("Invalid proxy url, defaulting to no proxy.");
                 None
-            }
-        };
+            })
 
         Ok(Config {
             port: globals.get::<_, u16>("port")?,
