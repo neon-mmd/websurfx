@@ -75,7 +75,7 @@ pub async fn aggregate(
     safe_search: u8,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
-        ClientBuilder::new()
+        let mut cb = ClientBuilder::new()
             .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
             .pool_idle_timeout(Duration::from_secs(
                 config.pool_idle_connection_timeout as u64,
@@ -86,9 +86,13 @@ pub async fn aggregate(
             .https_only(true)
             .gzip(true)
             .brotli(true)
-            .http2_adaptive_window(config.adaptive_window)
-            .build()
-            .unwrap()
+            .http2_adaptive_window(config.adaptive_window);
+
+        if config.proxy.is_some() {
+            cb = cb.proxy(config.proxy.clone().unwrap());
+        }
+
+        cb.build().unwrap()
     });
 
     let user_agent: &str = random_user_agent();
@@ -242,6 +246,7 @@ pub async fn filter_with_lists(
 
     Ok(())
 }
+
 /// Sorts  SearchResults by relevance score.
 /// <br> sort_unstable is used as its faster,stability is not an issue on our side.
 /// For reasons why, check out [`this`](https://rust-lang.github.io/rfcs/1884-unstable-sort.html)
@@ -257,6 +262,7 @@ fn sort_search_results(results: &mut [SearchResult]) {
             .unwrap_or(Ordering::Less)
     })
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
