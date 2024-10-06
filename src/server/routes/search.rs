@@ -85,7 +85,7 @@ pub async fn search(
             let next_page = page + 1;
 
             // Add a random delay before making the request.
-            if config.aggregator.random_delay || !config.debug {
+            if config.aggregator.random_delay || config.debug {
                 let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos() as f32;
                 let delay = ((nanos / 1_0000_0000 as f32).floor() as u64) + 1;
                 tokio::time::sleep(Duration::from_secs(delay)).await;
