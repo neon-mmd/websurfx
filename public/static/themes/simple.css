@@ -73,6 +73,11 @@ button {
   font-size: 1.6rem;
 }
 
+.search_bar input::-webkit-search-results-button,
+.search_bar input::-webkit-search-cancel-button{
+    display: none;
+}
+
 .search_bar input:focus {
   outline: 2px solid var(--foreground-color);
 }
