@@ -91,7 +91,7 @@ pub fn run(
             .wrap(cors)
             .wrap(Governor::new(
                 &GovernorConfigBuilder::default()
-                    .per_second(config.rate_limiter.time_limit as u64)
+                    .seconds_per_request(config.rate_limiter.time_limit as u64)
                     .burst_size(config.rate_limiter.number_of_requests as u32)
                     .finish()
                     .unwrap(),
