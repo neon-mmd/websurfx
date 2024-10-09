@@ -19,6 +19,8 @@ rate_limiter = {
 -- Set whether the server will use an adaptive/dynamic HTTPS window size, see https://httpwg.org/specs/rfc9113.html#fc-principles
 https_adaptive_window_size = false
 
+operating_system_tls_certificates = true -- Set whether the server will use operating system's tls certificates alongside rustls certificates while fetching search results from the upstream engines.
+
 number_of_https_connections = 10 -- the number of https connections that should be available in the connection pool.
 -- Set keep-alive timer in seconds; keeps clients connected to the HTTP server, different from the connection to upstream search engines
 client_connection_keep_alive = 120
