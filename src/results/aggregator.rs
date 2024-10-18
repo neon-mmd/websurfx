@@ -83,6 +83,8 @@ pub async fn aggregate(
             .tcp_keepalive(Duration::from_secs(config.tcp_connection_keep_alive as u64))
             .pool_max_idle_per_host(config.number_of_https_connections as usize)
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .use_rustls_tls()
+            .tls_built_in_root_certs(config.operating_system_tls_certificates)
             .https_only(true)
             .gzip(true)
             .brotli(true)

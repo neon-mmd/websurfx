@@ -53,6 +53,8 @@ pub struct Config {
     pub proxy: Option<Proxy>,
     /// It stores the number of https connections to keep in the pool.
     pub number_of_https_connections: u8,
+    /// It stores the operating system's TLS certificates for https requests.
+    pub operating_system_tls_certificates: bool,
 }
 
 impl Config {
