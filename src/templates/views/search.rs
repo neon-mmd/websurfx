@@ -24,6 +24,7 @@ pub fn search(
     theme: &str,
     animation: &Option<String>,
     query: &str,
+    page: u32,
     search_results: &SearchResults,
 ) -> Markup {
     html!(
@@ -108,15 +109,14 @@ pub fn search(
               }
             }
             .page_navigation {
-               button type="button" onclick="navigate_backward()"{
+               a href=(format!("/search?q={}&safesearch={}&page={}", query, search_results.safe_search_level, if page > 1 {page-1} else {1})) {
                    (PreEscaped("&#8592;")) "previous"
                }
-               button type="button" onclick="navigate_forward()"{"next" (PreEscaped("&#8594;"))}
+               a href=(format!("/search?q={}&safesearch={}&page={}", query, search_results.safe_search_level, page+2)) {
+                  "next" (PreEscaped("&#8594;"))}
             }
         }
         script src="static/index.js"{}
-        script src="static/search_area_options.js"{}
-        script src="static/pagination.js"{}
         script src="static/error_box.js"{}
         (footer())
     )

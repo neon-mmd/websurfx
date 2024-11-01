@@ -129,6 +129,7 @@ pub async fn search(
                     &config.style.theme,
                     &config.style.animation,
                     query,
+                    page,
                     &results.0,
                 )
                 .0,

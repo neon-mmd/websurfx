@@ -448,7 +448,7 @@ footer div {
   align-items: center;
 }
 
-.page_navigation button {
+.page_navigation a {
   background: var(--background-color);
   color: var(--foreground-color);
   padding: 1rem;
@@ -457,7 +457,7 @@ footer div {
   border: none;
 }
 
-.page_navigation button:active {
+.page_navigation a:active {
   filter: brightness(1.2);
 }
 

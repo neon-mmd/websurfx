@@ -14,12 +14,13 @@ use maud::{html, Markup, PreEscaped};
 /// It returns the compiled html code for the search bar as a result.
 pub fn bar(query: &str) -> Markup {
     html!(
+        (PreEscaped("<form action=\"/search\">"))
         (PreEscaped("<div class=\"search_bar\">"))
-            input type="search" name="search-box" value=(query) placeholder="Type to search";
-            button type="reset" onclick="clearSearchText()" {
+            input type="search" name="q" value=(query) placeholder="Type to search";
+            button type="button" onclick="clearSearchText()" {
                 img src="./images/close.svg" alt="Clear button icon for clearing search input text";
             }
-            button type="submit" onclick="searchWeb()" {
+            button type="submit" {
                 img src="./images/magnifying_glass.svg" alt="Info icon for error box";
             }
     )

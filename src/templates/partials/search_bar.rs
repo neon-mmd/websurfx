@@ -29,7 +29,7 @@ pub fn search_bar(
             (bar(query))
                 .error_box {
                    @if !engine_errors_info.is_empty(){
-                      button onclick="toggleErrorBox()" class="error_box_toggle_button"{
+                      button type="button" onclick="toggleErrorBox()" class="error_box_toggle_button"{
                          img src="./images/warning.svg" alt="Info icon for error box";
                       }
                       .dropdown_error_box{
@@ -43,7 +43,7 @@ pub fn search_bar(
                       }
                    }
                    @else {
-                      button onclick="toggleErrorBox()" class="error_box_toggle_button"{
+                      button type="button" onclick="toggleErrorBox()" class="error_box_toggle_button"{
                          img src="./images/info.svg" alt="Warning icon for error box";
                       }
                       .dropdown_error_box {
@@ -56,10 +56,10 @@ pub fn search_bar(
             (PreEscaped("</div>"))
             .search_options {
                @if safe_search_level >= 3 {
-                   (PreEscaped("<select name=\"safe_search_levels\" disabled>"))
+                   (PreEscaped("<select name=\"safesearch\" disabled>"))
                }
                @else{
-                   (PreEscaped("<select name=\"safe_search_levels\">"))
+                   (PreEscaped(format!("<select name=\"safesearch\" value=\"{}\">", safe_search_level)))
                }
                @for (idx, name) in SAFE_SEARCH_LEVELS_NAME.iter().enumerate() {
                    @if (safe_search_level as usize) == idx {
@@ -71,6 +71,7 @@ pub fn search_bar(
                }
                (PreEscaped("</select>"))
             }
+            (PreEscaped("</form>"))
         }
     )
 }
