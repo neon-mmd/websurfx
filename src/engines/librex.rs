@@ -30,7 +30,7 @@ impl LibreX {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".text-result-container>p",
-                ".text-result-container",
+                ".text-result-wrapper",
                 ".text-result-wrapper>a>h2",
                 ".text-result-wrapper>a",
                 ".text-result-wrapper>span",
