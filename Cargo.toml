@@ -47,7 +47,7 @@ mlua = { version = "0.9.9", features = [
     "luajit",
     "vendored",
 ], default-features = false }
-redis = { version = "0.27.2", features = [
+redis = { version = "0.27.5", features = [
     "tokio-comp",
     "connection-manager",
     "tcp_nodelay"
