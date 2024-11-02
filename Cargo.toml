@@ -62,7 +62,7 @@ futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
 dhat = { version = "0.3.2", optional = true, default-features = false }
 mimalloc = { version = "0.1.43", default-features = false }
 async-once-cell = { version = "0.5.3", default-features = false }
-actix-governor = { version = "0.6.0", default-features = false }
+actix-governor = { version = "0.7.0", default-features = false }
 moka = { version = "0.12.8", optional = true, default-features = false, features = [
     "future",
 ] }
