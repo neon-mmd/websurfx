@@ -65,7 +65,7 @@ checksum = "072a3d7907b945b0956f9721e01c117ad5765ce5be2fd9bb1e44a117c669de22"
 dependencies = [
  "actix-http",
  "actix-web",
- "futures 0.3.30",
+ "futures 0.3.31",
  "governor",
 ]
 
@@ -1329,9 +1329,9 @@ checksum = "3a471a38ef8ed83cd6e40aa59c1ffe17db6855c18e3604d9c4ed8c08ebc28678"
 
 [[package]]
 name = "futures"
-version = "0.3.30"
+version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "645c6916888f6cb6350d2550b80fb63e734897a8498abe35cfb732b6487804b0"
+checksum = "65bc07b1a8bc7c85c5f2e110c476c7389b4554ba72af57d8445ea63a576b0876"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -1370,9 +1370,9 @@ dependencies = [
 
 [[package]]
 name = "futures-executor"
-version = "0.3.30"
+version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a576fc72ae164fca6b9db127eaa9a9dda0d61316034f33a0a0d4eda41f02b01d"
+checksum = "1e28d1d997f585e54aebc3f97d39e72338912123a67330d723fdbb564d646c9f"
 dependencies = [
  "futures-core",
  "futures-task",
@@ -3143,7 +3143,7 @@ dependencies = [
  "async-trait",
  "bytes 1.7.2",
  "combine",
- "futures 0.3.30",
+ "futures 0.3.31",
  "futures-util",
  "itoa 1.0.11",
  "num-bigint",
@@ -4544,7 +4544,7 @@ dependencies = [
  "env_logger",
  "error-stack",
  "fake-useragent",
- "futures 0.3.30",
+ "futures 0.3.31",
  "itertools 0.13.0",
  "keyword_extraction",
  "lightningcss",
