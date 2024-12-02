@@ -52,7 +52,7 @@ redis = { version = "0.27.5", features = [
     "connection-manager",
     "tcp_nodelay"
 ], default-features = false, optional = true }
-blake3 = { version = "1.5.4", default-features = false }
+blake3 = { version = "1.5.5", default-features = false }
 error-stack = { version = "0.5.0", default-features = false, features = [
     "std",
 ] }
