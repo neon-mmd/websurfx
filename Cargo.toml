@@ -92,7 +92,7 @@ itertools = {version = "0.13.0", default-features = false}
 [dev-dependencies]
 rusty-hook = { version = "^0.11.2", default-features = false }
 criterion = { version = "0.5.1", default-features = false }
-tempfile = { version = "3.13.0", default-features = false }
+tempfile = { version = "3.14.0", default-features = false }
 
 [build-dependencies]
 lightningcss = { version = "1.0.0-alpha.57", default-features = false, features = [
