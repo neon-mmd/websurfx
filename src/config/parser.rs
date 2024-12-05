@@ -134,7 +134,8 @@ impl Config {
         });
 
         Ok(Config {
-            operating_system_tls_certificates: globals.get::<_, bool>("operating_system_tls_certificates")?,
+            operating_system_tls_certificates: globals
+                .get::<_, bool>("operating_system_tls_certificates")?,
             port: globals.get::<_, u16>("port")?,
             binding_ip: globals.get::<_, String>("binding_ip")?,
             style: Style::new(
