@@ -75,7 +75,7 @@ chacha20poly1305 = { version = "0.10.1", default-features = false, features = [
     "getrandom",
 ], optional = true }
 chacha20 = { version = "0.9.1", default-features = false, optional = true }
-base64 = { version = "0.21.5", default-features = false, features = [
+base64 = { version = "0.22.1", default-features = false, features = [
     "std",
 ], optional = true }
 cfg-if = { version = "1.0.0", default-features = false, optional = true }
