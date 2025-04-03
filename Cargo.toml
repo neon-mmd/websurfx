@@ -66,7 +66,7 @@ actix-governor = { version = "0.8.0", default-features = false }
 moka = { version = "0.12.8", optional = true, default-features = false, features = [
     "future",
 ] }
-async-compression = { version = "0.4.12", default-features = false, features = [
+async-compression = { version = "0.4.22", default-features = false, features = [
     "brotli",
     "tokio",
 ], optional = true }
