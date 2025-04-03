@@ -213,12 +213,10 @@ pub trait Cacher: Send + Sync {
     }
 
     /// A helper function that compresses or encrypts search results before they're inserted into a cache store
-
     /// # Arguments
     ///
     /// * `search_results` - A reference to the search_Results to process.
     ///
-
     ///
     /// # Error
     /// Returns a Vec of compressed or encrypted bytes on success otherwise it returns a CacheError

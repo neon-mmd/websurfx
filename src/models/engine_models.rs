@@ -209,6 +209,13 @@ impl EngineHandler {
                 "qwant" => {
                     let engine = crate::engines::qwant::Qwant;
                     ("qwant", Box::new(engine))
+                "wikipedia" => {
+                    let engine = crate::engines::wikipedia::Wikipedia::new("en")?;
+                    ("wikipedia", Box::new(engine))
+                }
+                "yahoo" => {
+                    let engine = crate::engines::yahoo::Yahoo::new()?;
+                    ("yahoo", Box::new(engine))
                 }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(

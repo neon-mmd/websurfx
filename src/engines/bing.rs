@@ -15,6 +15,7 @@ use crate::models::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{Report, Result, ResultExt};
 
+use super::common::build_cookie;
 use super::search_result_parser::SearchResultParser;
 
 /// A new Bing engine type defined in-order to implement the `SearchEngine` trait which allows to
@@ -73,10 +74,7 @@ impl SearchEngine for Bing {
             ("_UR=QS=0&TQS", "0"),
         ];
 
-        let mut cookie_string = String::new();
-        for (k, v) in &query_params {
-            cookie_string.push_str(&format!("{k}={v}; "));
-        }
+        let cookie_string = build_cookie(&query_params);
 
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),

@@ -55,6 +55,7 @@ pub async fn search(
 
             // Get search settings using the user's cookie or from the server's config
             let mut search_settings: server_models::Cookie<'_> = cookie
+                .as_ref()
                 .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
                 .unwrap_or_else(|| {
                     server_models::Cookie::build(

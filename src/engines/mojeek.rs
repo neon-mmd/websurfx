@@ -14,6 +14,7 @@ use crate::models::engine_models::{EngineError, SearchEngine};
 
 use error_stack::{Report, Result, ResultExt};
 
+use super::common::{build_cookie, build_query};
 use super::search_result_parser::SearchResultParser;
 
 /// A new Mojeek engine type defined in-order to implement the `SearchEngine` trait which allows to
@@ -30,8 +31,8 @@ impl Mojeek {
             parser: SearchResultParser::new(
                 ".result-col",
                 ".results-standard li",
-                "a span.url",
-                "h2 a.title",
+                "h2 > a.title",
+                "a.ob",
                 "p.s",
             )?,
         })
@@ -107,10 +108,7 @@ impl SearchEngine for Mojeek {
             ("safe", &safe),
         ];
 
-        let mut query_params_string = String::new();
-        for (k, v) in &query_params {
-            query_params_string.push_str(&format!("&{k}={v}"));
-        }
+        let query_params_string = build_query(&query_params);
 
         let url: String = match page {
             0 => {
@@ -123,10 +121,7 @@ impl SearchEngine for Mojeek {
             }
         };
 
-        let mut cookie_string = String::new();
-        for (k, v) in &query_params {
-            cookie_string.push_str(&format!("{k}={v}; "));
-        }
+        let cookie_string = build_cookie(&query_params);
 
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
@@ -157,7 +152,7 @@ impl SearchEngine for Mojeek {
             .parse_for_results(&document, |title, url, desc| {
                 Some(SearchResult::new(
                     title.inner_html().trim(),
-                    url.inner_html().trim(),
+                    url.attr("href")?.trim(),
                     desc.inner_html().trim(),
                     &["mojeek"],
                 ))

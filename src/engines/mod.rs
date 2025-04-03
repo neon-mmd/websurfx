@@ -5,6 +5,7 @@
 
 pub mod bing;
 pub mod brave;
+pub mod common;
 pub mod duckduckgo;
 pub mod librex;
 pub mod mojeek;
@@ -12,3 +13,5 @@ pub mod qwant;
 pub mod search_result_parser;
 pub mod searx;
 pub mod startpage;
+pub mod wikipedia;
+pub mod yahoo;

@@ -37,6 +37,21 @@ pub fn general(safe_search_level: u8) -> Markup {
                      option value=(SAFE_SEARCH_LEVELS[2].0){(SAFE_SEARCH_LEVELS[2].1)}
                }
            }
+           h3{"Restore preferences from file"}
+           p class="description"{
+               "Select a json file to restore preferences for the search engine."
+           }
+           form method="post" enctype="multipart/form-data" onsubmit="setTimeout(function () { window.location.reload(); }, 10)" action="/settings" target="_self"{
+                input type="file" name="file" accept="application/json";
+                button type="submit" {"Submit"}
+           }
+           h3{"Export preferences to a file"}
+           p class="description"{
+               "Export all the settings saved as a cookie as a json file."
+           }
+           a class="export_btn" href="./download" download="settings.json" {
+                button type="submit" {"Export"}
+           }
         }
     )
 }

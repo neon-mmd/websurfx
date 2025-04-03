@@ -10,7 +10,7 @@
 /// order to allow the deserializing the json back to struct in aggregate function in
 /// aggregator.rs and create a new struct out of it and then serialize it back to json and pass
 /// it to the template files.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Style {
     /// It stores the parsed theme option used to set a theme for the website.
     pub theme: String,

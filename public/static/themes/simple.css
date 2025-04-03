@@ -5,7 +5,8 @@
   font-weight: 200 600;
   font-stretch: 0% 200%;
   font-display: swap;
-  src: url("https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nErXyi0A.woff2") format('woff2');
+  src: url('https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nErXyi0A.woff2')
+    format('woff2');
 }
 
 * {
@@ -97,7 +98,7 @@ button {
   outline-offset: 3px;
   outline: 2px solid transparent;
   border: none;
-  transition: .1s;
+  transition: 0.1s;
   gap: 0;
   background-color: var(--color-six);
   color: var(--background-color);
@@ -107,10 +108,10 @@ button {
 }
 
 .search_bar button img {
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%, -50%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .search_bar button:active {
@@ -253,7 +254,6 @@ button {
 
 /* styles for the footer and header */
 
-
 header {
   width: 100%;
   background: var(--background-color);
@@ -341,7 +341,7 @@ footer div {
 .results_aggregated {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; 
+  justify-content: space-between;
   margin: 2rem 0;
   content-visibility: auto;
 }
@@ -714,7 +714,8 @@ footer div {
 }
 
 .settings_container .user_interface select,
-.settings_container .general select {
+.settings_container .general select,
+.settings_container .general form input {
   margin: 0.7rem 0;
   width: 20rem;
   background-color: var(--color-one);
@@ -724,6 +725,38 @@ footer div {
   outline: none;
   border: none;
   text-transform: capitalize;
+}
+
+.settings_container .general form input {
+  padding: 0;
+  width: 30rem;
+  text-align: center;
+  text-transform: none;
+}
+
+.settings_container .general form input::file-selector-button {
+  content: 'Browse';
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background: var(--color-three);
+  color: var(--background-color);
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  font-weight: bold;
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+  box-shadow: 5px 5px;
+  outline: none;
+  translate: -1rem 0;
+}
+
+.settings_container .general form input::file-selector-button:active {
+  box-shadow: none;
+  translate: 5px 5px;
+}
+
+.settings_container .general .export_btn {
+  margin-bottom: 1rem;
 }
 
 .settings_container .user_interface option:hover,
@@ -798,7 +831,7 @@ footer div {
   left: 0.4rem;
   bottom: 0.4rem;
   background-color: var(--background-color);
-  transition: .2s;
+  transition: 0.2s;
 }
 
 input:checked + .slider {
@@ -822,7 +855,7 @@ input:checked + .slider::before {
   border-radius: 50%;
 }
 
-@media screen and (width <= 1136px) {
+@media screen and (width <=1136px) {
   .hero-text-container {
     width: unset;
   }
@@ -832,7 +865,7 @@ input:checked + .slider::before {
   }
 }
 
-@media screen and (width <= 706px) {
+@media screen and (width <=706px) {
   .about-container article .logo-container svg {
     width: clamp(200px, 290px, 815px);
   }
@@ -856,7 +889,7 @@ input:checked + .slider::before {
   .features {
     grid-template-columns: 1fr;
   }
-  
+
   .feature-list {
     padding: 35px 0;
   }
