@@ -3441,13 +3441,14 @@ dependencies = [
 
 [[package]]
 name = "redis"
-version = "0.28.2"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e37ec3fd44bea2ec947ba6cc7634d7999a6590aca7c35827c250bc0de502bda6"
+checksum = "438a4e5f8e9aa246d6f3666d6978441bf1b37d5f417b50c4dd220be09f5fcc17"
 dependencies = [
  "arc-swap",
  "backon",
  "bytes 1.10.1",
+ "cfg-if 1.0.0",
  "combine",
  "futures-channel",
  "futures-util",
@@ -3456,6 +3457,7 @@ dependencies = [
  "percent-encoding 2.3.1",
  "pin-project-lite",
  "ryu",
+ "socket2 0.5.9",
  "tokio 1.44.2",
  "tokio-util",
  "url 2.5.4",
