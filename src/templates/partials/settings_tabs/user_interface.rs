@@ -23,24 +23,25 @@ async fn style_option_list(
     style_type: &str,
     selected_style: &str,
 ) -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
-    let mut style_option_names: Vec<(String, String)> = Vec::new();
-    while let Some(file) = read_dir(format!(
+    let mut style_option_names = Vec::new();
+    // open the dir exactly once
+    let mut dir = read_dir(format!(
         "{}static/{}/",
         file_path(FileType::Theme).await?,
         style_type,
     ))
-    .await?
-    .next_entry()
-    .await?
-    {
-        let style_name = file.file_name().to_str().unwrap().replace(".css", "");
+    .await?;
+
+    // then iterate it to exhaustion
+    while let Some(file) = dir.next_entry().await? {
+        let style_name = file.file_name().to_string_lossy().replace(".css", "");
         if selected_style != style_name {
             style_option_names.push((style_name.clone(), style_name.replace('-', " ")));
         }
     }
 
     if style_type == "animations" {
-        style_option_names.push((String::default(), "none".to_owned()))
+        style_option_names.push((String::new(), "none".into()));
     }
 
     Ok(style_option_names)
