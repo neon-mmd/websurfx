@@ -29,7 +29,7 @@ maud = { version = "0.27.0", default-features = false, features = [
     "actix-web",
 ] }
 scraper = { version = "0.23.1", default-features = false }
-actix-web = { version = "4.9.0", features = [
+actix-web = { version = "4.11.0", features = [
     "cookies",
     "macros",
     "compress-brotli",
