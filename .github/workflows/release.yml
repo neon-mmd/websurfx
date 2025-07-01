@@ -44,7 +44,7 @@ jobs:
       - name: regenerate cargo.lock
         run: cargo generate-lockfile
       - name: auto commit
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "[skip ci] updating app version to ${{ steps.version-bump.outputs.new_tag }}"
           branch: update-from-${{ github.sha }}
