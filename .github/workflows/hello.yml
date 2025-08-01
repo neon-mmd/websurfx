@@ -11,7 +11,7 @@ jobs:
     name: Welcome
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/first-interaction@v1
+      - uses: actions/first-interaction@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |-
