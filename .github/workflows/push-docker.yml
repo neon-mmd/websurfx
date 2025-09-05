@@ -24,11 +24,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Test variables
-        run: |
-          [ -z ${{ secrets.DOCKER_USERNAME }} ] && echo "no username" && exit 1
-          [ -z ${{ secrets.DOCKER_PASSWORD }} ] && echo "no PASSWORD" && exit 1
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
