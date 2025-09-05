@@ -51,7 +51,7 @@ jobs:
         with:
           context: . # Path to your Dockerfile's context (usually the root of the repo)
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta_brnach.outputs.tags }}
+          labels: ${{ steps.meta_brnach.outputs.labels }}
           cache-from: type=gha # Cache layers using GitHub Actions cache
           cache-to: type=gha,mode=max # Store cache layers
