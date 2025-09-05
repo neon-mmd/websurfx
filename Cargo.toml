@@ -6,6 +6,10 @@ description = "An open-source alternative to Searx that provides clean, ad-free,
 repository = "https://github.com/neon-mmd/websurfx"
 license = "AGPL-3.0"
 
+[[bin]]
+name = "websurfx"
+path = "src/main.rs"
+
 [dependencies]
 rayon = "1.10.0"
 arc-swap = "1.7.1"
