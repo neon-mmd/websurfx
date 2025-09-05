@@ -30,15 +30,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract Docker metadata (tags, labels)
-        id: meta
+      - name: Extract Docker metadata (tags, labels) for Branch
+        id: meta_branch
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/websurfx # Your Docker Hub repo name (e.g., myuser/myrepo)
+          images: ${{ env.DOCKER_IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}} # Uses the Git tag (e.g., v1.0.0 -> 1.0.0)
-            type=raw,value=latest,enable=${{ endsWith(github.ref, 'latest') }} # Pushes 'latest' tag if the Git tag is 'latest'
-
+            # Use the branch name as a Docker tag (e.g., 'main' or 'develop')
+            type=raw,value=${{ github.ref_name }}
+            # Also tag with 'latest' if on the 'main' branch
+            type=raw,value=latest,enable=${{ github.ref_name == 'rolling' }}
+            # Optionally, tag with the short commit SHA for traceability
+            type=sha,format=short,prefix=sha-
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.branch=${{ github.ref_name }}
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
