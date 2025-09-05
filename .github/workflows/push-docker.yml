@@ -55,3 +55,5 @@ jobs:
           labels: ${{ steps.meta_branch.outputs.labels }}
           cache-from: type=gha # Cache layers using GitHub Actions cache
           cache-to: type=gha,mode=max # Store cache layers
+          build-args: |
+            CACHE=redis
