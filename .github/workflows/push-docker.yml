@@ -4,9 +4,10 @@ name: Docker Image CI on Tag
 
 on:
   push:
+    branches:
+      - rolling
     tags:
       - 'v*.*.*' # Trigger on tags like v1.0.0, v1.2.3, etc.
-      - 'latest' # Optionally, also build if a 'latest' tag is explicitly pushed
 
 jobs:
   build_and_push_docker_image:
