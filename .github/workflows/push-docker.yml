@@ -34,7 +34,7 @@ jobs:
         id: meta_branch
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_IMAGE_NAME }}
+          images: dash886/websurfx
           tags: |
             # Use the branch name as a Docker tag (e.g., 'main' or 'develop')
             type=raw,value=${{ github.ref_name }}
