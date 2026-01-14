@@ -32,8 +32,8 @@ const PRODUCTION_PKG_ENV_VARIABLE_VALUE: &str = "prod";
 /// This function returns the unit type when the minification process runs successfully otherwise
 /// it returns a standard error.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if let Ok(pkg_env_var) = std::env::var(PACKAGE_ENVIRONMENT_VARIABLE) {
-        if pkg_env_var.to_lowercase() == PRODUCTION_PKG_ENV_VARIABLE_VALUE {
+    if let Ok(pkg_env_var) = std::env::var(PACKAGE_ENVIRONMENT_VARIABLE)
+        && pkg_env_var.to_lowercase() == PRODUCTION_PKG_ENV_VARIABLE_VALUE {
             // A for loop that loops over each file name containing in the `colorschemes` and `themes` folders
             // and minifies it using the `lightningcss` minifier.
             for folder_name in STYLE_FOLDERS {
@@ -80,6 +80,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-    }
     Ok(())
 }
