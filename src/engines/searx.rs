@@ -77,12 +77,11 @@ impl SearchEngine for Searx {
             &Searx::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
-        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(1) {
-            if no_result_msg.inner_html()
+        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(1)
+            && no_result_msg.inner_html()
                 == "we didn't find any results. Please use another query or search in more categories"
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
         }
 
         // scrape all the results from the html

@@ -103,8 +103,7 @@ async fn sanitize(
             config
                 .upstream_search_engines
                 .keys()
-                .cloned()
-                .any(|other_engine| *engine == other_engine)
+                .any(|other_engine| *engine == *other_engine)
                 .then_some(engine.clone())
         })
         .collect();
@@ -134,32 +133,30 @@ pub async fn set_settings(
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     if let Some(file_name) = form.file.file_name {
         let file_name_parts = file_name.split(".");
-        if let 2 = file_name_parts.clone().count() {
-            if let Some("json") = file_name_parts.last() {
-                if let 0 = form.file.size {
-                    return Ok(HttpResponse::BadRequest().finish());
-                } else {
-                    let mut data = String::new();
-                    form.file.file.read_to_string(&mut data).unwrap();
+        if let 2 = file_name_parts.clone().count()
+            && let Some("json") = file_name_parts.last()
+        {
+            if let 0 = form.file.size {
+                return Ok(HttpResponse::BadRequest().finish());
+            } else {
+                let mut data = String::new();
+                form.file.file.read_to_string(&mut data).unwrap();
 
-                    let mut unsanitized_json_data: models::search_route::Cookie<'_> =
-                        serde_json::from_str(&data)?;
+                let mut unsanitized_json_data: models::search_route::Cookie<'_> =
+                    serde_json::from_str(&data)?;
 
-                    sanitize(config, &mut unsanitized_json_data).await?;
+                sanitize(config, &mut unsanitized_json_data).await?;
 
-                    let sanitized_json_data: String =
-                        serde_json::json!(unsanitized_json_data).to_string();
+                let sanitized_json_data: String =
+                    serde_json::json!(unsanitized_json_data).to_string();
 
-                    return Ok(HttpResponse::Ok()
-                        .cookie(
-                            Cookie::build("appCookie", sanitized_json_data)
-                                .expires(
-                                    OffsetDateTime::now_utc().saturating_add(Duration::weeks(52)),
-                                )
-                                .finish(),
-                        )
-                        .finish());
-                }
+                return Ok(HttpResponse::Ok()
+                    .cookie(
+                        Cookie::build("appCookie", sanitized_json_data)
+                            .expires(OffsetDateTime::now_utc().saturating_add(Duration::weeks(52)))
+                            .finish(),
+                    )
+                    .finish());
             }
         }
     }

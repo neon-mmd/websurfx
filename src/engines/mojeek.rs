@@ -133,13 +133,12 @@ impl SearchEngine for Mojeek {
             &Mojeek::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
-        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0) {
-            if no_result_msg
+        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0)
+            && no_result_msg
                 .inner_html()
                 .contains("No pages found matching:")
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
         }
 
         // scrape all the results from the html
