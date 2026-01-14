@@ -75,9 +75,9 @@ impl SearchEngine for Brave {
             && no_result_msg
                 .inner_html()
                 .contains("Not many great matches came back for your search")
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
+        }
 
         self.parser
             .parse_for_results(&document, |title, url, desc| {

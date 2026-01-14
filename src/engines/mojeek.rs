@@ -137,9 +137,9 @@ impl SearchEngine for Mojeek {
             && no_result_msg
                 .inner_html()
                 .contains("No pages found matching:")
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
+        }
 
         // scrape all the results from the html
         self.parser

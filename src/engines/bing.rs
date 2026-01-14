@@ -97,9 +97,9 @@ impl SearchEngine for Bing {
                 .attr("class")
                 .map(|classes| classes.contains("b_algo"))
                 .unwrap_or(false)
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
+        }
 
         let re_span = Regex::new(r#"<span.*?>.*?(?:</span>&nbsp;·|</span>)"#).unwrap();
         let re_strong = Regex::new(r#"(<strong>|</strong>)"#).unwrap();
