@@ -38,7 +38,7 @@ async fn main() -> tokio::io::Result<()> {
         .get_or_try_init(|| async move {
             Config::parse(false)
                 .await
-                .map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e.to_string()))
+                .map_err(|e| tokio::io::Error::other(e.to_string()))
         })
         .await?;
 
