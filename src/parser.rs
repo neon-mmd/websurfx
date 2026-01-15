@@ -175,13 +175,13 @@ impl Config {
 /// * `debug` - It takes the option to whether enable or disable debug mode.
 /// * `logging` - It takes the option to whether enable or disable logs.
 fn set_logging_level(debug: bool, logging: bool) {
-    if let Ok(pkg_env_var) = std::env::var("PKG_ENV") {
-        if pkg_env_var.to_lowercase() == "dev" {
-            env_logger::Builder::new()
-                .filter(None, LevelFilter::Trace)
-                .init();
-            return;
-        }
+    if let Ok(pkg_env_var) = std::env::var("PKG_ENV")
+        && pkg_env_var.to_lowercase() == "dev"
+    {
+        env_logger::Builder::new()
+            .filter(None, LevelFilter::Trace)
+            .init();
+        return;
     }
 
     // Initializing logging middleware with level set to default or info.

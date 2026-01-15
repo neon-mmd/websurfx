@@ -91,15 +91,14 @@ impl SearchEngine for Bing {
         // Bing is very aggressive in finding matches
         // even with the most absurd of queries. ".b_algo" is the
         // class for the list item of results
-        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0) {
-            if no_result_msg
+        if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0)
+            && no_result_msg
                 .value()
                 .attr("class")
                 .map(|classes| classes.contains("b_algo"))
                 .unwrap_or(false)
-            {
-                return Err(Report::new(EngineError::EmptyResultSet));
-            }
+        {
+            return Err(Report::new(EngineError::EmptyResultSet));
         }
 
         let re_span = Regex::new(r#"<span.*?>.*?(?:</span>&nbsp;·|</span>)"#).unwrap();
