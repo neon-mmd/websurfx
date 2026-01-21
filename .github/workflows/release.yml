@@ -14,22 +14,31 @@ concurrency: production
 
 jobs:
   build:
-    name: bump tag version and release  
-    if: github.event.pull_request.merged == true 
+    name: bump tag version and release
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.version-bump.outputs.new_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+      - name: Ensure initial tag exists
+        run: |
+          git fetch --tags
+          if ! git tag -l "v*" | grep -q .; then
+            git tag v0.0.0
+            git push origin v0.0.0
+          fi
       - name: Bump version and push tag
         id: version-bump
         uses: hennejg/github-tag-action@v4.4.0
         with:
           github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           release_branches: rolling
-      - name: create branch 
+      - name: create branch
         uses: peterjgrainger/action-create-branch@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
@@ -60,13 +69,66 @@ jobs:
         run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+  build-linux:
+    name: build linux binaries
+    needs: build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_suffix: linux-amd64
+          - os: ubuntu-24.04-arm
+            asset_suffix: linux-arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Install system build tools
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+      - name: Build Linux release binary
+        run: cargo build --release
+      - name: Package Linux artifact
+        run: |
+          mkdir -p dist staging/websurfx staging/websurfx/public
+          cp target/release/websurfx dist/websurfx-${{ matrix.asset_suffix }}
+          chmod +x dist/websurfx-${{ matrix.asset_suffix }}
+          sha256sum dist/websurfx-${{ matrix.asset_suffix }} > dist/websurfx-${{ matrix.asset_suffix }}.sha256
+          cp -r websurfx/* staging/websurfx/
+          cp -r public/* staging/websurfx/public/
+          cp target/release/websurfx staging/websurfx-${{ matrix.asset_suffix }}
+          chmod +x staging/websurfx-${{ matrix.asset_suffix }}
+          tar -czf dist/websurfx-${{ matrix.asset_suffix }}.tar.gz -C staging .
+          sha256sum dist/websurfx-${{ matrix.asset_suffix }}.tar.gz > dist/websurfx-${{ matrix.asset_suffix }}.tar.gz.sha256
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: websurfx-${{ matrix.asset_suffix }}
+          path: dist/*
+          retention-days: 1
+
+  publish-release:
+    name: publish release assets
+    needs: [build, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           generate_release_notes: true
-          name: ${{ steps.version-bump.outputs.new_tag }}
-          tag_name: ${{ steps.version-bump.outputs.new_tag }}
+          name: ${{ needs.build.outputs.release_tag }}
+          tag_name: ${{ needs.build.outputs.release_tag }}
           prerelease: false
+          files: |
+            websurfx-*/websurfx-*
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
