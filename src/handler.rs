@@ -51,7 +51,7 @@ static FILE_PATHS_FOR_DIFF_FILE_TYPES: OnceCell<Vec<(FileType, Vec<String>)>> =
 /// 2. Under project folder ( or codebase in other words) if it is not present
 ///    here then it returns an error as mentioned above.
 pub async fn file_path(file_type: FileType) -> Result<String, Error> {
-    let home = env!("HOME");
+    let home = std::env::var("HOME").unwrap_or_default();
 
     let file_path: Vec<String> = FILE_PATHS_FOR_DIFF_FILE_TYPES
         .get_or_init(|| async move {
