@@ -426,9 +426,15 @@ impl SwitchCache {
 
         #[cfg(all(feature = "memory-cache", feature = "redis-cache"))]
         {
-            match self.redis_cache.cached_results(url).await {
-                Ok(res) => Ok(res),
-                Err(_) => self.memory_cache.cached_results(url).await,
+            if let Ok(res) = self.memory_cache.cached_results(url).await {
+                Ok(res)
+            } else if let Ok(res) = self.redis_cache.cached_results(url).await {
+                self.memory_cache
+                    .cache_results(std::slice::from_ref(&res), &[url.to_string()])
+                    .await?;
+                Ok(res)
+            } else {
+                self.memory_cache.cached_results(url).await
             }
         }
     }
