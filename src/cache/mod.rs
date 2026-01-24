@@ -429,12 +429,17 @@ impl SwitchCache {
             if let Ok(res) = self.memory_cache.cached_results(url).await {
                 Ok(res)
             } else if let Ok(res) = self.redis_cache.cached_results(url).await {
-                self.memory_cache
+                if let Err(err) = self
+                    .memory_cache
                     .cache_results(std::slice::from_ref(&res), &[url.to_string()])
-                    .await?;
+                    .await
+                {
+                    log::warn!("memory cache populate failed for {url}: {err}");
+                }
                 Ok(res)
             } else {
                 self.memory_cache.cached_results(url).await
+            }
             }
         }
     }
