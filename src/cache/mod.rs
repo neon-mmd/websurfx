@@ -440,7 +440,6 @@ impl SwitchCache {
             } else {
                 self.memory_cache.cached_results(url).await
             }
-            }
         }
     }
 
