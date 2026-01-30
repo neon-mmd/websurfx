@@ -41,20 +41,27 @@ impl LibreX {
 
 #[async_trait::async_trait]
 impl SearchEngine for LibreX {
-    /// Retrieves search results from LibreX based on the provided query, page, user agent, and client.
+    /// Retrieve LibreX search results for a query and page.
     ///
-    /// # Arguments
-    ///
-    /// * `query` - The search query.
-    /// * `page` - The page number for pagination.
-    /// * `user_agent` - The user agent string.
-    /// * `client` - The reqwest client for making HTTP requests.
-    /// * `_safe_search` - A parameter for safe search (not currently used).
+    /// Builds and fetches the LibreX search page for `query` and `page`, parses the HTML,
+    /// and returns the extracted results.
     ///
     /// # Returns
     ///
-    /// Returns a `Result` containing a `HashMap` of search results if successful, otherwise an `EngineError`.
-    /// The `Err` variant is explicit for better documentation.
+    /// `Ok` with a vector of `(title, SearchResult)` tuples on success; `Err(EngineError::EmptyResultSet)` when no results are found, or another `EngineError` for unexpected failures.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use reqwest::Client;
+    /// # use crate::librex::LibreX;
+    /// # tokio_test::block_on(async {
+    /// let engine = LibreX::new().unwrap();
+    /// let client = Client::new();
+    /// let res = engine.results("example query", 0, "my-agent", &client, 0).await;
+    /// assert!(res.is_ok() || matches!(res.unwrap_err(), crate::models::EngineError::EmptyResultSet));
+    /// # });
+    /// ```
     async fn results(
         &self,
         query: &str,
