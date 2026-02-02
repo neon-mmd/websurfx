@@ -21,7 +21,7 @@ jobs:
       release_tag: ${{ steps.version-bump.outputs.new_tag }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
@@ -53,7 +53,7 @@ jobs:
       - name: regenerate cargo.lock
         run: cargo generate-lockfile
       - name: auto commit
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "[skip ci] updating app version to ${{ steps.version-bump.outputs.new_tag }}"
           branch: update-from-${{ github.sha }}
@@ -84,7 +84,7 @@ jobs:
             asset_suffix: linux-arm64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
@@ -119,7 +119,7 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
