@@ -21,7 +21,7 @@ jobs:
       release_tag: ${{ steps.version-bump.outputs.new_tag }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
@@ -84,7 +84,7 @@ jobs:
             asset_suffix: linux-arm64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
