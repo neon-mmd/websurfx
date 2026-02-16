@@ -63,7 +63,11 @@ impl SearchResult {
             self.description.clone(),
         ];
 
-        let stop_words = get(LANGUAGE::English);
+        let stop_words: Box<[String]> = get(LANGUAGE::English)
+            .par_iter()
+            .map(|stop_word| stop_word.to_string())
+            .collect();
+
         let punctuation = [
             ".".to_owned(),
             ",".to_owned(),
