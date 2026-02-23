@@ -1,5 +1,7 @@
 ---
 name: Rust format and clippy checks
+permissions:
+  contents: read
 on:
   push:
     branches:
