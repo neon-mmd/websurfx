@@ -105,7 +105,7 @@ jobs:
           tar -czf dist/websurfx-${{ matrix.asset_suffix }}.tar.gz -C staging .
           sha256sum dist/websurfx-${{ matrix.asset_suffix }}.tar.gz > dist/websurfx-${{ matrix.asset_suffix }}.tar.gz.sha256
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: websurfx-${{ matrix.asset_suffix }}
           path: dist/*
