@@ -53,7 +53,7 @@ pub async fn search(
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
     let json_mode = params.format.as_ref().map_or(false, |f| f.eq_ignore_ascii_case("json"));
 
-    let result = fetch_results(req, &config).await?;
+    let result = fetch_results(req, &config, params.into_inner()).await?;
 
     match result {
         Some((current_results, query, page)) => {
@@ -92,13 +92,12 @@ pub async fn search(
 async fn fetch_results(
     req: HttpRequest,
     config: &web::Data<&'static Config>,
+    params: SearchParams,
 ) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
     #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
     let cache = SHARED_CACHE
         .get_or_try_init(|| SharedCache::new(config))
         .await?;
-
-    let params = web::Query::<SearchParams>::from_query(req.query_string())?;
 
     if let Some(query) = &params.q {
         if query.trim().is_empty() {
@@ -177,10 +176,10 @@ async fn fetch_results(
 
             let current_page_cache_key = cache_keys.pop().unwrap();
 
-            current_results = cache
-                .cached_results(&current_page_cache_key)
-                .await
-                .unwrap_or({
+            // Use match to avoid eagerly evaluating the upstream fetch on cache hits.
+            current_results = match cache.cached_results(&current_page_cache_key).await {
+                Ok(cached) => cached,
+                Err(_) => {
                     let fetched_results =
                         results(config, &query_owned, page, &search_settings, user_agent).await?;
                     let fetched_results_clone = fetched_results.clone();
@@ -190,7 +189,8 @@ async fn fetch_results(
                             .await
                     });
                     fetched_results_clone
-                });
+                }
+            };
 
             if let Ok(resolved_results) = cache.cached_results_exists(&cache_keys).await {
                 let cache_results_not_exists: (Vec<String>, Vec<u32>) = resolved_results
