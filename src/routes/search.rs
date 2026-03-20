@@ -16,6 +16,7 @@ use crate::{
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
 use actix_web::{HttpRequest, HttpResponse, get, http::header::ContentType, web};
+use serde_json;
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
@@ -33,35 +34,75 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
+/// An optional `format` parameter can be provided to get results as JSON.
 ///
 /// # Example
 ///
 /// ```bash
+/// # HTML response (default)
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
-/// ```
 ///
-/// Or
-///
-/// ```bash
-/// curl "http://127.0.0.1:8080/search?q=sweden"
+/// # JSON API response
+/// curl "http://127.0.0.1:8080/search?q=sweden&format=json"
 /// ```
 #[get("/search")]
 pub async fn search(
     req: HttpRequest,
     config: web::Data<&'static Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    let params = web::Query::<SearchParams>::from_query(req.query_string())?;
+    let json_mode = params.format.as_ref().map_or(false, |f| f.eq_ignore_ascii_case("json"));
+
+    let result = fetch_results(req, &config).await?;
+
+    match result {
+        Some((current_results, query, page)) => {
+            if json_mode {
+                return Ok(HttpResponse::Ok()
+                    .content_type(ContentType::json())
+                    .json(&current_results));
+            }
+            Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+                crate::templates::views::search::search(
+                    &config.style.colorscheme,
+                    &config.style.theme,
+                    &config.style.animation,
+                    &query,
+                    page,
+                    &current_results,
+                )
+                .0,
+            ))
+        }
+        None => {
+            if json_mode {
+                return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                    "error": "Empty query provided"
+                })));
+            }
+            Ok(HttpResponse::TemporaryRedirect()
+                .insert_header(("location", "/"))
+                .finish())
+        }
+    }
+}
+
+/// Fetches search results from cache or upstream engines. Returns the results along
+/// with the query string and page number so the caller can format the response.
+async fn fetch_results(
+    req: HttpRequest,
+    config: &web::Data<&'static Config>,
+) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
     #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
     let cache = SHARED_CACHE
-        .get_or_try_init(|| SharedCache::new(&config))
+        .get_or_try_init(|| SharedCache::new(config))
         .await?;
 
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
 
     if let Some(query) = &params.q {
         if query.trim().is_empty() {
-            return Ok(HttpResponse::TemporaryRedirect()
-                .insert_header(("location", "/"))
-                .finish());
+            return Ok(None);
         }
 
         let cookie = req.cookie("appCookie");
@@ -97,10 +138,11 @@ pub async fn search(
             tokio::time::sleep(Duration::from_secs(delay as u64)).await;
         }
 
-        let user_agent: &str = random_user_agent(config.threads).await?;
+        let user_agent: &'static str = random_user_agent(config.threads).await?;
 
         // .max(1) makes sure that the page >= 0.
         let page = params.page.unwrap_or(1).max(1) - 1;
+        let query_owned = query.clone().into_owned();
 
         let current_results: SearchResults;
 
@@ -140,7 +182,7 @@ pub async fn search(
                 .await
                 .unwrap_or({
                     let fetched_results =
-                        results(&config, query, page, &search_settings, user_agent).await?;
+                        results(config, &query_owned, page, &search_settings, user_agent).await?;
                     let fetched_results_clone = fetched_results.clone();
                     tokio::spawn(async move {
                         cache
@@ -163,7 +205,7 @@ pub async fn search(
                 // that is used for caching the results.
                 let tasks = pages
                     .iter()
-                    .map(|page| results(&config, query, *page, &search_settings, user_agent));
+                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
                 let fetched_results = futures::future::try_join_all(tasks).await?;
 
                 tokio::spawn(async move {
@@ -176,7 +218,7 @@ pub async fn search(
                 // that is used for caching the results.
                 let tasks = pages
                     .iter()
-                    .map(|page| results(&config, query, *page, &search_settings, user_agent));
+                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
                 let fetched_results = futures::future::try_join_all(tasks).await?;
 
                 tokio::spawn(
@@ -187,25 +229,13 @@ pub async fn search(
 
         #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
         {
-            current_results = results(&config, query, page, &search_settings, user_agent).await?;
+            current_results = results(config, &query_owned, page, &search_settings, user_agent).await?;
         }
 
-        return Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
-            crate::templates::views::search::search(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-                query,
-                page,
-                &current_results,
-            )
-            .0,
-        ));
+        return Ok(Some((current_results, query_owned, page)));
     }
 
-    Ok(HttpResponse::TemporaryRedirect()
-        .insert_header(("location", "/"))
-        .finish())
+    Ok(None)
 }
 
 /// Fetches the results for a query and page. It First checks the redis cache, if that
