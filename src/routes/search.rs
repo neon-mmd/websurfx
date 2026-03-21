@@ -16,8 +16,8 @@ use crate::{
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
 use actix_web::{HttpRequest, HttpResponse, get, http::header::ContentType, web};
-use serde_json;
 use regex::Regex;
+use serde_json;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
 use tokio::{
@@ -51,7 +51,10 @@ pub async fn search(
     config: web::Data<&'static Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params = web::Query::<SearchParams>::from_query(req.query_string())?;
-    let json_mode = params.format.as_ref().map_or(false, |f| f.eq_ignore_ascii_case("json"));
+    let json_mode = params
+        .format
+        .as_ref()
+        .map_or(false, |f| f.eq_ignore_ascii_case("json"));
 
     let result = fetch_results(req, &config, params.into_inner()).await?;
 
@@ -229,7 +232,8 @@ async fn fetch_results(
 
         #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
         {
-            current_results = results(config, &query_owned, page, &search_settings, user_agent).await?;
+            current_results =
+                results(config, &query_owned, page, &search_settings, user_agent).await?;
         }
 
         return Ok(Some((current_results, query_owned, page)));
