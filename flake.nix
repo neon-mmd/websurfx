@@ -1,35 +1,54 @@
 {
-  # Websurfx NixOS flake
+  description = "Websurfx NixOS flake";
+
   inputs = {
-    naersk.url = "github:nix-community/naersk/master";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    utils.url = "github:numtide/flake-utils";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
-    naersk,
-    nixpkgs,
-    self,
-    utils,
-  }:
-  # We do this for all systems - namely x86_64-linux, aarch64-linux,
-  # x86_64-darwin and aarch64-darwin
-    utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {inherit system;};
-      naersk-lib = pkgs.callPackage naersk {};
-    in rec {
-      # Build via "nix build .#default"
-      packages.default = naersk-lib.buildPackage {
-        # The build dependencies
-        buildInputs = with pkgs; [pkg-config openssl];
-        src = ./.;
-      };
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    # We do this for all systems - namely x86_64-linux, aarch64-linux,
+    # x86_64-darwin and aarch64-darwin
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in
+      rec {
+        # Build via "nix build"
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          name = "websurfx";
+          src = ./.;
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+            allowBuiltinFetchGit = true;
+          };
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          buildInputs = [ pkgs.openssl ];
 
-      # Enter devshell with all the tools via "nix develop"
-      # or "nix-shell"
-      devShells.default = with pkgs;
-        mkShell {
-          buildInputs = [
+          # Copys and links files directly into the package
+          postPatch = ''
+            substituteInPlace src/handler.rs \
+              --replace-fail "/etc/xdg" "$out/etc/xdg" \
+              --replace-fail "/opt/websurfx" "$out/opt/websurfx"
+          '';
+          postInstall = ''
+            mkdir -p $out/etc/xdg
+            mkdir -p $out/opt/websurfx
+
+            cp -r websurfx $out/etc/xdg/
+            cp -r public $out/opt/websurfx/
+          '';
+        };
+
+        # Enter devshell with all the tools via "nix develop"
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
             actionlint
             cargo
             docker
@@ -49,15 +68,15 @@
             openssl
             pkg-config
           ];
-          RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
           shellHook = ''
             export PATH="$PATH:$HOME/.cargo/bin"
             export NODE_PATH="$NODE_PATH:./node_modules"
           '';
         };
 
-      # Build via "nix build .#websurfx", which is basically just
-      # calls the build function
-      packages.websurfx = packages.default;
-    });
+        # Build via "nix build .#websurfx"
+        packages.websurfx = packages.default;
+      }
+    );
 }
