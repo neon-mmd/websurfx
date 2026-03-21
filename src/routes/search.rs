@@ -224,27 +224,35 @@ async fn fetch_results(
                 .map(|resolved_result| (resolved_result.0.1.to_string(), *resolved_result.1))
                 .unzip();
 
-            // PERF: Move all the code above and below inside the same `tokio::spawn` task
-            // that is used for caching the results.
-            let tasks = pages
-                .iter()
-                .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-            let fetched_results = futures::future::try_join_all(tasks).await?;
-
-            tokio::spawn(async move {
-                cache
-                    .cache_results(&fetched_results, &cache_results_not_exists.0)
-                    .await
-            });
+            // TODO: Move the entire fetch+cache into a background tokio::spawn
+            // for non-blocking responses. Currently blocked by `results()`
+            // returning `Box<dyn Error>` (not Send); fixing this would require
+            // changing the error type to `Box<dyn Error + Send>` across the
+            // codebase.
+            if !cache_results_not_exists.0.is_empty() {
+                let tasks = cache_results_not_exists
+                    .1
+                    .iter()
+                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
+                if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+                    tokio::spawn(async move {
+                        let _ = cache
+                            .cache_results(&fetched_results, &cache_results_not_exists.0)
+                            .await;
+                    });
+                }
+            }
         } else {
-            // PERF: Move all the code below inside the same `tokio::spawn` task
-            // that is used for caching the results.
+            // TODO: Same as above — spawn the entire fetch+cache once results()
+            // returns Send-safe errors.
             let tasks = pages
                 .iter()
                 .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-            let fetched_results = futures::future::try_join_all(tasks).await?;
-
-            tokio::spawn(async move { cache.cache_results(&fetched_results, &cache_keys).await });
+            if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+                tokio::spawn(async move {
+                    let _ = cache.cache_results(&fetched_results, &cache_keys).await;
+                });
+            }
         }
     }
 
