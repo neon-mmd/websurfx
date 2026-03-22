@@ -8,7 +8,7 @@ license = "AGPL-3.0"
 
 [dependencies]
 rayon = "1.10.0"
-arc-swap = "1.7.1"
+arc-swap = "1.9.0"
 reqwest = { version = "0.12.19", default-features = false, features = [
     "rustls-tls",
     "brotli",
