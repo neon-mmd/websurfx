@@ -55,7 +55,7 @@ error-stack = { version = "0.6.0", default-features = false, features = [
 ] }
 async-trait = { version = "0.1.86", default-features = false }
 regex = { version = "1.12.2", features = ["perf"], default-features = false }
-futures = { version = "0.3.31", default-features = false, features = ["alloc"] }
+futures = { version = "0.3.32", default-features = false, features = ["alloc"] }
 dhat = { version = "0.3.2", optional = true, default-features = false }
 mimalloc = { version = "0.1.43", default-features = false }
 actix-governor = { version = "0.8.0", default-features = false }
