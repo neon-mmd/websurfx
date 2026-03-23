@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct SearchParams {
     /// It stores the search parameter option `q` (or query in simple words)
     /// of the search url.

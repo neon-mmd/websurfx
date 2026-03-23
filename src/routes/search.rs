@@ -62,61 +62,76 @@ pub async fn search(
     // still return a JSON-shaped error response instead of Actix's default 400.
     let json_mode = is_json_request(req.query_string());
 
-    let params = match web::Query::<SearchParams>::from_query(req.query_string()) {
-        Ok(p) => p,
-        Err(e) => {
-            if json_mode {
-                return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                    "error": format!("Invalid query parameters: {}", e)
-                })));
-            }
-            return Err(e.into());
+    let params_result = web::Query::<SearchParams>::from_query(req.query_string());
+    let params = if let Ok(p) = params_result {
+        p
+    } else {
+        let e = params_result.unwrap_err();
+        if json_mode {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "error": format!("Invalid query parameters: {}", e)
+            })));
         }
+        return Err(e.into());
     };
 
     let result = fetch_results(req, &config, params.into_inner()).await?;
 
-    match result {
-        Some((current_results, query, page)) => {
-            if json_mode {
-                return Ok(HttpResponse::Ok()
-                    .content_type(ContentType::json())
-                    .json(&current_results));
-            }
-            Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
-                crate::templates::views::search::search(
-                    &config.style.colorscheme,
-                    &config.style.theme,
-                    &config.style.animation,
-                    &query,
-                    page,
-                    &current_results,
-                )
-                .0,
-            ))
+    if let Some((current_results, query, page)) = result {
+        if json_mode {
+            return Ok(HttpResponse::Ok()
+                .content_type(ContentType::json())
+                .json(&current_results));
         }
-        None => {
-            if json_mode {
-                return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                    "error": "Empty query provided"
-                })));
-            }
-            Ok(HttpResponse::TemporaryRedirect()
-                .insert_header(("location", "/"))
-                .finish())
+        Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+            crate::templates::views::search::search(
+                &config.style.colorscheme,
+                &config.style.theme,
+                &config.style.animation,
+                &query,
+                page,
+                &current_results,
+            )
+            .0,
+        ))
+    } else {
+        if json_mode {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "error": "Empty query provided"
+            })));
         }
+        Ok(HttpResponse::TemporaryRedirect()
+            .insert_header(("location", "/"))
+            .finish())
     }
 }
 
-/// Fetches search results from cache or upstream engines. Returns the results along
-/// with the query string and page number so the caller can format the response.
+/// Fetches search results from cache or upstream engines.
+///
+/// # Arguments
+///
+/// * `req` - The HTTP request used to extract cookies and pass to upstream calls.
+/// * `config` - A reference to the application configuration.
+/// * `params` - The parsed search parameters including query string and page number.
+///
+/// # Returns
+///
+/// Returns `Ok(Some((SearchResults, query, page)))` on success with the results,
+/// query string, and zero-based page number. Returns `Ok(None)` for empty queries.
+/// Returns an error if results could not be fetched from cache or upstream engines.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let result = fetch_results(req, &config, params).await?;
+/// ```
 async fn fetch_results(
     req: HttpRequest,
     config: &web::Data<&'static Config>,
     params: SearchParams,
 ) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
     // Validate the query early, before touching the cache or doing any setup.
-    if params.q.as_ref().map_or(true, |q| q.trim().is_empty()) {
+    if params.q.as_ref().is_none_or(|q| q.trim().is_empty()) {
         return Ok(None);
     }
 
