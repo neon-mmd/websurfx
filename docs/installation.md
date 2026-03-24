@@ -26,71 +26,53 @@ For the stable version, follow the same steps as above (as mentioned for the `un
 
 ## NixOS
 
-A `flake.nix` has been provided to allow installing `websurfx` easily. It utilizes [nearsk](https://github.com/nix-community/naersk) to automatically generate a derivation based on `Cargo.toml` and `Cargo.lock`.
+A `flake.nix` has been provided to allow installing the git version of `Websurfx` easily.
 
 The Websurfx project provides 2 versions/flavours for the flake `stable` and `rolling/unstable/edge`. The steps for each are covered below in different sections.
 
+The latest released version of `Websurfx` is also being provided together with a NixOS module by Nixpkgs, so you don't need to build or configure the package manually.
+
 ### Rolling/Edge/Unstable
 
-To get started, First, clone the repository, edit the config file which is located in the `websurfx` directory, and then build and run the websurfx server by running the following commands:
+To get started, you can build and run `Websurfx` with the default configuration by running:
 
 ```shell
-git clone https://github.com/neon-mmd/websurfx.git
-cd websurfx
-cp -rf ./websurfx/ ~/.config/
-$ mkdir /opt/websurfx/
-$ cp -rf ./public/ /opt/websurfx/
-nix build .#websurfx
-nix run .#websurfx
+nix run github:neon-mmd/websurfx
 ```
 
-> [!Note]
-> In the above command the dollar sign(**$**) refers to running the command in Privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
+If you want to change the port or the IP or any other configuration setting, download the default configuration into the `~/.config/websurfx` directory and edit the `config.lua` file.
+Check out the [configuration docs](./configuration.md) for more information.
+
+```shell
+mkdir -p ~/.config/websurfx
+wget https://raw.githubusercontent.com/neon-mmd/websurfx/refs/heads/rolling/websurfx/config.lua -O ~/.config/websurfx/config.lua
+```
 
 Once you have run the above set of commands, open your preferred web browser and navigate to http://127.0.0.1:8080/ to start using Websurfx.
 
-If you want to change the port or the IP or any other configuration setting check out the [configuration docs](./configuration.md).
-
-> Optionally, you may include it in your own flake by adding this repo to its inputs and adding it to `environment.systemPackages` as follows:
->
-> ```nix
-> {
->   description = "My awesome configuration";
->
->   inputs = {
->     websurfx.url = "github:neon-mmd/websurfx";
->   };
->
->   outputs = { nixpkgs, ... }@inputs: {
->     nixosConfigurations = {
->       hostname = nixpkgs.lib.nixosSystem {
->         system = "x86_64-linux";
->         modules = [{
->           environment.systemPackages = [inputs.websurfx.packages.x86_64-linux.websurfx];
->         }];
->       };
->     };
->   };
-> }
-> ```
-
 ### Stable
 
-For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge version`) with an addition of one command which has to be performed after cloning and changing the directory into the repository which makes the building step as follows:
+For the stable version, follow the same steps as above (as mentioned for the `unstable/rolling/edge version`), but refer to the stable branch of the repository instead.
 
 ```shell
-git clone https://github.com/neon-mmd/websurfx.git
-cd websurfx
-git checkout stable
-cp -rf ./websurfx/ ~/.config/
-$ mkdir /opt/websurfx/
-$ cp -rf ./public/ /opt/websurfx/
-nix build .#websurfx
-nix run .#websurfx
+nix run github:neon-mmd/websurfx/stable
 ```
 
-> [!Note]
-> In the above command the dollar sign(**$**) refers to running the command in privileged mode by using utilities `sudo`, `doas`, `pkgexec`, or any other privileged access methods.
+### Nixpkgs
+
+You can add the following configuration options to your `configuration.nix`.
+For more information take a look at the [service options](https://search.nixos.org/options?channel=unstable&show=services.websurfx).
+
+```nix
+services.websurfx = {
+  # Whether to enable the websurfx service
+  enable = true;
+  # Whether to open the used port in the firewall
+  openFirewall = true;
+  # You can specify the configuration settings here
+  settings = { };
+};
+```
 
 ## Other Distros
 
