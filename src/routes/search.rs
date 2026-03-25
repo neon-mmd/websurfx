@@ -42,7 +42,7 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
 ///
 /// # JSON API response
-/// curl "http://127.0.0.1:8080/search?q=sweden&format=json"
+/// curl "http://127.0.0.1:8080/search?q=sweden&format=json=true"
 /// ```
 ///
 /// Detect `format=json` from the raw query string before deserialization,
@@ -56,10 +56,7 @@ pub async fn search(
     let params = if let Err(e) = params_result {
         if req
             .query_string()
-            .split("&")
-            .last()
-            .unwrap()
-            .contains("json")
+            .contains("&json")
         {
             return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                 "code": format!("{}", e.status_code()),
