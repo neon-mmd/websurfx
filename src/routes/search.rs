@@ -73,7 +73,7 @@ pub async fn search(
 
     let params = params.into_inner();
 
-    let result = fetch_results(req, &config, params.clone()).await?;
+    let result = fetch_results(req, &config, &params).await?;
 
     if let Some((current_results, query, page)) = result {
         if let Some(json) = &params.json
@@ -131,7 +131,7 @@ pub async fn search(
 async fn fetch_results(
     req: HttpRequest,
     config: &web::Data<&'static Config>,
-    params: SearchParams,
+    params: &SearchParams,
 ) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
     // Validate the query early, before touching the cache or doing any setup.
     if params.q.as_ref().is_none_or(|q| q.trim().is_empty()) {
