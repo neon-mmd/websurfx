@@ -33,7 +33,7 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
-/// An optional `json` parameter can be provided to get results as JSON.
+/// An optional `format` parameter can be provided to get results as JSON.
 ///
 /// # Example
 ///
@@ -42,9 +42,11 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
 ///
 /// # JSON API response
-/// curl "http://127.0.0.1:8080/search?q=sweden&json"
+/// curl "http://127.0.0.1:8080/search?q=sweden&format=json"
 /// ```
-
+///
+/// Detect `format=json` from the raw query string before deserialization,
+/// so that parse failures can still return a JSON-shaped 400 response.
 #[get("/search")]
 pub async fn search(
     req: HttpRequest,
