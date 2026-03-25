@@ -17,7 +17,6 @@ use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
 use actix_web::{HttpRequest, HttpResponse, get, http::header::ContentType, web};
 use regex::Regex;
-use serde_json;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
 use tokio::{
@@ -34,7 +33,7 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
-/// An optional `format` parameter can be provided to get results as JSON.
+/// An optional `json` parameter can be provided to get results as JSON.
 ///
 /// # Example
 ///
@@ -43,15 +42,8 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
 ///
 /// # JSON API response
-/// curl "http://127.0.0.1:8080/search?q=sweden&format=json"
+/// curl "http://127.0.0.1:8080/search?q=sweden&json"
 /// ```
-/// Detect `format=json` from the raw query string before deserialization,
-/// so that parse failures can still return a JSON-shaped 400 response.
-fn is_json_request(query_string: &str) -> bool {
-    query_string
-        .split('&')
-        .any(|param| param.eq_ignore_ascii_case("format=json"))
-}
 
 #[get("/search")]
 pub async fn search(
@@ -63,22 +55,30 @@ pub async fn search(
     let json_mode = is_json_request(req.query_string());
 
     let params_result = web::Query::<SearchParams>::from_query(req.query_string());
-    let params = if let Ok(p) = params_result {
-        p
-    } else {
-        let e = params_result.unwrap_err();
-        if json_mode {
+    let params = if let Err(e) = params_result {
+        if req
+            .query_string()
+            .split("&")
+            .last()
+            .unwrap()
+            .contains("json")
+        {
             return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "code": format!("{}", e.status_code()),
                 "error": format!("Invalid query parameters: {}", e)
             })));
         }
         return Err(e.into());
+    } else {
+        params_result.unwrap()
     };
 
-    let result = fetch_results(req, &config, params.into_inner()).await?;
+    let result = fetch_results(req, &config, &params).await?;
 
     if let Some((current_results, query, page)) = result {
-        if json_mode {
+        if let Some(json) = &params.json
+            && *json
+        {
             return Ok(HttpResponse::Ok()
                 .content_type(ContentType::json())
                 .json(&current_results));
@@ -95,8 +95,11 @@ pub async fn search(
             .0,
         ))
     } else {
-        if json_mode {
+        if let Some(json) = &params.json
+            && *json
+        {
             return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "code": "400",
                 "error": "Empty query provided"
             })));
         }

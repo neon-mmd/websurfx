@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
 /// A named struct which deserializes all the user provided search parameters and stores them.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct SearchParams {
     /// It stores the search parameter option `q` (or query in simple words)
     /// of the search url.
@@ -17,9 +17,9 @@ pub struct SearchParams {
     /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
     /// search url.
     pub safesearch: Option<u8>,
-    /// It stores the search parameter `format` which determines the response format
-    /// (e.g., "json" for JSON API response).
-    pub format: Option<Cow<'static, str>>,
+    /// It stores the search parameter `json` which determines whether to return
+    /// a JSON API response instead of the HTML page.
+    pub json: Option<bool>,
 }
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.
