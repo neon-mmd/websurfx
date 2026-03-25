@@ -15,7 +15,7 @@ use crate::{
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
-use actix_web::{HttpRequest, HttpResponse, get, http::header::ContentType, web};
+use actix_web::{HttpRequest, HttpResponse, ResponseError, get, http::header::ContentType, web};
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
@@ -50,10 +50,6 @@ pub async fn search(
     req: HttpRequest,
     config: web::Data<&'static Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    // Detect JSON mode from raw query string first, so that parse failures
-    // still return a JSON-shaped error response instead of Actix's default 400.
-    let json_mode = is_json_request(req.query_string());
-
     let params_result = web::Query::<SearchParams>::from_query(req.query_string());
     let params = if let Err(e) = params_result {
         if req
@@ -73,7 +69,9 @@ pub async fn search(
         params_result.unwrap()
     };
 
-    let result = fetch_results(req, &config, &params).await?;
+    let params = params.into_inner();
+
+    let result = fetch_results(req, &config, params.clone()).await?;
 
     if let Some((current_results, query, page)) = result {
         if let Some(json) = &params.json
