@@ -15,7 +15,7 @@ use crate::{
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
-use actix_web::{HttpRequest, HttpResponse, get, http::header::ContentType, web};
+use actix_web::{HttpRequest, HttpResponse, ResponseError, get, http::header::ContentType, web};
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
@@ -33,179 +33,245 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
+/// An optional `format` parameter can be provided to get results as JSON.
 ///
 /// # Example
 ///
 /// ```bash
+/// # HTML response (default)
 /// curl "http://127.0.0.1:8080/search?q=sweden&page=1"
+///
+/// # JSON API response
+/// curl "http://127.0.0.1:8080/search?q=sweden&format=json=true"
 /// ```
 ///
-/// Or
-///
-/// ```bash
-/// curl "http://127.0.0.1:8080/search?q=sweden"
-/// ```
+/// Detect `format=json` from the raw query string before deserialization,
+/// so that parse failures can still return a JSON-shaped 400 response.
 #[get("/search")]
 pub async fn search(
     req: HttpRequest,
     config: web::Data<&'static Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-    let cache = SHARED_CACHE
-        .get_or_try_init(|| SharedCache::new(&config))
-        .await?;
-
-    let params = web::Query::<SearchParams>::from_query(req.query_string())?;
-
-    if let Some(query) = &params.q {
-        if query.trim().is_empty() {
-            return Ok(HttpResponse::TemporaryRedirect()
-                .insert_header(("location", "/"))
-                .finish());
+    let params_result = web::Query::<SearchParams>::from_query(req.query_string());
+    let params = if let Err(e) = params_result {
+        if req.query_string().contains("&json") {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "code": format!("{}", e.status_code()),
+                "error": format!("Invalid query parameters: {}", e)
+            })));
         }
+        return Err(e.into());
+    } else {
+        params_result.unwrap()
+    };
 
-        let cookie = req.cookie("appCookie");
+    let result = fetch_results(req, &config, &params).await?;
 
-        // Get search settings using the user's cookie or from the server's config
-        let mut search_settings: search_route::Cookie<'_> = cookie
-            .as_ref()
-            .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
-            .unwrap_or_else(|| {
-                search_route::Cookie::build(
-                    &config.style,
-                    config
-                        .upstream_search_engines
-                        .iter()
-                        .filter_map(|(engine, enabled)| {
-                            enabled.then_some(Cow::Borrowed(engine.as_str()))
-                        })
-                        .collect(),
-                    config.safe_search,
-                )
-            });
-
-        search_settings.safe_search_level = get_safesearch_level(
-            params.safesearch,
-            search_settings.safe_search_level,
-            config.safe_search,
-        );
-
-        // Add a random delay before making the request.
-        if config.aggregator.random_delay || config.debug {
-            let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos();
-            let delay = nanos % 10 + 1;
-            tokio::time::sleep(Duration::from_secs(delay as u64)).await;
-        }
-
-        let user_agent: &str = random_user_agent(config.threads).await?;
-
-        // .max(1) makes sure that the page >= 0.
-        let page = params.page.unwrap_or(1).max(1) - 1;
-
-        let current_results: SearchResults;
-
-        #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+    if let Some((current_results, query, page)) = result {
+        if let Some(json) = &params.json
+            && *json
         {
-            let previous_page = page.saturating_sub(1);
-
-            let next_page = page + 1;
-
-            let mut pages = vec![next_page, previous_page, page];
-            pages.dedup();
-
-            let urls: Vec<String> = pages
-                .iter()
-                .map(|page| {
-                    format!(
-                        "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
-                        config.binding_ip,
-                        config.port,
-                        query,
-                        page,
-                        search_settings.safe_search_level,
-                        search_settings.engines.join(",")
-                    )
-                })
-                .collect();
-
-            let mut cache_keys: Vec<String> = tokio::task::spawn_blocking(move || {
-                urls.par_iter().cloned().map(hash_url).collect()
-            })
-            .await?;
-
-            let current_page_cache_key = cache_keys.pop().unwrap();
-
-            current_results = cache
-                .cached_results(&current_page_cache_key)
-                .await
-                .unwrap_or({
-                    let fetched_results =
-                        results(&config, query, page, &search_settings, user_agent).await?;
-                    let fetched_results_clone = fetched_results.clone();
-                    tokio::spawn(async move {
-                        cache
-                            .cache_results(&[fetched_results], &[current_page_cache_key])
-                            .await
-                    });
-                    fetched_results_clone
-                });
-
-            if let Ok(resolved_results) = cache.cached_results_exists(&cache_keys).await {
-                let cache_results_not_exists: (Vec<String>, Vec<u32>) = resolved_results
-                    .iter()
-                    .zip(cache_keys.iter())
-                    .zip(pages.iter())
-                    .filter(|resolved_result| !*resolved_result.0.0)
-                    .map(|resolved_result| (resolved_result.0.1.to_string(), *resolved_result.1))
-                    .unzip();
-
-                // PERF: Move all the code above and below inside the same `tokio::spawn` task
-                // that is used for caching the results.
-                let tasks = pages
-                    .iter()
-                    .map(|page| results(&config, query, *page, &search_settings, user_agent));
-                let fetched_results = futures::future::try_join_all(tasks).await?;
-
-                tokio::spawn(async move {
-                    cache
-                        .cache_results(&fetched_results, &cache_results_not_exists.0)
-                        .await
-                });
-            } else {
-                // PERF: Move all the code below inside the same `tokio::spawn` task
-                // that is used for caching the results.
-                let tasks = pages
-                    .iter()
-                    .map(|page| results(&config, query, *page, &search_settings, user_agent));
-                let fetched_results = futures::future::try_join_all(tasks).await?;
-
-                tokio::spawn(
-                    async move { cache.cache_results(&fetched_results, &cache_keys).await },
-                );
-            }
+            return Ok(HttpResponse::Ok()
+                .content_type(ContentType::json())
+                .json(&current_results));
         }
-
-        #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
-        {
-            current_results = results(&config, query, page, &search_settings, user_agent).await?;
-        }
-
-        return Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
+        Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
             crate::templates::views::search::search(
                 &config.style.colorscheme,
                 &config.style.theme,
                 &config.style.animation,
-                query,
+                &query,
                 page,
                 &current_results,
             )
             .0,
-        ));
+        ))
+    } else {
+        if let Some(json) = &params.json
+            && *json
+        {
+            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+                "code": "400",
+                "error": "Empty query provided"
+            })));
+        }
+        Ok(HttpResponse::TemporaryRedirect()
+            .insert_header(("location", "/"))
+            .finish())
+    }
+}
+
+/// Fetches search results from cache or upstream engines.
+///
+/// # Arguments
+///
+/// * `req` - The HTTP request used to extract cookies and pass to upstream calls.
+/// * `config` - A reference to the application configuration.
+/// * `params` - The parsed search parameters including query string and page number.
+///
+/// # Returns
+///
+/// Returns `Ok(Some((SearchResults, query, page)))` on success with the results,
+/// query string, and zero-based page number. Returns `Ok(None)` for empty queries.
+/// Returns an error if results could not be fetched from cache or upstream engines.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let result = fetch_results(req, &config, params).await?;
+/// ```
+async fn fetch_results(
+    req: HttpRequest,
+    config: &web::Data<&'static Config>,
+    params: &SearchParams,
+) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
+    // Validate the query early, before touching the cache or doing any setup.
+    if params.q.as_ref().is_none_or(|q| q.trim().is_empty()) {
+        return Ok(None);
     }
 
-    Ok(HttpResponse::TemporaryRedirect()
-        .insert_header(("location", "/"))
-        .finish())
+    #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+    let cache = SHARED_CACHE
+        .get_or_try_init(|| SharedCache::new(config))
+        .await?;
+
+    // Safe to unwrap: we validated q is Some and non-empty above.
+    let query = params.q.as_deref().unwrap();
+
+    let cookie = req.cookie("appCookie");
+
+    // Get search settings using the user's cookie or from the server's config
+    let mut search_settings: search_route::Cookie<'_> = cookie
+        .as_ref()
+        .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
+        .unwrap_or_else(|| {
+            search_route::Cookie::build(
+                &config.style,
+                config
+                    .upstream_search_engines
+                    .iter()
+                    .filter_map(|(engine, enabled)| {
+                        enabled.then_some(Cow::Borrowed(engine.as_str()))
+                    })
+                    .collect(),
+                config.safe_search,
+            )
+        });
+
+    search_settings.safe_search_level = get_safesearch_level(
+        params.safesearch,
+        search_settings.safe_search_level,
+        config.safe_search,
+    );
+
+    // Add a random delay before making the request.
+    if config.aggregator.random_delay || config.debug {
+        let nanos = SystemTime::now().duration_since(UNIX_EPOCH)?.subsec_nanos();
+        let delay = nanos % 10 + 1;
+        tokio::time::sleep(Duration::from_secs(delay as u64)).await;
+    }
+
+    let user_agent: &'static str = random_user_agent(config.threads).await?;
+
+    // .max(1) makes sure that the page >= 0.
+    let page = params.page.unwrap_or(1).max(1) - 1;
+    let query_owned = query.to_owned();
+
+    let current_results: SearchResults;
+
+    #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+    {
+        let previous_page = page.saturating_sub(1);
+
+        let next_page = page + 1;
+
+        let mut pages = vec![next_page, previous_page, page];
+        pages.dedup();
+
+        let urls: Vec<String> = pages
+            .iter()
+            .map(|page| {
+                format!(
+                    "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
+                    config.binding_ip,
+                    config.port,
+                    query,
+                    page,
+                    search_settings.safe_search_level,
+                    search_settings.engines.join(",")
+                )
+            })
+            .collect();
+
+        let mut cache_keys: Vec<String> =
+            tokio::task::spawn_blocking(move || urls.par_iter().cloned().map(hash_url).collect())
+                .await?;
+
+        let current_page_cache_key = cache_keys.pop().unwrap();
+
+        // Use match to avoid eagerly evaluating the upstream fetch on cache hits.
+        current_results = match cache.cached_results(&current_page_cache_key).await {
+            Ok(cached) => cached,
+            Err(_) => {
+                let fetched_results =
+                    results(config, &query_owned, page, &search_settings, user_agent).await?;
+                let fetched_results_clone = fetched_results.clone();
+                tokio::spawn(async move {
+                    cache
+                        .cache_results(&[fetched_results], &[current_page_cache_key])
+                        .await
+                });
+                fetched_results_clone
+            }
+        };
+
+        if let Ok(resolved_results) = cache.cached_results_exists(&cache_keys).await {
+            let cache_results_not_exists: (Vec<String>, Vec<u32>) = resolved_results
+                .iter()
+                .zip(cache_keys.iter())
+                .zip(pages.iter())
+                .filter(|resolved_result| !*resolved_result.0.0)
+                .map(|resolved_result| (resolved_result.0.1.to_string(), *resolved_result.1))
+                .unzip();
+
+            // TODO: Move the entire fetch+cache into a background tokio::spawn
+            // for non-blocking responses. Currently blocked by `results()`
+            // returning `Box<dyn Error>` (not Send); fixing this would require
+            // changing the error type to `Box<dyn Error + Send>` across the
+            // codebase.
+            if !cache_results_not_exists.0.is_empty() {
+                let tasks = cache_results_not_exists
+                    .1
+                    .iter()
+                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
+                if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+                    tokio::spawn(async move {
+                        let _ = cache
+                            .cache_results(&fetched_results, &cache_results_not_exists.0)
+                            .await;
+                    });
+                }
+            }
+        } else {
+            // TODO: Same as above — spawn the entire fetch+cache once results()
+            // returns Send-safe errors.
+            let tasks = pages
+                .iter()
+                .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
+            if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+                tokio::spawn(async move {
+                    let _ = cache.cache_results(&fetched_results, &cache_keys).await;
+                });
+            }
+        }
+    }
+
+    #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
+    {
+        current_results = results(config, &query_owned, page, &search_settings, user_agent).await?;
+    }
+
+    Ok(Some((current_results, query_owned, page)))
 }
 
 /// Fetches the results for a query and page. It First checks the redis cache, if that
