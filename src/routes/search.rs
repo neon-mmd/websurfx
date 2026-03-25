@@ -54,10 +54,7 @@ pub async fn search(
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let params_result = web::Query::<SearchParams>::from_query(req.query_string());
     let params = if let Err(e) = params_result {
-        if req
-            .query_string()
-            .contains("&json")
-        {
+        if req.query_string().contains("&json") {
             return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                 "code": format!("{}", e.status_code()),
                 "error": format!("Invalid query parameters: {}", e)
@@ -67,8 +64,6 @@ pub async fn search(
     } else {
         params_result.unwrap()
     };
-
-    let params = params.into_inner();
 
     let result = fetch_results(req, &config, &params).await?;
 
