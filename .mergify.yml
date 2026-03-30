@@ -14,11 +14,6 @@ pull_request_rules:
       - "#commits-behind>5"
     actions:
       update:
-  - name: delete head branch after merge
-    conditions:
-      - merged
-    actions:
-      delete_head_branch: {}
   - name: Automatic merge on approval
     conditions: []
     actions:
