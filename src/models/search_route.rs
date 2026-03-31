@@ -17,6 +17,9 @@ pub struct SearchParams {
     /// It stores the search parameter `safesearch` (or safe search level in simple words) of the
     /// search url.
     pub safesearch: Option<u8>,
+    /// It stores the search parameter `json` which determines whether to return
+    /// a JSON API response instead of the HTML page.
+    pub json: Option<bool>,
 }
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.

@@ -1,5 +1,7 @@
 ---
 name: Rust format and clippy checks
+permissions:
+  contents: read
 on:
   push:
     branches:
@@ -17,7 +19,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends liblua5.4-dev liblua5.3-dev liblua5.2-dev liblua5.1-0-dev libluajit-5.1-dev
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install minimal stable with clippy and rustfmt
         uses: actions-rs/toolchain@v1
         with:

@@ -32,7 +32,7 @@
   <a href=""
     ><img
       alt="Maintenance"
-      src="https://img.shields.io/maintenance/yes/2025?style=flat-square"
+      src="https://img.shields.io/maintenance/yes/2026?style=flat-square"
     />
   </a>
   <a href="https://www.codefactor.io/repository/github/neon-mmd/websurfx">
@@ -118,6 +118,7 @@
 - ⬆️  Organic Search results (with ranking algorithm builtin to rerank the search results according to user's search query.).
 - 🔒 Different compression and encryption levels focusing on speed and privacy.
 - 🧪 Experimental IO-uring feature for Linux operating systems focused on performance of the engine.
+- 🧅 Custom proxy and Tor support for fetching search results from the upstream search engines.
 - 🔐 Fast, private, and secure
 - 🆓 100% free and open source
 - 💨 Ad-free and clean results

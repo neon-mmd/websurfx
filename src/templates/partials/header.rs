@@ -22,6 +22,10 @@ pub fn header(colorscheme: &str, theme: &str, animation: &Option<String>) -> Mar
             title{"Websurfx"}
             meta charset="UTF-8";
             meta name="viewport" content="width=device-width, initial-scale=1";
+            link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.jpg";
+            link rel="icon" type="image/jpeg" sizes="32x32" href="/favicon/favicon-32x32.jpg";
+            link rel="icon" type="image/jpeg" sizes="16x16" href="/favicon/favicon-16x16.jpg";
+            link rel="manifest" href="/favicon/site.webmanifest";
             link href=(format!("static/colorschemes/{colorscheme}.css")) rel="stylesheet" type="text/css";
             link href=(format!("static/themes/{theme}.css")) rel="stylesheet" type="text/css";
             @if animation.is_some() {

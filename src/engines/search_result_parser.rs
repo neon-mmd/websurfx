@@ -69,7 +69,7 @@ impl SearchResultParser {
 /// Create a Selector struct, if the given parameter is a valid css expression, otherwise convert it into an EngineError.
 fn new_selector(selector: &str) -> Result<Selector, EngineError> {
     Selector::parse(selector).map_err(|err| {
-        Report::new(EngineError::UnexpectedError).attach_printable(format!(
+        Report::new(EngineError::UnexpectedError).attach(format!(
             "invalid CSS selector: {}, err: {:?}",
             selector, err
         ))

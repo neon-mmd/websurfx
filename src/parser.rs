@@ -126,10 +126,11 @@ impl Config {
 
         let proxy_opt: Option<String> = globals.get("proxy")?;
         let proxy = proxy_opt.and_then(|proxy_str| {
-            Proxy::all(proxy_str).ok().and_then(|_| {
-                log::error!("Invalid proxy url, defaulting to no proxy.");
-                None
-            })
+            Proxy::all(proxy_str)
+                .inspect_err(|err| {
+                    log::error!("Invalid proxy url, defaulting to no proxy: {}", err);
+                })
+                .ok()
         });
 
         Ok(Config {
