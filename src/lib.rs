@@ -93,6 +93,10 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
                     .show_files_listing(),
             )
             .service(
+                fs::Files::new("/favicon", format!("{}/favicon", public_folder_path))
+                    .show_files_listing(),
+            )
+            .service(
                 fs::Files::new("/images", format!("{}/images", public_folder_path))
                     .show_files_listing(),
             )
