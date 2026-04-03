@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:1.92.0-alpine AS chef
+FROM --platform=$BUILDPLATFORM rust:1.94.1-alpine AS chef
 # We only pay the installation cost once,
 # it will be cached from the second build onwards
 ENV PKG_BASE="alpine-sdk musl-dev g++ make libcrypto3 libressl-dev upx perl build-base"
