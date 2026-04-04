@@ -138,9 +138,7 @@ impl Config {
 
         let parsed_hcet = globals.get("http_cache_expiry_time")?;
         let http_cache_expiry_time = if parsed_hcet < 60 {
-            log::error!(
-                "Config Error: The value of `http_cache_expiry_time` must be at least 60"
-            );
+            log::error!("Config Error: The value of `http_cache_expiry_time` must be at least 60");
             log::error!("Falling back to using the value `60` for the option");
             60
         } else {
