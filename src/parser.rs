@@ -57,7 +57,7 @@ pub struct Config {
     pub operating_system_tls_certificates: bool,
     /// It stores the http-caching's validity time that is how long the http cache will remain
     /// valid for all the resources that was loaded on the page.
-    pub http_cache_expiry_time: u16,
+    pub http_cache_expiry_time: u8,
 }
 
 impl Config {
