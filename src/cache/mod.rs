@@ -485,7 +485,7 @@ impl TryInto<SearchResults> for Vec<u8> {
     type Error = CacheError;
 
     fn try_into(self) -> Result<SearchResults, Self::Error> {
-        bincode::deserialize_from(self.as_slice()).map_err(|_| CacheError::SerializationError)
+        postcard::from_bytes(&self).map_err(|_| CacheError::SerializationError)
     }
 }
 
@@ -493,10 +493,9 @@ impl TryInto<Vec<u8>> for &SearchResults {
     type Error = CacheError;
 
     fn try_into(self) -> Result<Vec<u8>, Self::Error> {
-        bincode::serialize(self).map_err(|_| CacheError::SerializationError)
+        postcard::to_stdvec(self).map_err(|_| CacheError::SerializationError)
     }
 }
-
 /// A structure to efficiently share the cache between threads - as it is protected by a lock-free
 /// ArcSwap structure.
 pub struct SharedCache(ArcSwap<SwitchCache>);

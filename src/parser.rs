@@ -55,6 +55,9 @@ pub struct Config {
     pub number_of_https_connections: u8,
     /// It stores the operating system's TLS certificates for https requests.
     pub operating_system_tls_certificates: bool,
+    /// It stores the http-caching's validity time that is how long the http cache will remain
+    /// valid for all the resources that was loaded on the page.
+    pub http_cache_expiry_time: u8,
 }
 
 impl Config {
@@ -133,6 +136,15 @@ impl Config {
                 .ok()
         });
 
+        let parsed_hcet = globals.get("http_cache_expiry_time")?;
+        let http_cache_expiry_time = if parsed_hcet < 60 {
+            log::error!("Config Error: The value of `http_cache_expiry_time` must be at least 60");
+            log::error!("Falling back to using the value `60` for the option");
+            60
+        } else {
+            parsed_hcet
+        };
+
         Ok(Config {
             operating_system_tls_certificates: globals.get("operating_system_tls_certificates")?,
             port: globals.get("port")?,
@@ -165,6 +177,7 @@ impl Config {
             #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
             cache_expiry_time,
             proxy,
+            http_cache_expiry_time,
         })
     }
 }
