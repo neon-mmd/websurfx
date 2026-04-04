@@ -493,12 +493,7 @@ impl TryInto<Vec<u8>> for &SearchResults {
     type Error = CacheError;
 
     fn try_into(self) -> Result<Vec<u8>, Self::Error> {
-        let mut temporary_container: Vec<u8> = Vec::new();
-
-        postcard::to_slice(&self, &mut temporary_container)
-            .map_err(|_| CacheError::SerializationError)?;
-
-        Ok(temporary_container)
+        postcard::to_stdvec(self).map_err(|_| CacheError::SerializationError)
     }
 }
 /// A structure to efficiently share the cache between threads - as it is protected by a lock-free
