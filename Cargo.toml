@@ -76,7 +76,7 @@ chacha20poly1305 = { version = "0.10.1", default-features = false, features = [
     "alloc",
     "getrandom",
 ], optional = true }
-chacha20 = { version = "0.9.1", default-features = false, optional = true }
+chacha20 = { version = "0.10.0", default-features = false, optional = true }
 base64 = { version = "0.22.1", default-features = false, features = [
     "std",
 ], optional = true }
