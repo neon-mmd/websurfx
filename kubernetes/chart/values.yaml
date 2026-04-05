@@ -39,7 +39,7 @@ websurfx:
       value: true
     - name: Brave
       value: true
-    - name: Starpage
+    - name: Startpage
       value: false
     - name: Librex
       value: false
@@ -105,9 +105,9 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: {}
-   - secretName: websurfx-tls
-     hosts:
-       - subdomain.yourdomain.com
+   # - secretName: websurfx-tls
+   #   hosts:
+   #     - subdomain.yourdomain.com
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -119,7 +119,7 @@ resources: {}
   #   memory: 128Mi
   # requests:
   #   cpu: 100m
-  #   memredis.ory: 128Mi
+  #   memrory: 128Mi
 
 livenessProbe:
   httpGet:
