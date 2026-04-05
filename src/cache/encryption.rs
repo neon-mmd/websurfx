@@ -1,23 +1,15 @@
 use chacha20poly1305::{
-    ChaChaPoly1305,
+    ChaCha20Poly1305,
+    aead::generic_array::{
+        GenericArray,
+        typenum::{UInt, UTerm},
+    },
     consts::{B0, B1},
 };
 use std::sync::OnceLock;
 
-use chacha20::{
-    ChaChaCore,
-    cipher::{
-        StreamCipherCoreWrapper,
-        generic_array::GenericArray,
-        typenum::{UInt, UTerm},
-    },
-};
-
-/// The ChaCha20 core wrapped in a stream cipher for use in ChaCha20-Poly1305 authenticated encryption.
-type StreamCipherCoreWrapperType =
-    StreamCipherCoreWrapper<ChaChaCore<UInt<UInt<UInt<UInt<UTerm, B1>, B0>, B1>, B0>>>;
 /// Our ChaCha20-Poly1305 cipher instance, lazily initialized.
-pub static CIPHER: OnceLock<ChaChaPoly1305<StreamCipherCoreWrapperType>> = OnceLock::new();
+pub static CIPHER: OnceLock<ChaCha20Poly1305> = OnceLock::new();
 
 /// The type alias for our encryption key, a 32-byte array.
 type GenericArrayType = GenericArray<u8, UInt<UInt<UInt<UInt<UTerm, B1>, B1>, B0>, B0>>;
