@@ -12,7 +12,7 @@ websurfx:
     # isProduction: "true"
     # requestTimeout: 3
     # tcpKeepAlive: 30
-    # poorIdleTimeout: 30
+    # poolIdleTimeout: 30
     # proxy: ""
     # isHttpsAdaptiveWindowSize: "false"
     # isUseSystemTLS: "true"

@@ -27,4 +27,4 @@ dependencies:
   - name: redis
     version: 22.0.7
     repository: oci://registry-1.docker.io/bitnamicharts
-    condition: websurfx.redis.internal.enabled
+    condition: websurfx.redis.enabled

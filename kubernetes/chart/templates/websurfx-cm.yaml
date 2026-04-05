@@ -18,7 +18,7 @@ data:
     -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
     request_timeout = {{ default 30 (.Values.websurfx.server.requestTimeout) }} -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
     tcp_connection_keep_alive = {{ default 30 (.Values.websurfx.server.tcpKeepAlive) }} -- the amount of time the tcp connection should remain alive to the upstream search engines (or connected to the server). (value in seconds).
-    pool_idle_connection_timeout = {{ default 30 (.Values.websurfx.server.poorIdleTimeout) }} -- timeout for the idle connections in the reqwest HTTP connection pool (value in seconds).
+    pool_idle_connection_timeout = {{ default 30 (.Values.websurfx.server.poolIdleTimeout) }} -- timeout for the idle connections in the reqwest HTTP connection pool (value in seconds).
 
     rate_limiter = {
     	number_of_requests = {{ default 20 (.Values.websurfx.server.rateLimiter.maxRequests) }}, -- The number of request that are allowed within a provided time limit.
