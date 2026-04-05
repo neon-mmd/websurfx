@@ -50,9 +50,6 @@ jobs:
             type=raw,value=latest,enable=${{ matrix.cache == 'memory' && !github.event.release.prerelease }}
             type=raw,value=${{ matrix.cache }},enable=true
 
-      - name: Modify cache variant in Dockerfile
-        run: sed -i "s/ARG CACHE=[a-z-]*/ARG CACHE=${{ matrix.cache }}/g" Dockerfile
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
