@@ -18,8 +18,8 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{
     App, HttpServer,
     dev::Server,
-    http::header,
-    middleware::{Compress, Logger},
+    http::header::{self, CacheControl, CacheDirective},
+    middleware::{Compress, DefaultHeaders, Logger},
     web,
 };
 use handler::{FileType, file_path};
@@ -87,6 +87,11 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
                     .finish()
                     .unwrap(),
             ))
+            .wrap(
+                DefaultHeaders::new().add(CacheControl(vec![CacheDirective::MaxAge(
+                    config.http_cache_expiry_time as u32,
+                )])),
+            )
             // Serve images and static files (css and js files).
             .service(
                 fs::Files::new("/static", format!("{}/static", public_folder_path))
