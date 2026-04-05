@@ -85,7 +85,7 @@ keyword_extraction = { version = "1.5.0", default-features = false, features = [
     "tf_idf",
     "rayon",
 ] }
-stop-words = { version = "0.9.0", default-features = false, features = ["iso"] }
+stop-words = { version = "0.10.0", default-features = false, features = ["iso"] }
 thesaurus = { version = "0.5.2", default-features = false, optional = true, features = [
     "moby",
 ]}
