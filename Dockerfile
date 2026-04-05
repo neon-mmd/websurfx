@@ -38,7 +38,7 @@ RUN export ARCH=$(uname -m) \
   && cp /app/target/$ARCH-unknown-linux-musl/release/websurfx /usr/local/bin/websurfx
 
 
-FROM --platform=$BUILDPLATFORM alpine:3.22
+FROM --platform=$BUILDPLATFORM scratch
 COPY --from=builder /app/public/ /opt/websurfx/public/
 VOLUME ["/etc/xdg/websurfx/"]
 COPY --from=builder /usr/local/bin/websurfx /usr/local/bin/websurfx
