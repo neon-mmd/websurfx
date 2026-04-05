@@ -1,0 +1,24 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: websurfx-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "ca-issuer"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: subdomain.domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: websurfx-service
+            port:
+              number: 80
+  tls: {}
+  # - hosts:
+  #   - subdomain.domain.com
+  #   secretName: websurfx-tls-secret

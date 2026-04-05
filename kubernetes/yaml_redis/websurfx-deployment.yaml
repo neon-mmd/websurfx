@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websurfx-deployment
+  labels:
+    app: websurfx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websurfx
+  template:
+    metadata:
+      labels:
+        app: websurfx
+    spec:
+      containers:
+      - name: websurfx
+        image: dash886/websurfx:sha-91c2ee9
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: websurfx-config-volume
+          mountPath: /etc/xdg/websurfx
+          readOnly: true
+      volumes:
+      - name: websurfx-config-volume
+        configMap:
+          name: websurfx-config

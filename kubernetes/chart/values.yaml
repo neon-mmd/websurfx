@@ -1,0 +1,157 @@
+# Default values for websurfx.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#
+websurfx:
+  general: {}
+    # logging: "true"
+    # debug: "false"
+    # maxThreads: 10
+    # httpMaxCacheLife: 60
+  server: 
+    # isProduction: "true"
+    # requestTimeout: 3
+    # tcpKeepAlive: 30
+    # poorIdleTimeout: 30
+    # proxy: ""
+    # isHttpsAdaptiveWindowSize: "false"
+    # isUseSystemTLS: "true"
+    # maxHttpsConnection: 10
+    # clientTCPKeepAlive: 120
+    rateLimiter: {}
+      # maxRequests: 20
+      # requestTimeout: 3
+  website: {}
+    # colorscheme: "dracula"
+    # theme: "simple"
+    # animation: "nil"
+  redis:
+    enabled: true
+    # port: 6379
+    # externalRedisUrl: "redis://redis.websurfx.svc"
+    # maxCacheLife: 600
+  search: {}
+    # defaultSafeSearchLevel: 2
+  engines:
+    - name: DuckDuckGo
+      value: true
+    - name: Searx
+      value: true
+    - name: Brave
+      value: true
+    - name: Starpage
+      value: false
+    - name: Librex
+      value: false
+    - name: Mojeek
+      value: false
+    - name: Bing
+      value: false
+    - name: Wikipedia
+      value: false
+    - name: Yahoo
+      value: false
+    
+
+
+replicaCount: 1
+
+image:
+  repository: dash886/websurfx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "sha-91c2ee9"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: subdomain.yourdomain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: {}
+   - secretName: websurfx-tls
+     hosts:
+       - subdomain.yourdomain.com
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memredis.ory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

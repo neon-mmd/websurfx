@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: websurfx-config
+data:
+  config.lua: |
+    -- ### General ###
+    logging = {{  default "true"  .Values.websurfx.general.logging }} -- an option to enable or disable logs.
+    debug = {{ default "false" .Values.websurfx.general.debug }} -- an option to enable or disable debug mode.
+    threads = {{ default 10 .Values.websurfx.general.maxThreads}} -- the amount of threads that the app will use to run (the value should be greater than 0).
+
+    -- ### Server ###
+    port = {{ .Values.service.port | quote }} -- port on which server should be launched
+    binding_ip = "0.0.0.0" --ip address on the which server should be launched.
+    production_use = {{ default "true" .Values.websurfx.server.isProduction }} -- whether to use production mode or not (in other words this option should be used if it is to be used to host it on the server to provide a service to a large number of users (more than one))
+    -- if production_use is set to true
+    -- There will be a random delay before sending the request to the search engines, this is to prevent DDoSing the upstream search engines from a large number of simultaneous requests.
+    request_timeout = {{ default 30 (.Values.websurfx.server.requestTimeout) }} -- timeout for the search requests sent to the upstream search engines to be fetched (value in seconds).
+    tcp_connection_keep_alive = {{ default 30 (.Values.websurfx.server.tcpKeepAlive) }} -- the amount of time the tcp connection should remain alive to the upstream search engines (or connected to the server). (value in seconds).
+    pool_idle_connection_timeout = {{ default 30 (.Values.websurfx.server.poorIdleTimeout) }} -- timeout for the idle connections in the reqwest HTTP connection pool (value in seconds).
+
+    rate_limiter = {
+    	number_of_requests = {{ default 20 (.Values.websurfx.server.rateLimiter.maxRequests) }}, -- The number of request that are allowed within a provided time limit.
+    	time_limit = {{ default 3 .Values.websurfx.server.rateLimiter.requestTimeout }}, -- The time limit in which the quantity of requests that should be accepted.
+    }
+    -- Set whether the server will use an adaptive/dynamic HTTPS window size, see https://httpwg.org/specs/rfc9113.html#fc-principles
+    https_adaptive_window_size = {{ default "true" .Values.websurfx.server.isHttpsAdaptiveWindowSize }}
+
+    operating_system_tls_certificates = {{ default "true" .Values.websurfx.server.isUseSystemTLS }} -- Set whether the server will use operating system's tls certificates alongside rustls certificates while fetching search results from the upstream engines.
+
+    number_of_https_connections = {{ default 10  (.Values.websurfx.server.maxHttpsConnection) }} -- the number of https connections that should be available in the connection pool.
+    -- Set keep-alive timer in seconds; keeps clients connected to the HTTP server, different from the connection to upstream search engines
+    client_connection_keep_alive = {{ default 120 (.Values.websurfx.server.clientTCPKeepAlive) }}
+
+    -- ### Search ###
+    -- Filter results based on different levels. The levels provided are:
+    -- 0 - None
+    -- 1 - Low
+    -- 2 - Moderate
+    -- 3 - High
+    -- 4 - Aggressive
+    safe_search = {{ default 2 (.Values.websurfx.search.defaultSafeSearchLevel) }}
+
+    -- ### Website ###
+    -- The different colorschemes provided are:
+    -- catppuccin-mocha
+    -- dark-chocolate
+    -- dracula
+    -- gruvbox-dark
+    -- monokai
+    -- nord
+    -- oceanic-next
+    -- one-dark
+    -- solarized-dark
+    -- solarized-light
+    -- tokyo-night
+    -- tomorrow-night
+    colorscheme = {{ include "get.colorscheme" .Values.websurfx.website.colorscheme }} -- the colorscheme name which should be used for the website theme
+    -- The different themes provided are:
+    -- simple
+    theme = {{ include "get.theme" .Values.websurfx.website.theme }} -- the theme name which should be used for the website
+    -- The different animations provided are:
+    -- simple-frosted-glow
+    animation = {{ include "get.animation" .Values.websurfx.website.animation }} -- the animation name which should be used with the theme or `nil` if you don't want any animations.
+
+    -- ### Caching ###
+    redis_url = {{ include "websurfx.redis.url" . | quote }} -- redis connection url address on which the client should connect on.
+    cache_expiry_time = {{ default 600 (.Values.websurfx.redis.maxCacheLife) }} -- This option takes the expiry time of the search results (value in seconds and the value should be greater than or equal to 60 seconds).
+    http_cache_expiry_time = {{ default 60 (.Values.websurfx.server.httpMaxCacheLife) }} -- This option takes the expiry time of the http cache (value in seconds and the value should be greater than or equal to 60 seconds).
+    -- ### Search Engines ###
+    upstream_search_engines = {
+{{- $length := len .Values.websurfx.engines -}}
+{{- range $i, $engine := .Values.websurfx.engines }}
+      {{ $engine.name }} = {{ $engine.value | toString }}{{ if lt (add1 $i) $length }},{{ end }}
+{{- end }}
+    } -- select the upstream search engines from which the results should be fetched.
+
+    proxy = {{ include "websurfx.proxy.url" . }} -- Proxy to send outgoing requests through. Set to nil to disable.
