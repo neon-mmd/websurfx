@@ -45,9 +45,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/websurfx
           tags: |
-            type=semver,pattern={{version}},suffix=-${{ matrix.cache }}
+            type=semver,pattern={{raw}},suffix=-${{ matrix.cache }}
             type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.cache }}
-            type=raw,value=latest,enable=${{ matrix.cache == 'memory' }}
+            type=raw,value=latest,enable=${{ matrix.cache == 'memory' && !github.event.release.prerelease }}
             type=raw,value=${{ matrix.cache }},enable=true
 
       - name: Modify cache variant in Dockerfile
