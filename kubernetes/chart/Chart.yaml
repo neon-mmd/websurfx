@@ -25,6 +25,6 @@ appVersion: "1.16.0"
 
 dependencies:
   - name: redis
-    version: 22.0.7
+    version: 25.3.9
     repository: oci://registry-1.docker.io/bitnamicharts
-    condition: websurfx.redis.enabled
+    condition: websurfx.redis.enabled && !websurfx.redis.isExternal

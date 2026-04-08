@@ -27,6 +27,7 @@ websurfx:
     # animation: "nil"
   redis:
     enabled: true
+    isExternal: false
     # port: 6379
     # externalRedisUrl: "redis://redis.websurfx.svc"
     # maxCacheLife: 600
@@ -56,11 +57,22 @@ websurfx:
 
 replicaCount: 1
 
-image:
-  repository: dash886/websurfx
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "sha-91c2ee9"
+images:
+  websurfx:
+    repository: neonmmd/websurfx
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    # tags options are:
+    #   hybrid
+    #   memory
+    #   nocache
+    #   redis 
+    tag: "1.0.0-hybrid"
+  busybox:
+    repository: busybox
+    pullPolicy: IfNotPresent
+    tag: "1.37.0"
+    
 
 imagePullSecrets: []
 nameOverride: ""
@@ -83,13 +95,13 @@ podLabels: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+securityContext: 
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
 
 service:
   type: ClusterIP
