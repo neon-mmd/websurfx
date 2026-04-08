@@ -14,7 +14,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/first-interaction@2c1a690e6b60f93eb33eb4a15b9a12afbb4f2f21 # v3.1.0
+      - uses: actions/first-interaction@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |-
