@@ -148,6 +148,16 @@ redis://{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.lo
 {{- end -}}
 
 
+{{- define "websurfx.redis.host" -}}
+{{- if and .Values.websurfx.redis.enabled (not .Values.websurfx.redis.externalRedisUrl) -}}
+{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local
+{{- end -}}
+{{- if and .Values.websurfx.redis.enabled (.Values.websurfx.redis.externalRedisUrl) -}}
+{{ .Values.websurfx.redis.externalRedisUrl }}
+{{- end -}}
+{{- end -}}
+
+
 {{- define "websurfx.proxy.url" -}}
 {{- if not .Values.websurfx.server.proxy -}}
 nil

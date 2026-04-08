@@ -52,7 +52,10 @@ websurfx:
       value: false
     - name: Yahoo
       value: false
-    
+
+redis:
+  auth:
+    enabled: false    
 
 
 replicaCount: 1
