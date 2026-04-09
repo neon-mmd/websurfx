@@ -34,7 +34,7 @@ client_connection_keep_alive = 120
 -- 3 - High
 -- 4 - Aggressive
 -- }}
-safe_search = 2
+safe_search = 0
 
 -- ### Website ###
 -- The different colorschemes provided are:

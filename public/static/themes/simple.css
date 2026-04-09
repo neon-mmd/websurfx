@@ -1,4 +1,6 @@
 /* @import url('./catppuccin-mocha.css'); */
+@import url('../animations/simple-frosted-glow.css');
+
 @font-face {
   font-family: Rubik;
   font-style: normal;
@@ -37,15 +39,19 @@ button {
 /* styles for the index page */
 
 .search-container {
+  width: 70rem;
   display: flex;
   flex-direction: column;
   gap: 5rem;
   justify-content: center;
   align-items: center;
+  margin-bottom: 10rem;
 }
 
 .search-container svg {
   color: var(--logo-color);
+  width: 50rem;
+  margin: 0 auto;
 }
 
 .search-container div {
@@ -53,9 +59,9 @@ button {
 }
 
 /* styles for the search box and search button */
-
 .search_bar {
   display: flex;
+  width: 100%;
   gap: 10px;
   align-items: center;
 }
@@ -63,7 +69,7 @@ button {
 .search_bar input {
   border-radius: 6px;
   padding: 2.6rem 2.2rem;
-  width: 50rem;
+  width: 100%;
   height: 3rem;
   outline: none;
   border: none;
@@ -74,13 +80,13 @@ button {
   font-size: 1.6rem;
 }
 
+.search_bar input:hover {
+  filter: brightness(1.2);
+}
+
 .search_bar input::-webkit-search-results-button,
 .search_bar input::-webkit-search-cancel-button{
     display: none;
-}
-
-.search_bar input:focus {
-  outline: 2px solid var(--foreground-color);
 }
 
 .search_bar input::placeholder {
@@ -100,7 +106,7 @@ button {
   border: none;
   transition: 0.1s;
   gap: 0;
-  background-color: var(--color-six);
+  background-color: var(--color-two);
   color: var(--background-color);
   font-weight: 600;
   letter-spacing: 0.1rem;
@@ -121,6 +127,7 @@ button {
 .search_bar button:active,
 .search_bar button:hover {
   filter: brightness(1.2);
+  cursor: pointer;
 }
 
 .search_area .search_options {
@@ -144,11 +151,12 @@ button {
 
 .search_area .search_options select:active,
 .search_area .search_options select:hover {
-  outline: 2px solid var(--color-three);
+  outline: 2px solid var(--color-two);
+  filter: brightness(1.2);
 }
 
 .search_area .search_options option:hover {
-  background-color: var(--color-one);
+  background-color: var(--color-two);
 }
 
 .result_not_found {
@@ -260,7 +268,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 3rem;
+  padding: 2rem 8rem;
 }
 
 footer {
@@ -323,7 +331,8 @@ footer div {
 /* Styles for the search page */
 
 .results {
-  width: 90%;
+  width: 100%;
+  padding: 2rem 8rem;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -342,24 +351,27 @@ footer div {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  margin: 2rem 0;
   content-visibility: auto;
+  margin: 2rem 0;
 }
 
 .results_aggregated .result {
   display: flex;
   flex-direction: column;
-  margin-top: 1rem;
 }
 
 .results_aggregated .result h1 a {
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: normal;
   color: var(--color-two);
   text-decoration: none;
 }
 
 .results_aggregated .result h1 a:hover {
+  color: var(--color-six);
+}
+
+.results_aggregated .result h1 a:active {
   color: var(--color-five);
 }
 
@@ -367,8 +379,8 @@ footer div {
   color: var(--color-five);
 }
 
-.results_aggregated .result small {
-  color: var(--color-three);
+.results_aggregated .result small a{
+  color: var(--color-four);
   font-size: 1.3rem;
   word-wrap: break-word;
   line-break: anywhere;
@@ -385,8 +397,7 @@ footer div {
 
 .results_aggregated .result .upstream_engines {
   text-align: right;
-  font-size: 1.2rem;
-  padding: 1rem;
+  font-size: 1.4rem;
   color: var(--color-five);
   display: flex;
   gap: 1rem;
@@ -586,10 +597,14 @@ footer div {
 }
 
 /* Styles for the settings page */
+.settings {
+  width: 100%;
+  padding: 2rem 8rem;
+}
+
 .settings_container {
   display: flex;
   justify-content: space-around;
-  width: 80dvw;
   margin: 5rem 0;
 }
 
@@ -600,16 +615,11 @@ footer div {
 
 .settings > h1 {
   margin-bottom: 4rem;
-  margin-left: 2rem;
 }
 
 .settings hr {
   border-color: var(--color-three);
   margin: 0.3rem 0 1rem;
-}
-
-.settings > hr {
-  margin-left: 2rem;
 }
 
 .settings_container .sidebar {
@@ -694,7 +704,7 @@ footer div {
 .settings_container .tab h3 {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--color-four);
+  color: var(--color-three);
   margin-top: 1.5rem;
   text-transform: capitalize;
 }

@@ -36,7 +36,7 @@ pub fn search(
                   @for result in search_results.results.iter(){
                       .result {
                          h1{a href=(result.url){(PreEscaped(&result.title))}}
-                         small{(result.url)}
+                         small{a href=(result.url){(result.url)}}
                          p{(PreEscaped(&result.description))}
                          .upstream_engines{
                             @for name in &result.engine {

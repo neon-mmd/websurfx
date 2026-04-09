@@ -69,10 +69,16 @@ Here is an example of `simple theme` (which we provide by default with the app) 
 #### General
 
 ```css
+/* @import url('./catppuccin-mocha.css'); */
+
 @font-face {
   font-family: Rubik;
-  src: url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap');
-  fallback: sans-serif;
+  font-style: normal;
+  font-weight: 200 600;
+  font-stretch: 0% 200%;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/rubik/v28/iJWKBXyIfDnIV7nErXyi0A.woff2')
+    format('woff2');
 }
 
 * {
@@ -90,7 +96,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   font-family: Rubik, sans-serif;
   background-color: var(--background-color);
 }
@@ -99,33 +105,33 @@ body {
 button {
   font-family: Rubik, sans-serif;
 }
-```
 
-#### Styles for the index page
+/* styles for the index page */
 
-```css
 .search-container {
+  width: 70rem;
   display: flex;
   flex-direction: column;
   gap: 5rem;
   justify-content: center;
   align-items: center;
+  margin-bottom: 10rem;
 }
 
 .search-container svg {
   color: var(--logo-color);
+  width: 50rem;
+  margin: 0 auto;
 }
 
 .search-container div {
   display: flex;
 }
-```
 
-#### Styles for the search box and search button
-
-```css
+/* styles for the search box and search button */
 .search_bar {
   display: flex;
+  width: 100%;
   gap: 10px;
   align-items: center;
 }
@@ -133,7 +139,7 @@ button {
 .search_bar input {
   border-radius: 6px;
   padding: 2.6rem 2.2rem;
-  width: 50rem;
+  width: 100%;
   height: 3rem;
   outline: none;
   border: none;
@@ -144,8 +150,13 @@ button {
   font-size: 1.6rem;
 }
 
-.search_bar input:focus {
-  outline: 2px solid var(--foreground-color);
+.search_bar input:hover {
+  filter: brightness(1.2);
+}
+
+.search_bar input::-webkit-search-results-button,
+.search_bar input::-webkit-search-cancel-button{
+    display: none;
 }
 
 .search_bar input::placeholder {
@@ -165,10 +176,18 @@ button {
   border: none;
   transition: 0.1s;
   gap: 0;
-  background-color: var(--color-six);
+  background-color: var(--color-two);
   color: var(--background-color);
   font-weight: 600;
   letter-spacing: 0.1rem;
+  position: relative;
+}
+
+.search_bar button img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .search_bar button:active {
@@ -178,6 +197,7 @@ button {
 .search_bar button:active,
 .search_bar button:hover {
   filter: brightness(1.2);
+  cursor: pointer;
 }
 
 .search_area .search_options {
@@ -201,11 +221,12 @@ button {
 
 .search_area .search_options select:active,
 .search_area .search_options select:hover {
-  outline: 2px solid var(--color-three);
+  outline: 2px solid var(--color-two);
+  filter: brightness(1.2);
 }
 
 .search_area .search_options option:hover {
-  background-color: var(--color-one);
+  background-color: var(--color-two);
 }
 
 .result_not_found {
@@ -308,18 +329,16 @@ button {
   gap: 1rem;
   line-break: strict;
 }
-```
 
-#### Styles for the footer and header
+/* styles for the footer and header */
 
-```css
 header {
   width: 100%;
   background: var(--background-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 3rem;
+  padding: 2rem 8rem;
 }
 
 footer {
@@ -378,13 +397,12 @@ footer div {
   display: flex;
   gap: 1rem;
 }
-```
 
-#### Styles for the search page
+/* Styles for the search page */
 
-```css
 .results {
-  width: 90%;
+  width: 100%;
+  padding: 2rem 8rem;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -403,33 +421,36 @@ footer div {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  margin: 2rem 0;
   content-visibility: auto;
+  margin: 2rem 0;
 }
 
 .results_aggregated .result {
   display: flex;
   flex-direction: column;
-  margin-top: 1rem;
 }
 
 .results_aggregated .result h1 a {
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: normal;
   color: var(--color-two);
   text-decoration: none;
 }
 
 .results_aggregated .result h1 a:hover {
+  color: var(--color-six);
+}
+
+.results_aggregated .result h1 a:active {
   color: var(--color-five);
 }
 
 .results_aggregated .result h1 a:visited {
-  color: var(--background-color);
+  color: var(--color-five);
 }
 
 .results_aggregated .result small {
-  color: var(--color-three);
+  color: var(--color-five);
   font-size: 1.3rem;
   word-wrap: break-word;
   line-break: anywhere;
@@ -446,18 +467,15 @@ footer div {
 
 .results_aggregated .result .upstream_engines {
   text-align: right;
-  font-size: 1.2rem;
-  padding: 1rem;
+  font-size: 1.4rem;
   color: var(--color-five);
   display: flex;
   gap: 1rem;
   justify-content: right;
 }
-```
 
-#### Styles for the 404 page
+/* Styles for the 404 page  */
 
-```css
 .error_container {
   display: flex;
   justify-content: center;
@@ -503,11 +521,7 @@ footer div {
 .error_content p a:hover {
   color: var(--color-five);
 }
-```
 
-#### Styles for the previous and next button on the search page
-
-```css
 .page_navigation {
   padding: 0 0 2rem;
   display: flex;
@@ -515,7 +529,7 @@ footer div {
   align-items: center;
 }
 
-.page_navigation button {
+.page_navigation a {
   background: var(--background-color);
   color: var(--foreground-color);
   padding: 1rem;
@@ -524,65 +538,143 @@ footer div {
   border: none;
 }
 
-.page_navigation button:active {
+.page_navigation a:active {
   filter: brightness(1.2);
 }
-```
 
-#### Styles for the about page
+/* Styles for the about page */
 
-This part is only available right now in the **rolling/edge/unstable** version
-
-```css
 .about-container article {
   font-size: 1.5rem;
   color: var(--foreground-color);
   padding-bottom: 10px;
+  max-width: 1100px;
+  margin: 14rem auto;
+  display: flex;
+  flex-direction: column;
+  row-gap: 100px;
 }
 
 .about-container article h1 {
   color: var(--color-two);
-  font-size: 2.8rem;
+  font-size: 4.5rem;
 }
 
-.about-container article div {
-  padding-bottom: 15px;
+.about-container article .logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-container article .logo-container svg {
+  width: clamp(200px, 530px, 815px);
+  color: var(--logo-color);
+}
+
+.about-container article .text-block {
+  box-shadow: 0 0 0 100vmax var(--foreground-color);
+  background-color: var(--foreground-color);
+  clip-path: inset(0 -100vmax);
+  padding: 90px 0;
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  color: var(--background-color);
+}
+
+.about-container article .text-block .text-block-title {
+  font-size: 64px;
+  font-weight: 500;
+}
+
+.hero-text-container {
+  width: 860px;
+}
+
+.hero-text {
+  font-size: 45px;
+  font-weight: 200;
 }
 
 .about-container a {
   color: var(--color-three);
 }
 
-.about-container article h2 {
-  color: var(--color-three);
-  font-size: 1.8rem;
-  padding-bottom: 10px;
-}
-
-.about-container p {
-  color: var(--foreground-color);
-  font-size: 1.6rem;
-  padding-bottom: 10px;
-}
-
-.about-container h3 {
-  font-size: 1.5rem;
-}
-
 .about-container {
   width: 80%;
+  margin-bottom: 140px;
 }
-```
 
-#### Styles for the Settings Page
+.feature-list {
+  padding: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  row-gap: 60px;
+}
 
-This part is only available right now in the **rolling/edge/unstable** version
+.feature-list-title {
+  text-align: center;
+  font-size: 64px;
+  font-weight: 500;
+}
 
-```css
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.feature-card {
+  background-color: var(--foreground-color);
+  color: var(--background-color);
+  text-align: center;
+  display: flex;
+  padding: 30px;
+  border-radius: 24px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.feature-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  row-gap: 15px;
+}
+
+.feature-card-header h4 {
+  font-size: 33px;
+  font-weight: 500;
+}
+
+.feature-card-body p {
+  font-size: 20px;
+  font-weight: 200;
+}
+
+.about-footnote {
+  font-size: 24px;
+  text-align: center;
+  color: var(--foreground-color);
+}
+
+/* Styles for the settings page */
+.settings {
+  width: 100%;
+  padding: 2rem 8rem;
+}
+
 .settings_container {
   display: flex;
   justify-content: space-around;
-  width: 80dvw;
   margin: 5rem 0;
 }
 
@@ -593,16 +685,11 @@ This part is only available right now in the **rolling/edge/unstable** version
 
 .settings > h1 {
   margin-bottom: 4rem;
-  margin-left: 2rem;
 }
 
 .settings hr {
   border-color: var(--color-three);
   margin: 0.3rem 0 1rem;
-}
-
-.settings > hr {
-  margin-left: 2rem;
 }
 
 .settings_container .sidebar {
@@ -687,19 +774,28 @@ This part is only available right now in the **rolling/edge/unstable** version
 .settings_container .tab h3 {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--color-four);
+  color: var(--color-three);
   margin-top: 1.5rem;
   text-transform: capitalize;
 }
 
-.settings_container .tab .description {
+.settings_container .tab .description,
+.settings_container .tab .admin_warning {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+}
+
+.settings_container .tab .description {
   color: var(--foreground-color);
 }
 
+.settings_container .tab .admin_warning {
+  color: var(--color-two);
+}
+
 .settings_container .user_interface select,
-.settings_container .general select {
+.settings_container .general select,
+.settings_container .general form input {
   margin: 0.7rem 0;
   width: 20rem;
   background-color: var(--color-one);
@@ -709,6 +805,38 @@ This part is only available right now in the **rolling/edge/unstable** version
   outline: none;
   border: none;
   text-transform: capitalize;
+}
+
+.settings_container .general form input {
+  padding: 0;
+  width: 30rem;
+  text-align: center;
+  text-transform: none;
+}
+
+.settings_container .general form input::file-selector-button {
+  content: 'Browse';
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background: var(--color-three);
+  color: var(--background-color);
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  font-weight: bold;
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+  box-shadow: 5px 5px;
+  outline: none;
+  translate: -1rem 0;
+}
+
+.settings_container .general form input::file-selector-button:active {
+  box-shadow: none;
+  translate: 5px 5px;
+}
+
+.settings_container .general .export_btn {
+  margin-bottom: 1rem;
 }
 
 .settings_container .user_interface option:hover,
@@ -742,13 +870,9 @@ This part is only available right now in the **rolling/edge/unstable** version
 .settings_container .cookies input {
   margin: 1rem 0;
 }
-```
 
-#### Styles for the Toggle Button
+/* Styles for the toggle button */
 
-This part is only available right now in the **rolling/edge/unstable** version
-
-```css
 /* The switch - the box around the slider */
 .switch {
   position: relative;
@@ -810,6 +934,51 @@ input:checked + .slider::before {
 .slider.round::before {
   border-radius: 50%;
 }
+
+@media screen and (width <=1136px) {
+  .hero-text-container {
+    width: unset;
+  }
+
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (width <=706px) {
+  .about-container article .logo-container svg {
+    width: clamp(200px, 290px, 815px);
+  }
+
+  .about-container article .text-block .text-block-title {
+    font-size: 33px;
+  }
+
+  .hero-text {
+    font-size: 22px;
+  }
+
+  .about-container {
+    width: unset;
+  }
+
+  .feature-list-title {
+    font-size: 33px;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-list {
+    padding: 35px 0;
+  }
+
+  .feature-card {
+    border-radius: 0;
+  }
+}
+
 ```
 
 ## Animations
@@ -837,17 +1006,11 @@ Here is an example of `simple-frosted-glow` animation for the `simple theme` (wh
 
 ```css
 .results_aggregated .result {
-  margin: 1rem;
-  padding: 1rem;
   border-radius: 1rem;
 }
 
 .results_aggregated .result:hover {
   box-shadow:
-    inset 0 0 3rem var(--color-two),
-    inset 0 0 6rem var(--color-five),
-    inset 0 0 9rem var(--color-three),
-    0 0 0.25rem var(--color-two),
     0 0 0.5rem var(--color-five),
     0 0 0.75rem var(--color-three);
 }
