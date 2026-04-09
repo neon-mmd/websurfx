@@ -908,3 +908,49 @@ input:checked + .slider::before {
     border-radius: 0;
   }
 }
+
+/* Mobile scaling adjustments */
+@media screen and (max-width: 768px) {
+  .results {
+    padding: 2rem 0.5rem;
+  }
+
+  .settings {
+    padding: 2rem 0.5rem;
+  }
+
+  .search_area {
+    padding: 0 0.5rem;
+  }
+
+  header {
+    padding: 2rem 2rem;
+  }
+
+  footer {
+    padding: 1.7rem 0.5rem 4rem;
+  }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 480px) {
+  .results {
+    padding: 1rem 0.25rem;
+  }
+
+  .settings {
+    padding: 1rem 0.25rem;
+  }
+
+  .search_area {
+    padding: 0 0.25rem;
+  }
+
+  header {
+    padding: 1rem 1rem;
+  }
+
+  footer {
+    padding: 1rem 0.25rem 2rem;
+  }
+}
