@@ -81,7 +81,7 @@ function setClientSettings() {
 
   // Display a success message to the user
   document.querySelector('.message').innerText =
-    'The settings have been saved sucessfully!!'
+    'The settings have been saved successfully!!'
 
   // Clear the success message after 10 seconds
   setTimeout(() => {
