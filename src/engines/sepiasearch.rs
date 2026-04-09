@@ -79,11 +79,7 @@ impl SearchEngine for SepiaSearch {
         client: &Client,
         safe_search: u8,
     ) -> Result<Vec<(String, SearchResult)>, EngineError> {
-        // SepiaSearch uses nsfw parameter: 0 -> "both", 1 -> "false", 2 -> "false"
-        let nsfw = match safe_search {
-            0 => "both",
-            _ => "false",
-        };
+        let nsfw = if safe_search == 0 { "both" } else { "false" };
 
         // Pagination: 0-based offset, 10 results per page
         let start = page * 10;
@@ -98,6 +94,10 @@ impl SearchEngine for SepiaSearch {
             (
                 "Referer".to_string(),
                 "https://sepiasearch.org/".to_string(),
+            ),
+            (
+                "Content-Type".to_string(),
+                "text/html; charset=utf-8".to_string(),
             ),
         ]))
         .change_context(EngineError::UnexpectedError)?;
