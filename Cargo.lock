@@ -5072,6 +5072,7 @@ dependencies = [
  "env_logger",
  "error-stack",
  "fake-useragent",
+ "form_urlencoded",
  "futures 0.3.32",
  "keyword_extraction",
  "lightningcss",
