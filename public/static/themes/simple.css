@@ -70,22 +70,20 @@ button {
   padding: 2.6rem 2.2rem;
   width: 100%;
   height: 3rem;
-  outline: none;
   border: none;
-  box-shadow: rgb(0 0 0 / 1);
   background-color: var(--color-one);
   color: var(--foreground-color);
-  outline-offset: 3px;
   font-size: 1.6rem;
+  outline: none;
 }
 
 .search_bar input:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.4);
 }
 
 .search_bar input::-webkit-search-results-button,
 .search_bar input::-webkit-search-cancel-button{
-    display: none;
+  display: none;
 }
 
 .search_bar input::placeholder {
@@ -100,11 +98,8 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  outline-offset: 3px;
-  outline: 2px solid transparent;
   border: none;
   transition: 0.1s;
-  gap: 0;
   background-color: var(--color-two);
   color: var(--background-color);
   font-weight: 600;
@@ -119,13 +114,9 @@ button {
   transform: translate(-50%, -50%);
 }
 
-.search_bar button:active {
-  outline: 2px solid var(--color-three);
-}
-
 .search_bar button:active,
 .search_bar button:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.4);
   cursor: pointer;
 }
 
@@ -142,16 +133,13 @@ button {
   color: var(--foreground-color);
   padding: 1.2rem 2rem;
   border-radius: 0.5rem;
-  outline-offset: 3px;
-  outline: 2px solid transparent;
   border: none;
   text-transform: capitalize;
 }
 
 .search_area .search_options select:active,
 .search_area .search_options select:hover {
-  outline: 2px solid var(--color-two);
-  filter: brightness(1.2);
+  filter: brightness(1.4);
 }
 
 .search_area .search_options option:hover {
@@ -378,11 +366,10 @@ footer div {
   color: var(--color-five);
 }
 
-.results_aggregated .result small{
-  color: var(--color-four);
+.results_aggregated .result small > a{
+  color: var(--color-three);
   font-size: 1.3rem;
-  overflow-wrap: break-word;
-  line-break: anywhere;
+  overflow-wrap: anywhere;
 }
 
 .results_aggregated .result p {
@@ -390,8 +377,7 @@ footer div {
   font-size: 1.4rem;
   line-height: 2.4rem;
   margin-top: 0.3rem;
-  overflow-wrap: break-word;
-  line-break: anywhere;
+  overflow-wrap: anywhere;
 }
 
 .results_aggregated .result .upstream_engines {
@@ -459,16 +445,14 @@ footer div {
 }
 
 .page_navigation a {
-  background: var(--background-color);
   color: var(--foreground-color);
   padding: 1rem;
   border-radius: 0.5rem;
-  outline: none;
   border: none;
 }
 
 .page_navigation a:active {
-  filter: brightness(1.2);
+  filter: brightness(1.4);
 }
 
 /* Styles for the about page */
@@ -640,12 +624,6 @@ footer div {
 .settings_container .sidebar .btn {
   padding: 2rem;
   border-radius: 0.5rem;
-  outline-offset: 3px;
-  outline: 2px solid transparent;
-}
-
-.settings_container .sidebar .btn:active {
-  outline: 2px solid var(--color-two);
 }
 
 .settings_container .sidebar .btn:not(.active):hover {
@@ -686,8 +664,6 @@ footer div {
   font-weight: bold;
   transition: all 0.1s ease-out;
   cursor: pointer;
-  box-shadow: 5px 5px;
-  outline: none;
 }
 
 .settings_container button:active {
@@ -731,7 +707,6 @@ footer div {
   color: var(--foreground-color);
   padding: 1rem 2rem;
   border-radius: 0.5rem;
-  outline: none;
   border: none;
   text-transform: capitalize;
 }
@@ -755,7 +730,6 @@ footer div {
   transition: all 0.1s ease-out;
   cursor: pointer;
   box-shadow: 5px 5px;
-  outline: none;
   translate: -1rem 0;
 }
 
@@ -824,12 +798,6 @@ footer div {
   inset: 0;
   background-color: var(--foreground-color);
   transition: 0.2s;
-  outline-offset: 3px;
-  outline: 2px solid transparent;
-}
-
-.slider:active {
-  outline: 2px solid var(--foreground-color);
 }
 
 .slider::before {
@@ -911,15 +879,11 @@ input:checked + .slider::before {
 /* Mobile scaling adjustments */
 @media screen and (width <=768px) {
   .results {
-    padding: 2rem 0.5rem;
+    padding: 2rem;
   }
 
   .settings {
-    padding: 2rem 0.5rem;
-  }
-
-  .search_area {
-    padding: 0 0.5rem;
+    padding: 1rem;
   }
 
   header {
@@ -934,17 +898,13 @@ input:checked + .slider::before {
 /* Extra small screens */
 @media screen and (width <=480px) {
   .results {
-    padding: 1rem 0.25rem;
+    padding: 1rem;
   }
 
   .settings {
-    padding: 1rem 0.25rem;
+    padding: 1rem;
   }
-
-  .search_area {
-    padding: 0 0.25rem;
-  }
-
+  
   header {
     padding: 1rem;
   }
