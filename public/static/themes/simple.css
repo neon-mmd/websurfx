@@ -379,7 +379,7 @@ footer div {
   color: var(--color-five);
 }
 
-.results_aggregated .result small a{
+.results_aggregated .result small{
   color: var(--color-four);
   font-size: 1.3rem;
   overflow-wrap: break-word;
