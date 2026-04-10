@@ -214,6 +214,10 @@ impl EngineHandler {
                     let engine = crate::engines::yahoo::Yahoo::new()?;
                     ("yahoo", Box::new(engine))
                 }
+                "qwant" => {
+                    let engine = crate::engines::qwant::Qwant::new()?;
+                    ("qwant", Box::new(engine))
+                }
                 "sepiasearch" => {
                     let engine = crate::engines::sepiasearch::SepiaSearch::new()?;
                     ("sepiasearch", Box::new(engine))

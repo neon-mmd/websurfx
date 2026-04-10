@@ -78,6 +78,7 @@ upstream_search_engines = {
 	LibreX = false,
 	Mojeek = false,
 	Bing = false,
+	Qwant = false,
 	Wikipedia = true,
 	Yahoo = false,
 	SepiaSearch = false,
