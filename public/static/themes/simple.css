@@ -1,5 +1,5 @@
 /* @import url('./catppuccin-mocha.css'); */
-/* @import url('../animations/simple-frosted-glow.css'); */
+@import url('../animations/simple-frosted-glow.css');
 
 @font-face {
   font-family: Rubik;
@@ -39,7 +39,7 @@ button {
 /* styles for the index page */
 
 .search-container {
-  width: 70rem;
+  width: min(70rem, 100%);
   display: flex;
   flex-direction: column;
   gap: 5rem;
@@ -50,7 +50,7 @@ button {
 
 .search-container svg {
   color: var(--logo-color);
-  width: 50rem;
+  width: min(50rem, 100%);
   margin: 0 auto;
 }
 
