@@ -1,19 +1,12 @@
-name: Release stable image
+name: Publish stable container images
 
 on:
-  push:
-    branches:
-      - "release/stable/**"
-  pull_request:
-    branches:
-      - "release/stable/**"
-    types: [opened, synchronize]
-
-env:
-  CARGO_TERM_COLOR: always
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
-  release_image:
+  publish:
     strategy:
       fail-fast: false
       matrix:
@@ -23,57 +16,55 @@ jobs:
           - hybrid
           - no-cache
 
-    name: Release ${{ matrix.cache }} image
+    name: Publish ${{ matrix.cache }} image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v6
-      # Install buildx
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-      # Set buildx cache
-      - name: Cache register
-        uses: actions/cache@v5
-        with:
-          path: /tmp/.buildx-cache
-          key: buildx-cache
-      # Login to ghcr.io
+        uses: docker/setup-buildx-action@v4
+
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:          
+        uses: docker/login-action@v4
+        with:
           username: neonmmd
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Extract branch info
-      - name: Set info
-        run: |
-          echo "VERSION=$(echo ${GITHUB_REF} | awk -F/ '{print $6}')" >> $GITHUB_ENV
-      # Print info for debug
-      - name: Print Info
-        run: |
-          echo $VERSION
-      # Create buildx multiarch
-      - name: Create buildx multiarch
-        run: docker buildx create --use --name=buildx-multi-arch --driver=docker-container --driver-opt=network=host
-      # Modify cache variable in the dockerfile.
-      - name: Modify Cache variable
-        run: | 
-          sed -i "s/ARG CACHE=[a-z]*/ARG CACHE=${{ matrix.cache }}/g" Dockerfile
-      # Publish image
-      - name: Publish image
-        run: docker buildx build --builder=buildx-multi-arch --platform=linux/amd64,linux/arm64 --build-arg CACHE=${{ matrix.cache }} --push -t neonmmd/websurfx:$VERSION-${{ matrix.cache }} -t neon-mmd/websurfx:${{matrix.cache}} -f Dockerfile .
-      - name: Publish latest
-        if: ${{ matrix.cache }} == 'hybrid'
-        run: docker buildx build --builder=buildx-multi-arch --platform=linux/amd64,linux/arm64 --build-arg CACHE=${{ matrix.cache }} --push -t neon-mmd/websurfx:latest -f Dockerfile .
-      # Upload it to release
-      - name: Test if release already exists
-        id: release-exists
-        continue-on-error: true
-        run: gh release view $BINARY_NAME-$VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create new draft release
-        if: steps.release-exists.outcome == 'failure' && steps.release-exists.conclusion == 'success'
-        run: gh release create -t $VERSION -d $VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            neonmmd/websurfx
+            ghcr.io/${{ github.repository_owner }}/websurfx
+          tags: |
+            type=semver,pattern={{raw}},suffix=-${{ matrix.cache }}
+            type=raw,value=latest,enable=${{ matrix.cache == 'memory' && !github.event.release.prerelease }}
+            type=raw,value=${{ matrix.cache }},enable=true
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.cache }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.cache }}
+          build-args: CACHE=${{ matrix.cache }}
