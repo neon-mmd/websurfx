@@ -65,7 +65,7 @@ data:
     animation = {{ include "get.animation" .Values.websurfx.website.animation }} -- the animation name which should be used with the theme or `nil` if you don't want any animations.
 
     -- ### Caching ###
-    redis_url = {{ include "websurfx.redis.url" . | quote }} -- redis connection url address on which the client should connect on.
+    redis_url = "redis://{ include "websurfx.redis.url" .  }}" -- redis connection url address on which the client should connect on.
     cache_expiry_time = {{ default 600 (.Values.websurfx.redis.maxCacheLife) }} -- This option takes the expiry time of the search results (value in seconds and the value should be greater than or equal to 60 seconds).
     http_cache_expiry_time = {{ default 60 (.Values.websurfx.server.httpMaxCacheLife) }} -- This option takes the expiry time of the http cache (value in seconds and the value should be greater than or equal to 60 seconds).
     -- ### Search Engines ###

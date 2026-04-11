@@ -39,7 +39,7 @@ spec:
             - -c
             - |
               set -u
-              echo "redis is {{ include "websurfx.redis.internal.enabled" . }}"
+              echo "redis is {{ .Values.websurfx.redis.enabled | toString }}"
               echo "Waiting for Redis..."
               HOST="{{ include "websurfx.redis.host" . }}"
               PORT="{{ include "websurfx.redis.port" . }}"

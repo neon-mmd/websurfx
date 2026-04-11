@@ -29,7 +29,7 @@ websurfx:
     enabled: true
     isExternal: false
     # port: 6379
-    # externalRedisUrl: "redis://redis.websurfx.svc"
+    # externalRedisUrl: "redis.websurfx.svc"
     # maxCacheLife: 600
   search: {}
     # defaultSafeSearchLevel: 2

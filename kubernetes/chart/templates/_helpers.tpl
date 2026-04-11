@@ -122,13 +122,9 @@ Create the name of the service account to use
 {{- end -}}
 {{- end -}}
 
-{{- define "websurfx.redis.internal.enabled" -}}
-{{- if and .Values.websurfx.redis.enabled (not .Values.websurfx.redis.externalRedisUrl) -}}
-true
-{{- else -}}
-false
+{{- if and .Values.websurfx.redis.enabled .Values.websurfx.redis.isExternal (not .Values.websurfx.redis.externalRedisUrl) -}}
+{{- fail "websurfx.redis.isExternal is true but websurfx.redis.externalRedisUrl is not set" -}}
 {{- end -}}
-{{- end }}
 
 {{- define "websurfx.redis.port" -}}
 {{- if and .Values.websurfx.redis.enabled (not .Values.websurfx.redis.externalRedisUrl) -}}
