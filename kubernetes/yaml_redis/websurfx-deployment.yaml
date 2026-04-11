@@ -24,6 +24,14 @@ spec:
         - name: websurfx-config-volume
           mountPath: /etc/xdg/websurfx
           readOnly: true
+          securityContext: 
+            capabilities:
+             drop:
+             - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+
       volumes:
       - name: websurfx-config-volume
         configMap:

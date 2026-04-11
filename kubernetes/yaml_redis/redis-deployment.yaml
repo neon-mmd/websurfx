@@ -17,6 +17,13 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:latest
+        image: redis:8.6.2-alpine
         ports:
         - containerPort: 6379
+      securityContext: 
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
