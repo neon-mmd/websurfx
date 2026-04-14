@@ -10,6 +10,7 @@ pub mod librex;
 pub mod mojeek;
 mod search_result_parser;
 pub mod searx;
+pub mod sepiasearch;
 pub mod startpage;
 pub mod wikipedia;
 pub mod yahoo;
