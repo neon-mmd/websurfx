@@ -214,6 +214,10 @@ impl EngineHandler {
                     let engine = crate::engines::yahoo::Yahoo::new()?;
                     ("yahoo", Box::new(engine))
                 }
+                "sepiasearch" => {
+                    let engine = crate::engines::sepiasearch::SepiaSearch::new()?;
+                    ("sepiasearch", Box::new(engine))
+                }
                 _ => {
                     return Err(Report::from(EngineError::NoSuchEngineFound(
                         engine_name.to_string(),
