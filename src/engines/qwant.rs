@@ -144,7 +144,10 @@ impl SearchEngine for Qwant {
     ) -> Result<Vec<(String, SearchResult)>, EngineError> {
         // Qwant uses 0-based offset with 10 results per page.
         let count: u32 = 10;
-        let offset = page * count;
+        let offset = page.checked_mul(count).ok_or_else(|| {
+            Report::new(EngineError::UnexpectedError)
+                .attach("Qwant pagination overflow while computing offset")
+        })?;
 
         // Build the API URL with properly encoded query parameters.
         let query_encoded: String = form_urlencoded::byte_serialize(query.as_bytes()).collect();
