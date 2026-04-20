@@ -1,0 +1,10 @@
+<OpenSearchDescription
+  xmlns="http://a9.com/-/spec/opensearch/1.1/"
+  xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+  <ShortName>Websurfx</ShortName>
+  <Description>Websurfx is an open source alternative to searx, which provides a modern-looking, lightning-fast, privacy respecting, secure meta search engine</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image width="16" height="16" type="image/x-icon">/favicon/favicon.ico</Image>
+  <Url type="text/html" template="/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="/websurfx.xml" />
+</OpenSearchDescription>
