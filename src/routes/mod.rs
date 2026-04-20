@@ -52,6 +52,22 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
         .body(page_content))
 }
 
+/// Handles the route of robots.txt page of the `websurfx` meta search engine website.
+#[get("/websurfx.xml")]
+pub async fn opensearch_description(
+    _req: HttpRequest,
+) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    let page_content: String = read_to_string(format!(
+        "{}/websurfx.xml",
+        file_path(FileType::Theme).await?
+    ))
+    .await?;
+    let content_type = ContentType("application/opensearchdescription+xml".parse().unwrap());
+    Ok(HttpResponse::Ok()
+        .insert_header(content_type)
+        .body(page_content))
+}
+
 /// Handles the route of about page of the `websurfx` meta search engine website.
 #[get("/about")]
 pub async fn about(

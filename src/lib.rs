@@ -111,6 +111,7 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
             .service(routes::about) // about page
             .service(routes::settings) // settings page
             .service(routes::export_import::download) // download page
+            .service(routes::opensearch_description) // opensearch description file
             .default_service(web::route().to(routes::not_found)) // error page
     })
     .workers(config.threads as usize)
