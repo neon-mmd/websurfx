@@ -52,7 +52,10 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
         .body(page_content))
 }
 
-/// Handles the route of robots.txt page of the `websurfx` meta search engine website.
+/// Handles the `/websurfx.xml` route that serves the OpenSearch description
+/// document for the `websurfx` meta search engine, allowing browsers to
+/// auto-discover and register it as a search provider.
+#[get("/websurfx.xml")]
 #[get("/websurfx.xml")]
 pub async fn opensearch_description(
     _req: HttpRequest,
