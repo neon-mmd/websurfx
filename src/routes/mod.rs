@@ -64,7 +64,7 @@ pub async fn opensearch_description(
         file_path(FileType::Theme).await?
     ))
     .await?;
-    let content_type = ContentType("application/opensearchdescription+xml".parse().unwrap());
+    let content_type = ContentType("application/opensearchdescription+xml".parse()?);
     Ok(HttpResponse::Ok()
         .insert_header(content_type)
         .body(page_content))
