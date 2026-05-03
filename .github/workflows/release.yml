@@ -121,7 +121,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v8
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
           generate_release_notes: true
