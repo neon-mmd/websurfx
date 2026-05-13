@@ -6,8 +6,8 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 use crate::models::aggregation::SearchResult;
-use crate::models::engine::{EngineError, SearchEngine};
-use error_stack::{Report, Result, ResultExt};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
+use error_stack::{Report, ResultExt};
 
 /// A new SepiaSearch engine type defined in-order to implement the `SearchEngine` trait.
 pub struct SepiaSearch;
@@ -36,12 +36,12 @@ struct SepiaSearchVideo {
 
 impl SepiaSearch {
     /// Creates a new SepiaSearch engine instance.
-    pub fn new() -> Result<SepiaSearch, EngineError> {
+    pub fn new() -> EngineResult<SepiaSearch> {
         Ok(Self)
     }
 
     /// Parses the raw JSON response body into a list of search results.
-    fn parse_json_response(json: &[u8]) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    fn parse_json_response(json: &[u8]) -> EngineResult<Vec<(String, SearchResult)>> {
         let response: SepiaSearchResponse =
             serde_json::from_slice(json).change_context(EngineError::UnexpectedError)?;
 
@@ -78,7 +78,7 @@ impl SearchEngine for SepiaSearch {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         let nsfw = if safe_search == 0 { "both" } else { "false" };
 
         // Pagination: 0-based offset, 10 results per page

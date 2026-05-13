@@ -2,7 +2,7 @@
 //! the upstream search engines with the search query provided by the user.
 
 use super::aggregation::SearchResult;
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Report, ResultExt};
 use reqwest::Client;
 use std::fmt;
 
@@ -46,7 +46,10 @@ impl fmt::Display for EngineError {
     }
 }
 
-impl error_stack::Context for EngineError {}
+/// An alias type for handling the engine results. 
+pub type EngineResult<T> = Result<T, Report<EngineError>>;
+
+impl std::error::Error for EngineError {}
 
 /// A trait to define common behavior for all search engines.
 #[async_trait::async_trait]
@@ -73,7 +76,7 @@ pub trait SearchEngine: Sync + Send {
         url: &str,
         header_map: reqwest::header::HeaderMap,
         client: &Client,
-    ) -> Result<String, EngineError> {
+    ) -> EngineResult<String> {
         // fetch the html from upstream search engine
         Ok(client
             .get(url)
@@ -107,7 +110,7 @@ pub trait SearchEngine: Sync + Send {
         url: &str,
         header_map: reqwest::header::HeaderMap,
         client: &Client,
-    ) -> Result<Vec<u8>, EngineError> {
+    ) -> EngineResult<Vec<u8>> {
         // fetch the json response from upstream search engine
 
         Ok(client
@@ -147,7 +150,7 @@ pub trait SearchEngine: Sync + Send {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError>;
+    ) -> EngineResult<Vec<(String, SearchResult)>>;
 }
 
 /// A named struct which stores the engine struct with the name of the associated engine.
@@ -175,7 +178,7 @@ impl EngineHandler {
     /// # Returns
     ///
     /// It returns an option either containing the value or a none if the engine is unknown
-    pub fn new(engine_name: &str) -> Result<Self, EngineError> {
+    pub fn new(engine_name: &str) -> EngineResult<Self> {
         let engine: (&'static str, Box<dyn SearchEngine>) =
             match engine_name.to_lowercase().as_str() {
                 "duckduckgo" => {

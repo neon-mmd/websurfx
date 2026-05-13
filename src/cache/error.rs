@@ -26,6 +26,11 @@ pub enum CacheError {
     Base64DecodingOrEncodingError,
 }
 
+/// An alias type for handling the engine results. 
+pub type CacheResult<T> = Result<T, CacheError>;
+
+impl std::error::Error for CacheError {}
+
 impl fmt::Display for CacheError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -64,5 +69,3 @@ impl fmt::Display for CacheError {
         }
     }
 }
-
-impl error_stack::Context for CacheError {}

@@ -10,9 +10,9 @@ use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
-use crate::models::engine::{EngineError, SearchEngine};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Report, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
 use super::{build_cookie, build_query};
@@ -26,7 +26,7 @@ pub struct Mojeek {
 
 impl Mojeek {
     /// Creates the Mojeek parser.
-    pub fn new() -> Result<Self, EngineError> {
+    pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".result-col",
@@ -48,7 +48,7 @@ impl SearchEngine for Mojeek {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         // Mojeek uses `start results from this number` convention
         // So, for 10 results per page, page 0 starts at 1, page 1
         // starts at 11, and so on.

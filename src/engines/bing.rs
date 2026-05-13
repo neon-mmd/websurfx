@@ -11,9 +11,9 @@ use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
-use crate::models::engine::{EngineError, SearchEngine};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Report, ResultExt};
 
 use super::build_cookie;
 use super::search_result_parser::SearchResultParser;
@@ -27,7 +27,7 @@ pub struct Bing {
 
 impl Bing {
     /// Creates the Bing parser.
-    pub fn new() -> Result<Self, EngineError> {
+    pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".b_results",
@@ -49,7 +49,7 @@ impl SearchEngine for Bing {
         user_agent: &str,
         client: &Client,
         _safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         // Bing uses `start results from this number` convention
         // So, for 10 results per page, page 0 starts at 1, page 1
         // starts at 11, and so on.

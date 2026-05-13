@@ -1,9 +1,11 @@
 //! This module provides the memory cache structures for enabling the use of memory caching.
 
-use super::{Cacher, error::CacheError};
+use super::{
+    Cacher,
+    error::{CacheError, CacheResult},
+};
 use crate::models::aggregation::SearchResults;
 use crate::parser::Config;
-use error_stack::Report;
 use futures::future::join_all;
 use moka::future::Cache as MokaCache;
 use std::sync::Arc;
@@ -37,29 +39,26 @@ impl Cacher for InMemoryCache {
         }
     }
 
-    async fn cached_results_exists(
-        &mut self,
-        urls: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>> {
+    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
         Ok(urls
             .iter()
             .map(|url| self.cache.contains_key(url))
             .collect())
     }
 
-    async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
+    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults> {
         if let Some(res) = self.cache.get(url).await {
             return self.post_process_search_results(res).await;
         }
 
-        return Err(Report::new(CacheError::MissingValue));
+        return Err(CacheError::MissingValue);
     }
 
     async fn cache_results(
         &mut self,
         search_results: &[SearchResults],
         urls: &[String],
-    ) -> Result<(), Report<CacheError>> {
+    ) -> CacheResult<()> {
         let mut tasks: Vec<_> = Vec::with_capacity(urls.len());
 
         for (hashed_url_string, search_result) in urls.iter().cloned().zip(search_results.iter()) {

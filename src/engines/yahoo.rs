@@ -1,7 +1,7 @@
 //! The `yahoo` module handles the scraping of results from the yahoo search engine
 //! by querying the upstream yahoo search engine with user provided query and with a page
 
-use error_stack::{Report, Result as StackResult, ResultExt};
+use error_stack::{Report, ResultExt};
 
 use std::collections::HashMap;
 
@@ -10,7 +10,7 @@ use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-use crate::models::engine::{EngineError, SearchEngine};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use super::search_result_parser::SearchResultParser;
 
@@ -25,7 +25,7 @@ pub struct Yahoo {
 
 impl Yahoo {
     /// Creates the Yahoo parser.
-    pub fn new() -> StackResult<Self, EngineError> {
+    pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".compNoResult",
@@ -127,7 +127,7 @@ impl SearchEngine for Yahoo {
         user_agent: &str,
         client: &Client,
         _safe_search: u8,
-    ) -> StackResult<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         let url: String = if page == 0 {
             format!("https://search.yahoo.com/search/?p={}", query)
         } else {

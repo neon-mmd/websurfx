@@ -1,10 +1,12 @@
 //! This module provides the functionality to cache the aggregated results fetched and aggregated
 //! from the upstream search engines in a json format.
 
-use super::{Cacher, error::CacheError};
+use super::{
+    Cacher,
+    error::{CacheError, CacheResult},
+};
 use crate::models::aggregation::SearchResults;
 use crate::parser::Config;
-use error_stack::Report;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use redis::{AsyncCommands, Client, ExistenceCheck, SetExpiry, SetOptions, aio::ConnectionManager};
 use tokio::task::JoinSet;
@@ -74,16 +76,14 @@ impl RedisCache {
     ///
     /// It returns the connection it is usable otherwise it returns an error if all connections in
     /// the pool are not usuable.
-    async fn connection(&self) -> Result<ConnectionManager, Report<CacheError>> {
+    async fn connection(&self) -> CacheResult<ConnectionManager> {
         for mut conn in self.connection_pool.clone() {
             if conn.ping::<String>().await.is_ok() {
                 return Ok(conn);
             }
         }
 
-        Err(Report::new(
-            CacheError::PoolExhaustionWithConnectionDropError,
-        ))
+        Err(CacheError::PoolExhaustionWithConnectionDropError)
     }
 
     /// A function which checks whether the cached value exists or not.
@@ -96,10 +96,7 @@ impl RedisCache {
     ///
     /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json_exists(
-        &mut self,
-        keys: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>> {
+    pub async fn cached_json_exists(&mut self, keys: &[String]) -> CacheResult<Vec<bool>> {
         for key in keys {
             self.pipeline.exists(key);
         }
@@ -107,7 +104,7 @@ impl RedisCache {
         self.pipeline
             .query_async(&mut self.connection().await?)
             .await
-            .map_err(|error| Report::new(CacheError::RedisError(error)))
+            .map_err(CacheError::RedisError)
     }
 
     /// A function which fetches the cached json as json string from the redis server.
@@ -120,12 +117,12 @@ impl RedisCache {
     ///
     /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json(&mut self, key: &str) -> Result<String, Report<CacheError>> {
+    pub async fn cached_json(&mut self, key: &str) -> CacheResult<String> {
         self.connection()
             .await?
             .get(key)
             .await
-            .map_err(|error| Report::new(CacheError::RedisError(error)))
+            .map_err(CacheError::RedisError)
     }
 
     /// A function which caches the json by using the key and
@@ -145,7 +142,7 @@ impl RedisCache {
         &mut self,
         json_results: impl Iterator<Item = String>,
         keys: impl Iterator<Item = String>,
-    ) -> Result<(), Report<CacheError>> {
+    ) -> CacheResult<()> {
         for (key, json_result) in keys.zip(json_results) {
             self.pipeline.set_options(
                 key,
@@ -160,7 +157,7 @@ impl RedisCache {
         self.pipeline
             .query_async(&mut self.connection().await?)
             .await
-            .map_err(|error| Report::new(CacheError::RedisError(error)))
+            .map_err(CacheError::RedisError)
     }
 }
 
@@ -176,14 +173,11 @@ impl Cacher for RedisCache {
             .expect("Redis cache configured")
     }
 
-    async fn cached_results_exists(
-        &mut self,
-        urls: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>> {
+    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
         Ok(self.cached_json_exists(urls).await?)
     }
 
-    async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
+    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults> {
         use base64::Engine;
         let base64_string = self.cached_json(url).await?;
 
@@ -201,7 +195,7 @@ impl Cacher for RedisCache {
         &mut self,
         search_results: &[SearchResults],
         urls: &[String],
-    ) -> Result<(), Report<CacheError>> {
+    ) -> CacheResult<()> {
         use base64::Engine;
 
         // size of search_results is expected to be equal to size of urls -> key/value pairs  for cache;

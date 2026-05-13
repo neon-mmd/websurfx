@@ -3,8 +3,7 @@
 
 use crate::{models::aggregation::SearchResults, parser::Config};
 use arc_swap::ArcSwap;
-use error::CacheError;
-use error_stack::Report;
+use error::{CacheError, CacheResult};
 use std::convert::TryInto;
 
 #[cfg(feature = "redis-cache")]
@@ -55,7 +54,7 @@ trait Cacher: Send + Sync {
     ///
     /// Returns the `SearchResults` from the cache if the program executes normally otherwise
     /// returns a `CacheError` if the results cannot be retrieved from the cache.
-    async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>>;
+    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults>;
 
     /// A function that checks if the cached results exists in the cache server or not.
     ///
@@ -68,10 +67,7 @@ trait Cacher: Send + Sync {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
-    async fn cached_results_exists(
-        &mut self,
-        urls: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>>;
+    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>>;
 
     /// A function which caches the results by using the `url` as the key and
     /// `json results` as the value and stores it in the cache
@@ -90,7 +86,7 @@ trait Cacher: Send + Sync {
         &mut self,
         search_results: &[SearchResults],
         urls: &[String],
-    ) -> Result<(), Report<CacheError>>;
+    ) -> CacheResult<()>;
 
     /// A helper function that returns  either encrypted or decrypted results.
     ///  Feature flags (**encrypt-cache-results or cec-cache-results**) are required  for this to work.
@@ -113,14 +109,14 @@ trait Cacher: Send + Sync {
         &mut self,
         mut bytes: Vec<u8>,
         encrypt: bool,
-    ) -> Result<Vec<u8>, Report<CacheError>> {
+    ) -> CacheResult<Vec<u8>> {
         use chacha20poly1305::{
             ChaCha20Poly1305,
             aead::{Aead, AeadCore, KeyInit, OsRng},
         };
 
         Ok(
-            tokio::task::spawn_blocking(move || -> Result<Vec<u8>, Report<CacheError>> {
+            tokio::task::spawn_blocking(move || -> CacheResult<Vec<u8>> {
                 let cipher = CIPHER.get_or_init(|| {
                     let key = ChaCha20Poly1305::generate_key(&mut OsRng);
                     ChaCha20Poly1305::new(&key)
@@ -159,10 +155,7 @@ trait Cacher: Send + Sync {
     /// Returns the compressed bytes on success otherwise it returns a CacheError
     /// on failure.
     #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    async fn compress_results(
-        &mut self,
-        mut bytes: Vec<u8>,
-    ) -> Result<Vec<u8>, Report<CacheError>> {
+    async fn compress_results(&mut self, mut bytes: Vec<u8>) -> CacheResult<Vec<u8>> {
         use tokio::io::AsyncWriteExt;
         let mut writer = async_compression::tokio::write::BrotliEncoder::new(Vec::new());
         writer
@@ -192,7 +185,7 @@ trait Cacher: Send + Sync {
     async fn compress_encrypt_compress_results(
         &mut self,
         mut bytes: Vec<u8>,
-    ) -> Result<Vec<u8>, Report<CacheError>> {
+    ) -> CacheResult<Vec<u8>> {
         // compress first
         bytes = self.compress_results(bytes).await?;
         // encrypt
@@ -216,7 +209,7 @@ trait Cacher: Send + Sync {
     /// Returns the uncompressed bytes on success otherwise it returns a CacheError
     /// on failure.
     #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    async fn decompress_results(&mut self, bytes: &[u8]) -> Result<Vec<u8>, Report<CacheError>> {
+    async fn decompress_results(&mut self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
         cfg_if::cfg_if! {
              if #[cfg(feature = "compress-cache-results")]
             {
@@ -246,7 +239,7 @@ trait Cacher: Send + Sync {
     async fn pre_process_search_results(
         &mut self,
         search_results: &SearchResults,
-    ) -> Result<Vec<u8>, Report<CacheError>> {
+    ) -> CacheResult<Vec<u8>> {
         #[allow(unused_mut)] // needs to be mutable when any of the features is enabled
         let mut bytes: Vec<u8> = search_results.try_into()?;
         #[cfg(feature = "compress-cache-results")]
@@ -284,7 +277,7 @@ trait Cacher: Send + Sync {
     async fn post_process_search_results(
         &mut self,
         mut bytes: Vec<u8>,
-    ) -> Result<SearchResults, Report<CacheError>> {
+    ) -> CacheResult<SearchResults> {
         #[cfg(feature = "compress-cache-results")]
         {
             let decompressed = self.decompress_results(&bytes).await?;
@@ -320,7 +313,7 @@ trait Cacher: Send + Sync {
 /// Returns the uncompressed bytes on success otherwise it returns a CacheError
 /// on failure.
 #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-async fn decompress_util(input: &[u8]) -> Result<Vec<u8>, Report<CacheError>> {
+async fn decompress_util(input: &[u8]) -> CacheResult<Vec<u8>> {
     use tokio::io::AsyncWriteExt;
     let mut writer = async_compression::tokio::write::BrotliDecoder::new(Vec::new());
 
@@ -380,10 +373,7 @@ impl SwitchCache {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
-    async fn cached_results_exists(
-        &mut self,
-        urls: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>> {
+    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
             self.redis_cache.cached_results_exists(urls).await
@@ -413,7 +403,7 @@ impl SwitchCache {
     /// # Error
     ///
     /// Returns the cached data on success otherwise returns a custom CacheError on failure.
-    async fn cached_results(&mut self, url: &str) -> Result<SearchResults, Report<CacheError>> {
+    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
             self.redis_cache.cached_results(url).await
@@ -459,7 +449,7 @@ impl SwitchCache {
         &mut self,
         search_results: &[SearchResults],
         urls: &[String],
-    ) -> Result<(), Report<CacheError>> {
+    ) -> CacheResult<()> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
             self.redis_cache.cache_results(search_results, urls).await
@@ -534,10 +524,7 @@ impl SharedCache {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
-    pub async fn cached_results_exists(
-        &self,
-        urls: &[String],
-    ) -> Result<Vec<bool>, Report<CacheError>> {
+    pub async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>> {
         self.cache().cached_results_exists(urls).await
     }
 
@@ -552,7 +539,7 @@ impl SharedCache {
     ///
     /// Returns a `SearchResults` struct containing the search results from the cache if nothing
     /// goes wrong otherwise returns a `CacheError`.
-    pub async fn cached_results(&self, url: &str) -> Result<SearchResults, Report<CacheError>> {
+    pub async fn cached_results(&self, url: &str) -> CacheResult<SearchResults> {
         self.cache().cached_results(url).await
     }
 
@@ -574,7 +561,7 @@ impl SharedCache {
         &self,
         search_results: &[SearchResults],
         urls: &[String],
-    ) -> Result<(), Report<CacheError>> {
+    ) -> CacheResult<()> {
         let mut mut_cache = self.cache();
         let cache_results = mut_cache.cache_results(search_results, urls).await;
 

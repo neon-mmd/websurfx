@@ -3,8 +3,8 @@
 //! number if provided.
 
 use crate::models::aggregation::SearchResult;
-use crate::models::engine::{EngineError, SearchEngine};
-use error_stack::{Report, Result, ResultExt};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
+use error_stack::{Report, ResultExt};
 use reqwest::{Client, header::HeaderMap};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -78,7 +78,7 @@ impl Qwant {
     /// # Returns
     ///
     /// It returns a `Qwant` struct on success.
-    pub fn new() -> Result<Qwant, EngineError> {
+    pub fn new() -> EngineResult<Qwant> {
         Ok(Self)
     }
 
@@ -92,7 +92,7 @@ impl Qwant {
     ///
     /// It returns an `EngineError` if the API response indicates an error or if the
     /// response cannot be parsed.
-    fn parse_json_response(json: &[u8]) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    fn parse_json_response(json: &[u8]) -> EngineResult<Vec<(String, SearchResult)>> {
         let response: QwantApiResponse =
             serde_json::from_slice(json).change_context(EngineError::UnexpectedError)?;
 
@@ -141,7 +141,7 @@ impl SearchEngine for Qwant {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         // Qwant uses 0-based offset with 10 results per page.
         let count: u32 = 10;
         let offset = page.checked_mul(count).ok_or_else(|| {

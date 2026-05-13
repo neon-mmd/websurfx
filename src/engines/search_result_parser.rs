@@ -1,7 +1,10 @@
 //! This modules provides helper functionalities for parsing a html document into internal SearchResult.
 
-use crate::models::{aggregation::SearchResult, engine::EngineError};
-use error_stack::{Report, Result};
+use crate::models::{
+    aggregation::SearchResult,
+    engine::{EngineError, EngineResult},
+};
+use error_stack::Report;
 use scraper::{ElementRef, Html, Selector, html::Select};
 
 /// A html search result parser, based on a predefined CSS selectors.
@@ -26,7 +29,7 @@ impl SearchResultParser {
         result_title_selector: &str,
         result_url_selector: &str,
         result_desc_selector: &str,
-    ) -> Result<SearchResultParser, EngineError> {
+    ) -> EngineResult<SearchResultParser> {
         Ok(SearchResultParser {
             no_result: new_selector(no_result_selector)?,
             results: new_selector(results_selector)?,
@@ -46,7 +49,7 @@ impl SearchResultParser {
         &self,
         document: &Html,
         builder: impl Fn(&ElementRef<'_>, &ElementRef<'_>, &ElementRef<'_>) -> Option<SearchResult>,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         let res = document
             .select(&self.results)
             .filter_map(|result| {
@@ -67,7 +70,7 @@ impl SearchResultParser {
 }
 
 /// Create a Selector struct, if the given parameter is a valid css expression, otherwise convert it into an EngineError.
-fn new_selector(selector: &str) -> Result<Selector, EngineError> {
+fn new_selector(selector: &str) -> EngineResult<Selector> {
     Selector::parse(selector).map_err(|err| {
         Report::new(EngineError::UnexpectedError).attach(format!(
             "invalid CSS selector: {}, err: {:?}",

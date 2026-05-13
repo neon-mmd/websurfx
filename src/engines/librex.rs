@@ -8,9 +8,9 @@ use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-use crate::models::engine::{EngineError, SearchEngine};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Report, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
 
@@ -26,7 +26,7 @@ impl LibreX {
     /// # Returns
     ///
     /// Returns a `Result` containing `LibreX` if successful, otherwise an `EngineError`.
-    pub fn new() -> Result<Self, EngineError> {
+    pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".text-result-container>p",
@@ -62,7 +62,7 @@ impl SearchEngine for LibreX {
         user_agent: &str,
         client: &Client,
         _safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = format!(

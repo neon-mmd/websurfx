@@ -9,9 +9,9 @@ use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
-use crate::models::engine::{EngineError, SearchEngine};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, Result, ResultExt};
+use error_stack::{Report, ResultExt};
 
 use super::build_query;
 use super::search_result_parser::SearchResultParser;
@@ -29,7 +29,7 @@ pub struct Wikipedia {
 
 impl Wikipedia {
     /// Creates the Wikipedia parser.
-    pub fn new(language: &str) -> Result<Self, EngineError> {
+    pub fn new(language: &str) -> EngineResult<Self> {
         let host = format!("https://{}.wikipedia.org", &language);
         let id = format!("wikipedia-{}", &language);
         Ok(Self {
@@ -55,7 +55,7 @@ impl SearchEngine for Wikipedia {
         user_agent: &str,
         client: &Client,
         _safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
             ("Referer".to_string(), self.host.to_string()),

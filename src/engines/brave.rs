@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use reqwest::{Client, header::HeaderMap};
 use scraper::Html;
 
-use crate::models::aggregation::SearchResult;
-use error_stack::{Report, Result, ResultExt};
+use crate::models::{aggregation::SearchResult, engine::EngineResult};
+use error_stack::{Report, ResultExt};
 
 use crate::models::engine::{EngineError, SearchEngine};
 
@@ -22,7 +22,7 @@ pub struct Brave {
 
 impl Brave {
     /// Creates the Brave parser.
-    pub fn new() -> Result<Brave, EngineError> {
+    pub fn new() -> EngineResult<Brave> {
         Ok(Self {
             parser: SearchResultParser::new(
                 "#results h4",
@@ -44,7 +44,7 @@ impl SearchEngine for Brave {
         user_agent: &str,
         client: &Client,
         safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         let url = format!("https://search.brave.com/search?q={query}&offset={page}");
 
         let safe_search_level = match safe_search {

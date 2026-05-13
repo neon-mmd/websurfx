@@ -9,8 +9,8 @@ use std::collections::HashMap;
 
 use super::search_result_parser::SearchResultParser;
 use crate::models::aggregation::SearchResult;
-use crate::models::engine::{EngineError, SearchEngine};
-use error_stack::{Report, Result, ResultExt};
+use crate::models::engine::{EngineError, EngineResult, SearchEngine};
+use error_stack::{Report, ResultExt};
 
 /// A new Searx engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
@@ -21,7 +21,7 @@ pub struct Searx {
 
 impl Searx {
     /// creates a Searx parser
-    pub fn new() -> Result<Searx, EngineError> {
+    pub fn new() -> EngineResult<Searx> {
         Ok(Self {
             parser: SearchResultParser::new(
                 "#urls>.dialog-error>p",
@@ -43,7 +43,7 @@ impl SearchEngine for Searx {
         user_agent: &str,
         client: &Client,
         mut safe_search: u8,
-    ) -> Result<Vec<(String, SearchResult)>, EngineError> {
+    ) -> EngineResult<Vec<(String, SearchResult)>> {
         // A branchless condition to check whether the `safe_search` parameter has the
         // value greater than equal to three or not. If it is, then it modifies the
         // `safesearch` parameters value to 2.
