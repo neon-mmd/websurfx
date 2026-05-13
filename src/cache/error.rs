@@ -26,7 +26,7 @@ pub enum CacheError {
     Base64DecodingOrEncodingError,
 }
 
-/// An alias type for handling the engine results. 
+/// An alias type for handling the engine results.
 pub type CacheResult<T> = Result<T, CacheError>;
 
 impl std::error::Error for CacheError {}

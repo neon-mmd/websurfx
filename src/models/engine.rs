@@ -46,7 +46,7 @@ impl fmt::Display for EngineError {
     }
 }
 
-/// An alias type for handling the engine results. 
+/// An alias type for handling the engine results.
 pub type EngineResult<T> = Result<T, Report<EngineError>>;
 
 impl std::error::Error for EngineError {}
