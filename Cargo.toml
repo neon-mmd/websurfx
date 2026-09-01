@@ -90,7 +90,7 @@ stop-words = { version = "0.10.0", default-features = false, features = ["iso"] 
 thesaurus = { version = "0.5.2", default-features = false, optional = true, features = [
     "moby",
 ]}
-actix-multipart = { version = "0.7.2", default-features = false, features = [
+actix-multipart = { version = "0.8.1", default-features = false, features = [
     "derive",
     "tempfile",
 ]}
