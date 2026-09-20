@@ -63,7 +63,7 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 # Reporting Issues
 
-If you experience or witness unacceptable behavior—or have any other concerns—please report it by contacting the community leader via [mustafadhuleb53@gmail.com](mustafadhuleb53@gmail.com). All reports will be handled with discretion. In your report please include:
+If you experience or witness unacceptable behavior—or have any other concerns—please report it by contacting the community leader via [mustafadhuleb53@gmail.com](mailto:mustafadhuleb53@gmail.com). All reports will be handled with discretion. In your report please include:
 
 - Your contact information.
 - Names (real, nicknames, or pseudonyms) of any individuals involved. If there are additional witnesses, please

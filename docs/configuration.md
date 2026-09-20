@@ -82,7 +82,7 @@ Some of the configuration options provided in the file are stated below. These a
 - **redis_url:** Redis connection URL address on which the client should connect.
 
 > **Note**
-> This option can be commented out if you have compiled the app without the `redis-cache` feature. For more information, See [**building**](./building.md).
+> This option can be commented out if you have compiled the app without the `redis-cache` feature. For more information, See [**building**](./developing.md).
 
 - **cache_expiry_time:** The maximum time the server will store the cache for, after which it flushs/removes/expires/invalidates the cached results. (value provided to this option should be in seconds and the value should be greater than or equal to 60 seconds).
 
