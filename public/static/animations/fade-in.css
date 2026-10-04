@@ -1,0 +1,15 @@
+.results_aggregated .result {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in forwards;
+}
+
+.results_aggregated .result:nth-child(1) { animation-delay: 0.05s; }
+.results_aggregated .result:nth-child(2) { animation-delay: 0.1s; }
+.results_aggregated .result:nth-child(3) { animation-delay: 0.15s; }
+.results_aggregated .result:nth-child(4) { animation-delay: 0.2s; }
+.results_aggregated .result:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

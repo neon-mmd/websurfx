@@ -1,0 +1,9 @@
+.results_aggregated .result {
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.results_aggregated .result:hover {
+  box-shadow: 0 0 0 1px var(--color-two),
+              0 0 8px var(--color-two),
+              0 0 16px color-mix(in srgb, var(--color-two) 40%, transparent);
+}
