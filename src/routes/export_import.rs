@@ -140,8 +140,10 @@ pub async fn set_settings(
                 return Ok(HttpResponse::BadRequest().finish());
             } else {
                 let mut data = String::new();
-                form.file.file.read_to_string(&mut data).unwrap();
-
+                if form.file.file.read_to_string(&mut data).is_err() {
+                    return Ok(HttpResponse::BadRequest().finish());
+                }
+                
                 let mut unsanitized_json_data: models::search_route::Cookie<'_> =
                     serde_json::from_str(&data)?;
 
