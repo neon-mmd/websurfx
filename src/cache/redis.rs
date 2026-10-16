@@ -166,7 +166,7 @@ impl Cacher for RedisCache {
     async fn build(config: &Config) -> Self {
         log::info!(
             "Initialising redis cache. Listening to {}",
-            &config.redis_url
+            config.redis_url
         );
         RedisCache::new(&config.redis_url, 5, config.cache_expiry_time)
             .await
