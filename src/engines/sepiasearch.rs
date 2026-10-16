@@ -17,8 +17,6 @@ pub struct SepiaSearch;
 struct SepiaSearchResponse {
     /// The list of video results returned by the API.
     data: Vec<SepiaSearchVideo>,
-    /// The total number of results available.
-    total: Option<u32>,
     /// An error message, if the API returned one.
     error: Option<String>,
 }
