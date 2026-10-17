@@ -141,7 +141,7 @@ pub async fn set_settings(
             } else {
                 let mut data = String::new();
                 form.file.file.read_to_string(&mut data).unwrap();
-                
+
                 let mut unsanitized_json_data: models::search_route::Cookie<'_> =
                     serde_json::from_str(&data)?;
 
