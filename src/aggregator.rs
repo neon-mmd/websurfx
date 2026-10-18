@@ -93,6 +93,10 @@ pub async fn aggregate(
             .brotli(true)
             .http2_adaptive_window(config.adaptive_window);
 
+        if !config.operating_system_tls_certificates {
+            cb = cb.tls_certs_only(std::iter::empty::<reqwest::Certificate>());
+        }
+
         if config.proxy.is_some() {
             cb = cb.proxy(config.proxy.clone().unwrap());
         }
