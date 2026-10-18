@@ -111,20 +111,18 @@ trait Cacher: Send + Sync {
         encrypt: bool,
     ) -> CacheResult<Vec<u8>> {
         use chacha20poly1305::{
-            ChaCha20Poly1305,
-            aead::{Aead, AeadCore, KeyInit, OsRng},
+            ChaCha20Poly1305, Key, Nonce,
+            aead::{Aead, Generate, KeyInit},
         };
 
         Ok(
             tokio::task::spawn_blocking(move || -> CacheResult<Vec<u8>> {
                 let cipher = CIPHER.get_or_init(|| {
-                    let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+                    let key = Key::generate();
                     ChaCha20Poly1305::new(&key)
                 });
 
-                let encryption_key = ENCRYPTION_KEY.get_or_init(
-                    || ChaCha20Poly1305::generate_nonce(&mut OsRng), // 96-bits; unique per message
-                );
+                let encryption_key = ENCRYPTION_KEY.get_or_init(Nonce::generate);
 
                 bytes = if encrypt {
                     cipher

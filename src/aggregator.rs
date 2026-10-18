@@ -9,7 +9,7 @@ use crate::models::{
 use crate::parser::Config;
 
 use error_stack::Report;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::slice::ParallelSliceMut;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
@@ -24,8 +24,14 @@ use tokio::{
 /// A constant for holding the prebuilt Client globally in the app.
 static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
+/// An alias for the tuple returned by upstream engine tasks: (engine_name, result).
+type FutureResult = (
+    &'static str,
+    Result<Vec<(String, SearchResult)>, Report<EngineError>>,
+);
+
 /// Aliases for long type annotations
-type FutureVec = JoinSet<Result<Vec<(String, SearchResult)>, Report<EngineError>>>;
+type FutureVec = JoinSet<FutureResult>;
 
 /// The function aggregates the scraped results from the user-selected upstream search engines.
 /// These engines can be chosen either from the user interface (UI) or from the configuration file.
@@ -54,17 +60,16 @@ type FutureVec = JoinSet<Result<Vec<(String, SearchResult)>, Report<EngineError>
 ///
 /// * `query` - Accepts a string to query with the above upstream search engines.
 /// * `page` - Accepts an u32 page number.
-/// * `random_delay` - Accepts a boolean value to add a random delay before making the request.
-/// * `debug` - Accepts a boolean value to enable or disable debug mode option.
-/// * `upstream_search_engines` - Accepts a vector of search engine names which was selected by the
-/// * `request_timeout` - Accepts a time (secs) as a value which controls the server request timeout.
+/// * `config` - Accepts a reference to the parsed application `Config`.
+/// * `upstream_search_engines` - Accepts a slice of search engine handlers selected by the
 ///   user through the UI or the config file.
+/// * `safe_search` - Accepts an u8 safe search level.
+/// * `user_agent` - Accepts a static user agent string to use for the upstream requests.
 ///
 /// # Error
 ///
-/// Returns an error a reqwest and scraping selector errors if any error occurs in the results
-/// function in either `searx` or `duckduckgo` or both otherwise returns a `SearchResults struct`
-/// containing appropriate values.
+/// Returns an error if any fatal error occurs during result fetching, filtering, or processing;
+/// otherwise returns a `SearchResults` struct containing appropriate values.
 pub async fn aggregate(
     query: &str,
     page: u32,
@@ -82,12 +87,19 @@ pub async fn aggregate(
             .tcp_keepalive(Duration::from_secs(config.tcp_connection_keep_alive as u64))
             .pool_max_idle_per_host(config.number_of_https_connections as usize)
             .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
-            .use_rustls_tls()
-            .tls_built_in_root_certs(config.operating_system_tls_certificates)
+            .tls_backend_rustls()
             .https_only(true)
             .gzip(true)
             .brotli(true)
             .http2_adaptive_window(config.adaptive_window);
+
+        if !config.operating_system_tls_certificates {
+            cb = cb.tls_certs_only(
+                webpki_root_certs::TLS_SERVER_ROOT_CERTS
+                    .iter()
+                    .filter_map(|cert| reqwest::Certificate::from_der(cert.as_ref()).ok()),
+            );
+        }
 
         if config.proxy.is_some() {
             cb = cb.proxy(config.proxy.clone().unwrap());
@@ -96,26 +108,26 @@ pub async fn aggregate(
         cb.build().unwrap()
     });
 
-    let mut names: Vec<&str> = Vec::with_capacity(0);
-
     // create tasks for upstream result fetching
     let mut tasks: FutureVec = JoinSet::new();
 
     let query: Arc<String> = Arc::new(query.to_string());
     for engine_handler in upstream_search_engines {
         let (name, search_engine) = engine_handler.clone().into_name_engine();
-        names.push(name);
         let query_partially_cloned = query.clone();
         tasks.spawn(async move {
-            search_engine
-                .results(
-                    &query_partially_cloned,
-                    page,
-                    user_agent,
-                    client,
-                    safe_search,
-                )
-                .await
+            (
+                name,
+                search_engine
+                    .results(
+                        &query_partially_cloned,
+                        page,
+                        user_agent,
+                        client,
+                        safe_search,
+                    )
+                    .await,
+            )
         });
     }
 
@@ -125,25 +137,31 @@ pub async fn aggregate(
 
     let mut handle_error = |error: &Report<EngineError>, engine_name: &'static str| {
         log::error!("Engine Error: {:?}", error);
-        engine_errors_info.push(EngineErrorInfo::new(
-            error.downcast_ref::<EngineError>().unwrap(),
-            engine_name,
-        ));
+        let engine_error = error
+            .downcast_ref::<EngineError>()
+            .unwrap_or(&EngineError::UnexpectedError);
+        engine_errors_info.push(EngineErrorInfo::new(engine_error, engine_name));
     };
 
-    while let Some(Ok(response)) = tasks.join_next().await {
-        let engine = names.pop().unwrap();
-
-        if let Ok(result) = response {
-            for (key, value) in result {
-                if let Some(value) = result_map.iter().find(|(key_s, _)| key_s == &key) {
-                    value.1.to_owned().add_engines(engine)
-                } else {
-                    result_map.push((key, value))
+    while let Some(res) = tasks.join_next().await {
+        match res {
+            Ok((engine, Ok(result))) => {
+                for (key, value) in result {
+                    if let Some((_, existing_value)) =
+                        result_map.iter_mut().find(|(key_s, _)| key_s == &key)
+                    {
+                        existing_value.add_engines(engine);
+                    } else {
+                        result_map.push((key, value));
+                    }
                 }
             }
-        } else if let Err(error) = response {
-            handle_error(&error, engine)
+            Ok((engine, Err(error))) => {
+                handle_error(&error, engine);
+            }
+            Err(join_error) => {
+                log::error!("Task join error: {:?}", join_error);
+            }
         }
     }
 
@@ -168,8 +186,7 @@ pub async fn aggregate(
 
     let results: Box<[SearchResult]> = tokio::task::spawn_blocking(move || {
         let mut unsorted_results: Box<[SearchResult]> = result_map
-            .par_iter()
-            .cloned()
+            .into_par_iter()
             .map(|(_, mut value)| {
                 if !value.url.contains("temu.com") {
                     value.calculate_relevance(query.as_str())
@@ -210,7 +227,11 @@ pub async fn filter_with_lists(
     let mut lines = reader.lines();
 
     while let Some(line) = lines.next_line().await? {
-        let re = Regex::new(line.trim())?;
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let re = Regex::new(trimmed)?;
 
         let mut length = map_to_be_filtered.len();
         let mut idx: usize = Default::default();
@@ -247,7 +268,7 @@ fn sort_search_results(results: &mut [SearchResult]) {
 
         b.relevance_score
             .partial_cmp(&a.relevance_score)
-            .unwrap_or(Ordering::Less)
+            .unwrap_or(Ordering::Equal)
     })
 }
 
@@ -413,5 +434,89 @@ mod tests {
         );
 
         assert!(result.await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_filter_with_lists_empty_lines() -> Result<(), Box<dyn std::error::Error>> {
+        let mut map_to_be_filtered = vec![(
+            "https://www.rust-lang.org/".to_owned(),
+            SearchResult {
+                title: "Rust".to_owned(),
+                url: "https://www.rust-lang.org/".to_owned(),
+                description: "Rust language".to_owned(),
+                engine: vec!["Google".to_owned()],
+                relevance_score: 0.0,
+            },
+        )];
+
+        // Create a temporary file with empty lines and whitespace
+        let mut file = NamedTempFile::new()?;
+        writeln!(file, "")?;
+        writeln!(file, "   ")?;
+        writeln!(file, "\n")?;
+        file.flush()?;
+
+        let mut resultant_map = Vec::new();
+        filter_with_lists(
+            &mut map_to_be_filtered,
+            &mut resultant_map,
+            file.path().to_str().unwrap(),
+        )
+        .await?;
+
+        // Empty lines should not match and should not filter out results
+        assert_eq!(resultant_map.len(), 0);
+        assert_eq!(map_to_be_filtered.len(), 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_sort_search_results() {
+        let mut results = vec![
+            SearchResult {
+                title: "Low".to_owned(),
+                url: "https://low.com".to_owned(),
+                description: "Low score".to_owned(),
+                engine: vec!["Google".to_owned()],
+                relevance_score: 0.1,
+            },
+            SearchResult {
+                title: "High".to_owned(),
+                url: "https://high.com".to_owned(),
+                description: "High score".to_owned(),
+                engine: vec!["DuckDuckGo".to_owned()],
+                relevance_score: 0.9,
+            },
+            SearchResult {
+                title: "Mid".to_owned(),
+                url: "https://mid.com".to_owned(),
+                description: "Mid score".to_owned(),
+                engine: vec!["Bing".to_owned()],
+                relevance_score: 0.5,
+            },
+        ];
+
+        sort_search_results(&mut results);
+
+        assert_eq!(results[0].title, "High");
+        assert_eq!(results[1].title, "Mid");
+        assert_eq!(results[2].title, "Low");
+    }
+
+    /// Test that webpki roots produce a nonempty list of certificates and can configure the client.
+    #[test]
+    fn test_rustls_root_certs_nonempty() {
+        let roots: Vec<reqwest::Certificate> = webpki_root_certs::TLS_SERVER_ROOT_CERTS
+            .iter()
+            .filter_map(|cert| reqwest::Certificate::from_der(cert.as_ref()).ok())
+            .collect();
+        assert!(!roots.is_empty());
+        assert!(roots.len() > 100);
+
+        let cb = ClientBuilder::new()
+            .tls_backend_rustls()
+            .tls_certs_only(roots);
+        assert!(cb.build().is_ok());
     }
 }
