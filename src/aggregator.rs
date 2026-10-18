@@ -94,7 +94,11 @@ pub async fn aggregate(
             .http2_adaptive_window(config.adaptive_window);
 
         if !config.operating_system_tls_certificates {
-            cb = cb.tls_certs_only(std::iter::empty::<reqwest::Certificate>());
+            cb = cb.tls_certs_only(
+                webpki_root_certs::TLS_SERVER_ROOT_CERTS
+                    .iter()
+                    .filter_map(|cert| reqwest::Certificate::from_der(cert.as_ref()).ok()),
+            );
         }
 
         if config.proxy.is_some() {
@@ -498,5 +502,21 @@ mod tests {
         assert_eq!(results[0].title, "High");
         assert_eq!(results[1].title, "Mid");
         assert_eq!(results[2].title, "Low");
+    }
+
+    /// Test that webpki roots produce a nonempty list of certificates and can configure the client.
+    #[test]
+    fn test_rustls_root_certs_nonempty() {
+        let roots: Vec<reqwest::Certificate> = webpki_root_certs::TLS_SERVER_ROOT_CERTS
+            .iter()
+            .filter_map(|cert| reqwest::Certificate::from_der(cert.as_ref()).ok())
+            .collect();
+        assert!(!roots.is_empty());
+        assert!(roots.len() > 100);
+
+        let cb = ClientBuilder::new()
+            .tls_backend_rustls()
+            .tls_certs_only(roots);
+        assert!(cb.build().is_ok());
     }
 }

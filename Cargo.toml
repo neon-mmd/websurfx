@@ -93,6 +93,7 @@ actix-multipart = { version = "0.8.5", default-features = false, features = [
     "derive",
     "tempfile",
 ]}
+webpki-root-certs = { version = "1.0.9", default-features = false }
 
 [dev-dependencies]
 rusty-hook = { version = "0.11.2", default-features = false }

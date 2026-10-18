@@ -5147,6 +5147,7 @@ dependencies = [
  "tempfile",
  "thesaurus",
  "tokio 1.53.3",
+ "webpki-root-certs",
 ]
 
 [[package]]
