@@ -30,8 +30,8 @@ pub struct Wikipedia {
 impl Wikipedia {
     /// Creates the Wikipedia parser.
     pub fn new(language: &str) -> EngineResult<Self> {
-        let host = format!("https://{}.wikipedia.org", &language);
-        let id = format!("wikipedia-{}", &language);
+        let host = format!("https://{}.wikipedia.org", language);
+        let id = format!("wikipedia-{}", language);
         Ok(Self {
             parser: SearchResultParser::new(
                 "p.mw-search-nonefound",

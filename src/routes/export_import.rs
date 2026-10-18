@@ -43,12 +43,14 @@ async fn style_option_list(
     ))
     .await?;
     while let Some(file) = dir.next_entry().await? {
-        let style_name = file.file_name().to_str().unwrap().replace(".css", "");
-        style_options.push(Cow::Owned(style_name));
+        if let Some(name_str) = file.file_name().to_str() {
+            let style_name = name_str.replace(".css", "");
+            style_options.push(Cow::Owned(style_name));
+        }
     }
 
     if style_type == "animations" {
-        style_options.push(Cow::default())
+        style_options.push(Cow::default());
     }
 
     Ok(style_options.into_boxed_slice())
@@ -76,15 +78,18 @@ async fn sanitize(
         .await?
         .contains(&setting_value.theme)
     {
-        setting_value.theme = Cow::Borrowed(&config.style.theme)
-    } else if !style_option_list("colorschemes")
+        setting_value.theme = Cow::Borrowed(&config.style.theme);
+    }
+
+    if !style_option_list("colorschemes")
         .await?
         .contains(&setting_value.colorscheme)
     {
-        setting_value.colorscheme = Cow::Borrowed(&config.style.colorscheme)
-    } else if !style_option_list("animations")
-        .await?
-        .contains(setting_value.animation.as_ref().unwrap())
+        setting_value.colorscheme = Cow::Borrowed(&config.style.colorscheme);
+    }
+
+    if let Some(animation) = setting_value.animation.as_ref()
+        && !style_option_list("animations").await?.contains(animation)
     {
         setting_value.animation = config
             .style
@@ -132,32 +137,34 @@ pub async fn set_settings(
     MultipartForm(mut form): MultipartForm<File>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     if let Some(file_name) = form.file.file_name {
-        let file_name_parts = file_name.split(".");
-        if let 2 = file_name_parts.clone().count()
-            && let Some("json") = file_name_parts.last()
-        {
-            if let 0 = form.file.size {
+        let mut file_name_parts = file_name.split('.');
+        if file_name_parts.clone().count() >= 2 && file_name_parts.next_back() == Some("json") {
+            if form.file.size == 0 {
                 return Ok(HttpResponse::BadRequest().finish());
-            } else {
-                let mut data = String::new();
-                form.file.file.read_to_string(&mut data).unwrap();
-
-                let mut unsanitized_json_data: models::search_route::Cookie<'_> =
-                    serde_json::from_str(&data)?;
-
-                sanitize(config, &mut unsanitized_json_data).await?;
-
-                let sanitized_json_data: String =
-                    serde_json::json!(unsanitized_json_data).to_string();
-
-                return Ok(HttpResponse::Ok()
-                    .cookie(
-                        Cookie::build("appCookie", sanitized_json_data)
-                            .expires(OffsetDateTime::now_utc().saturating_add(Duration::weeks(52)))
-                            .finish(),
-                    )
-                    .finish());
             }
+
+            let mut data = String::new();
+            if form.file.file.read_to_string(&mut data).is_err() {
+                return Ok(HttpResponse::BadRequest().finish());
+            }
+
+            let mut unsanitized_json_data: models::search_route::Cookie<'_> =
+                match serde_json::from_str(&data) {
+                    Ok(parsed) => parsed,
+                    Err(_) => return Ok(HttpResponse::BadRequest().finish()),
+                };
+
+            sanitize(config, &mut unsanitized_json_data).await?;
+
+            let sanitized_json_data: String = serde_json::json!(unsanitized_json_data).to_string();
+
+            return Ok(HttpResponse::Ok()
+                .cookie(
+                    Cookie::build("appCookie", sanitized_json_data)
+                        .expires(OffsetDateTime::now_utc().saturating_add(Duration::weeks(52)))
+                        .finish(),
+                )
+                .finish());
         }
     }
 
