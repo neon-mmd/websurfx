@@ -10,7 +10,7 @@ mod models;
 pub mod parser;
 mod routes;
 pub mod templates;
-mod user_agent;
+pub mod user_agent;
 
 use actix_cors::Cors;
 use actix_files as fs;
