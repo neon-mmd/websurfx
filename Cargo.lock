@@ -3949,7 +3949,7 @@ dependencies = [
 
 [[package]]
 name = "websurfx"
-version = "1.29.10"
+version = "1.30.0"
 dependencies = [
  "actix-cors",
  "actix-files",
