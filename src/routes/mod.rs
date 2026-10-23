@@ -46,7 +46,7 @@ pub async fn not_found(
 #[get("/robots.txt")]
 pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std::error::Error>> {
     let page_content: String =
-        read_to_string(format!("{}/robots.txt", file_path(FileType::Theme).await?)).await?;
+        read_to_string(file_path(FileType::Theme).await?.join("robots.txt")).await?;
     Ok(HttpResponse::Ok()
         .content_type(ContentType::plaintext())
         .body(page_content))
@@ -59,11 +59,8 @@ pub async fn robots_data(_req: HttpRequest) -> Result<HttpResponse, Box<dyn std:
 pub async fn opensearch_description(
     _req: HttpRequest,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let page_content: String = read_to_string(format!(
-        "{}/websurfx.xml",
-        file_path(FileType::Theme).await?
-    ))
-    .await?;
+    let page_content: String =
+        read_to_string(file_path(FileType::Theme).await?.join("websurfx.xml")).await?;
     let content_type = ContentType("application/opensearchdescription+xml".parse()?);
     Ok(HttpResponse::Ok()
         .insert_header(content_type)

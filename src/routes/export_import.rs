@@ -36,11 +36,12 @@ async fn style_option_list(
     style_type: &str,
 ) -> Result<Box<[Cow<'_, str>]>, Box<dyn std::error::Error>> {
     let mut style_options = Vec::new();
-    let mut dir = read_dir(format!(
-        "{}static/{}/",
-        file_path(FileType::Theme).await?,
-        style_type,
-    ))
+    let mut dir = read_dir(
+        file_path(FileType::Theme)
+            .await?
+            .join("static")
+            .join(style_type),
+    )
     .await?;
     while let Some(file) = dir.next_entry().await? {
         if let Some(name_str) = file.file_name().to_str() {

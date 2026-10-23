@@ -193,6 +193,7 @@ opt-level = "z"
 
 [features]
 default = ["memory-cache"]
+embedded = []
 use-synonyms-search = ["thesaurus/static"]
 dhat-heap = ["dep:dhat"]
 memory-cache = ["dep:moka"]

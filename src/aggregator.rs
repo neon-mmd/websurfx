@@ -13,7 +13,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::slice::ParallelSliceMut;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 use tokio::task::JoinSet;
 use tokio::{
     fs::File,
@@ -170,14 +170,14 @@ pub async fn aggregate(
         filter_with_lists(
             &mut result_map,
             &mut blacklist_map,
-            &file_path(FileType::BlockList).await?,
+            file_path(FileType::BlockList).await?,
         )
         .await?;
 
         filter_with_lists(
             &mut blacklist_map,
             &mut result_map,
-            &file_path(FileType::AllowList).await?,
+            file_path(FileType::AllowList).await?,
         )
         .await?;
 
@@ -221,7 +221,7 @@ pub async fn aggregate(
 pub async fn filter_with_lists(
     map_to_be_filtered: &mut Vec<(String, SearchResult)>,
     resultant_map: &mut Vec<(String, SearchResult)>,
-    file_path: &str,
+    file_path: impl AsRef<Path>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let reader = BufReader::new(File::open(file_path).await?);
     let mut lines = reader.lines();
