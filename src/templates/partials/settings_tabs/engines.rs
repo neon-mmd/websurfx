@@ -62,7 +62,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                    @if *selected {
                        .toggle_btn{
                            label class="switch"{
-                              input type="checkbox" class="engine" checked;
+                              input type="checkbox" class="engine" value=(engine_name) checked;
                               span class="slider round"{}
                            }
                            (label_text)
@@ -71,7 +71,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                    @else {
                        .toggle_btn {
                            label class="switch"{
-                              input type="checkbox" class="engine";
+                              input type="checkbox" class="engine" value=(engine_name);
                               span class="slider round"{}
                            }
                            (label_text)
@@ -81,4 +81,20 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
            }
         }
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_engines_checkbox_values_contain_raw_engine_key() {
+        let mut map = HashMap::new();
+        map.insert("bing".to_string(), true);
+        map.insert("duckduckgo".to_string(), false);
+
+        let markup = engines(&map).into_string();
+        assert!(markup.contains(r#"value="bing""#));
+        assert!(markup.contains(r#"value="duckduckgo""#));
+    }
 }

@@ -17,7 +17,7 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{
     App, HttpServer,
     dev::Server,
-    http::header,
+    http::header::{self, CacheControl, CacheDirective},
     middleware::{Compress, DefaultHeaders, Logger},
     web,
 };
@@ -81,6 +81,9 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
             ]);
 
         let default_headers = DefaultHeaders::new()
+            .add(CacheControl(vec![CacheDirective::MaxAge(
+                config.http_cache_expiry_time as u32,
+            )]))
             .add((
                 header::CONTENT_SECURITY_POLICY,
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
@@ -92,7 +95,7 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
         App::new()
             .wrap(Compress::default())
             // Mask query strings in access logs to preserve user privacy
-            .wrap(Logger::new(r#"%a "%U" %s %b "%{Referer}i" "%{User-Agent}i" %T"#))
+            .wrap(Logger::new(r#"%a "%U" %s %b "%{User-Agent}i" %T"#))
             .app_data(web::Data::new(config))
             .wrap(cors)
             .wrap(Governor::new(&governor_conf))

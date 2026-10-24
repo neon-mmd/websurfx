@@ -139,6 +139,10 @@ async fn test_security_headers_present() {
         Some("strict-origin-when-cross-origin"),
         "Missing or incorrect Referrer-Policy header"
     );
+    assert!(
+        headers.contains_key("cache-control"),
+        "Missing Cache-Control header on index response"
+    );
 }
 
 /// Tests that directory listing is disabled on static file endpoints.
@@ -193,5 +197,99 @@ async fn test_csrf_rejection_on_cross_site_settings() {
         reqwest::StatusCode::FORBIDDEN,
         "Expected HTTP 403 Forbidden for cross-site settings modification, got {}",
         res.status()
+    );
+}
+
+/// Tests that multi-byte Unicode queries count characters rather than raw bytes.
+///
+/// Verifies that a 500-character multi-byte query (>1000 bytes) is accepted,
+/// while a 513-character multi-byte query is rejected with HTTP 400 Bad Request.
+#[tokio::test]
+async fn test_multibyte_unicode_query_length_handling() {
+    let address = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    // 500 Arabic letters: each character is 2 bytes (1000 bytes total), but 500 characters.
+    let valid_multibyte_query: String = "ع".repeat(500);
+    assert_eq!(valid_multibyte_query.chars().count(), 500);
+    assert!(valid_multibyte_query.len() > 512);
+
+    let res = client
+        .get(format!("{address}search?q={valid_multibyte_query}"))
+        .send()
+        .await
+        .unwrap();
+
+    // Should NOT be 400 Bad Request because character count <= 512
+    assert_ne!(
+        res.status(),
+        reqwest::StatusCode::BAD_REQUEST,
+        "500-character multi-byte query should not be rejected as oversized"
+    );
+
+    // 513 Arabic letters: 513 characters, exceeds limit.
+    let oversized_multibyte_query: String = "ع".repeat(513);
+    assert_eq!(oversized_multibyte_query.chars().count(), 513);
+
+    let bad_res = client
+        .get(format!("{address}search?q={oversized_multibyte_query}"))
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(
+        bad_res.status(),
+        reqwest::StatusCode::BAD_REQUEST,
+        "513-character multi-byte query must be rejected with HTTP 400"
+    );
+}
+
+/// Tests that same-site and untrusted-origin requests to settings are rejected.
+#[tokio::test]
+async fn test_csrf_rejection_on_same_site_and_untrusted_origin() {
+    let address = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let boundary = "---------------------------974767299852498929531610575";
+    let body = format!(
+        "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"settings.json\"\r\nContent-Type: application/json\r\n\r\n{{}}\r\n--{boundary}--\r\n"
+    );
+
+    // 1. Same-site rejection
+    let same_site_res = client
+        .post(format!("{address}settings"))
+        .header(
+            "content-type",
+            format!("multipart/form-data; boundary={boundary}"),
+        )
+        .header("sec-fetch-site", "same-site")
+        .body(body.clone())
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(
+        same_site_res.status(),
+        reqwest::StatusCode::FORBIDDEN,
+        "Expected HTTP 403 Forbidden for same-site settings modification"
+    );
+
+    // 2. Untrusted origin without sec-fetch-site
+    let untrusted_origin_res = client
+        .post(format!("{address}settings"))
+        .header(
+            "content-type",
+            format!("multipart/form-data; boundary={boundary}"),
+        )
+        .header("origin", "https://untrusted.attacker.com")
+        .body(body)
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(
+        untrusted_origin_res.status(),
+        reqwest::StatusCode::FORBIDDEN,
+        "Expected HTTP 403 Forbidden for untrusted origin settings modification"
     );
 }

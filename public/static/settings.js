@@ -64,7 +64,7 @@ function setClientSettings() {
 
   document.querySelectorAll('.engine').forEach((engine_checkbox) => {
     if (engine_checkbox.checked) {
-      engines.push(engine_checkbox.parentNode.parentNode.innerText.trim())
+      engines.push(engine_checkbox.value)
     }
   })
 
@@ -153,3 +153,10 @@ function getClientSettings() {
     }
   }
 }
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', getClientSettings)
+} else {
+  getClientSettings()
+}
+

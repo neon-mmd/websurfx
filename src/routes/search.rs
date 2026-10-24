@@ -62,7 +62,7 @@ pub async fn search(
     };
 
     if let Some(ref q) = params.q
-        && q.len() > 512
+        && q.chars().count() > 512
     {
         if let Some(json) = &params.json
             && *json

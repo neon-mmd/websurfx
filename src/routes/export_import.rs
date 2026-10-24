@@ -12,7 +12,9 @@ use actix_web::{
         Cookie, SameSite,
         time::{Duration, OffsetDateTime},
     },
-    get, post, web,
+    get,
+    http::{Uri, header},
+    post, web,
 };
 use std::borrow::Cow;
 
@@ -126,6 +128,50 @@ struct File {
     file: TempFile,
 }
 
+/// Validates that a state-changing request originates from the same origin to prevent CSRF.
+///
+/// Checks `Sec-Fetch-Site` if present, requiring `same-origin` or `none`. If absent,
+/// falls back to validating `Origin` or `Referer` against the incoming `Host`.
+fn is_same_origin_request(req: &HttpRequest) -> bool {
+    if let Some(sec_fetch_site) = req.headers().get("sec-fetch-site") {
+        return sec_fetch_site == "same-origin" || sec_fetch_site == "none";
+    }
+
+    let host = req.connection_info().host().to_string();
+
+    if let Some(origin) = req.headers().get(header::ORIGIN) {
+        if let Ok(origin_str) = origin.to_str()
+            && let Ok(origin_uri) = origin_str.parse::<Uri>()
+            && let Some(origin_host) = origin_uri.host()
+        {
+            let host_name = host.split(':').next().unwrap_or(&host);
+            let origin_authority = origin_uri
+                .authority()
+                .map(|a| a.as_str())
+                .unwrap_or(origin_host);
+            return origin_authority == host || origin_host == host_name;
+        }
+        return false;
+    }
+
+    if let Some(referer) = req.headers().get(header::REFERER) {
+        if let Ok(referer_str) = referer.to_str()
+            && let Ok(referer_uri) = referer_str.parse::<Uri>()
+            && let Some(referer_host) = referer_uri.host()
+        {
+            let host_name = host.split(':').next().unwrap_or(&host);
+            let referer_authority = referer_uri
+                .authority()
+                .map(|a| a.as_str())
+                .unwrap_or(referer_host);
+            return referer_authority == host || referer_host == host_name;
+        }
+        return false;
+    }
+
+    false
+}
+
 /// Handles the route of the post settings page.
 #[post("/settings")]
 pub async fn set_settings(
@@ -133,10 +179,8 @@ pub async fn set_settings(
     config: web::Data<&'static Config>,
     MultipartForm(form): MultipartForm<File>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    // CSRF defense: reject cross-site requests to settings modification endpoint
-    if let Some(sec_fetch_site) = req.headers().get("sec-fetch-site")
-        && sec_fetch_site == "cross-site"
-    {
+    // CSRF defense: reject cross-site and unauthorized state-changing requests
+    if !is_same_origin_request(&req) {
         return Ok(HttpResponse::Forbidden().body("Cross-site request blocked"));
     }
 

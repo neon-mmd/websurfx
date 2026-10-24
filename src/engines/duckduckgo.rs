@@ -64,7 +64,7 @@ impl SearchEngine for DuckDuckGo {
             let s = page.saturating_mul(30);
             let dc = s.saturating_add(1);
             format!(
-                "https://duckduckgo.com/html/?q={encoded_query}&s={s}&dc={dc}&v=1&o=json&api=/d.js&kp={kp}"
+                "https://html.duckduckgo.com/html/?q={encoded_query}&s={s}&dc={dc}&v=1&o=json&api=/d.js&kp={kp}"
             )
         };
 

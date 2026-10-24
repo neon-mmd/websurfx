@@ -126,6 +126,14 @@ mod tests {
     }
 
     #[test]
+    fn test_build_query_comma_separated() {
+        let engines = ["Bing", "Brave", "Google"].join(",");
+        let query = build_query(&[("qss", &engines)]);
+        assert_eq!(query, "qss=Bing%2CBrave%2CGoogle");
+        assert!(!query.contains("%252C"));
+    }
+
+    #[test]
     fn test_build_cookie() {
         assert_eq!(
             build_cookie(&[("safe", "1"), ("lang", "en")]),
