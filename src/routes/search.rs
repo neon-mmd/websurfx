@@ -18,7 +18,7 @@ use {crate::cache::SharedCache, tokio::sync::OnceCell};
 use actix_web::{HttpRequest, HttpResponse, ResponseError, get, http::header::ContentType, web};
 use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{borrow::Cow, time::Duration};
+use std::{borrow::Cow, path::PathBuf, time::Duration};
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, BufReader},
@@ -305,7 +305,7 @@ async fn results(
         let mut results: SearchResults = SearchResults::default();
 
         let flag: bool =
-            !is_match_from_filter_list(&file_path(FileType::BlockList).await?, query).await?;
+            !is_match_from_filter_list(file_path(FileType::BlockList).await?, query).await?;
         // Return early when query contains disallowed words,
         if flag {
             results.set_disallowed();
@@ -371,7 +371,7 @@ fn hash_url(url: String) -> String {
 /// Returns a bool indicating whether the results were found in the list or not on success
 /// otherwise returns a standard error type on a failure.
 async fn is_match_from_filter_list(
-    file_path: &str,
+    file_path: PathBuf,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let reader = BufReader::new(File::open(file_path).await?);

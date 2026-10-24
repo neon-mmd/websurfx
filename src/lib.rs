@@ -26,6 +26,24 @@ use handler::{FileType, file_path};
 use parser::Config;
 use tokio::{net::TcpListener, time::Duration};
 
+#[cfg(feature = "embedded")]
+use std::path::Path;
+
+/// Sets the application data root when Websurfx is used as an embedded library.
+///
+/// Enable the `embedded` Cargo feature and call this before [`Config::parse`] or [`run`]. The
+/// directory must contain `public/` and `websurfx/` subdirectories; the latter holds
+/// `config.lua`, `allowlist.txt`, and `blocklist.txt`. Websurfx continues to use its standard
+/// system paths when a requested path is absent from this root. The selected `public/` directory
+/// is used as a whole, so it should contain the complete public asset tree.
+///
+/// The data root can only be set once and must be set before any operation initializes the
+/// resource paths.
+#[cfg(feature = "embedded")]
+pub fn set_data_root(path: impl AsRef<Path>) -> tokio::io::Result<()> {
+    handler::set_data_root(path)
+}
+
 /// Runs the web server on the provided TCP listener and returns a `Server` instance.
 ///
 /// # Arguments
@@ -94,16 +112,13 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
             )
             // Serve images and static files (css and js files).
             .service(
-                fs::Files::new("/static", format!("{}/static", public_folder_path))
-                    .show_files_listing(),
+                fs::Files::new("/static", public_folder_path.join("static")).show_files_listing(),
             )
             .service(
-                fs::Files::new("/favicon", format!("{}/favicon", public_folder_path))
-                    .show_files_listing(),
+                fs::Files::new("/favicon", public_folder_path.join("favicon")).show_files_listing(),
             )
             .service(
-                fs::Files::new("/images", format!("{}/images", public_folder_path))
-                    .show_files_listing(),
+                fs::Files::new("/images", public_folder_path.join("images")).show_files_listing(),
             )
             .service(routes::robots_data) // robots.txt
             .service(routes::index) // index page

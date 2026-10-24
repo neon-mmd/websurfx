@@ -16,5 +16,6 @@
 # Developers
 
 - [Developing](./developing.md)
+- [Embedding the server in a Rust application](./embedding.md)
 - [**Contribute**](https://github.com/neon-mmd/websurfx/blob/master/CONTRIBUTING.md)
 - [**Coding style**](https://rust-lang.github.io/api-guidelines/naming.html)

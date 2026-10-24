@@ -25,11 +25,12 @@ async fn style_option_list(
 ) -> Result<Vec<(String, String)>, Box<dyn std::error::Error>> {
     let mut style_option_names = Vec::new();
     // open the dir exactly once
-    let mut dir = read_dir(format!(
-        "{}static/{}/",
-        file_path(FileType::Theme).await?,
-        style_type,
-    ))
+    let mut dir = read_dir(
+        file_path(FileType::Theme)
+            .await?
+            .join("static")
+            .join(style_type),
+    )
     .await?;
 
     // then iterate it to exhaustion
