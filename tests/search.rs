@@ -39,14 +39,23 @@ async fn test_search_unauthenticated_does_not_abort_server() {
     let res = client.get(&address).send().await.unwrap();
     assert_eq!(res.status(), 200);
 
-    // 2. Unauthenticated search request: must not crash or abort the server
+    // 2. Unauthenticated search request: must not crash or abort the server and return success
     let search_res = client
         .get(format!("{address}search?q=rust&json=true"))
         .send()
         .await;
 
     // The request should succeed in reaching the server (not connection reset / empty reply)
-    assert!(search_res.is_ok());
+    assert!(
+        search_res.is_ok(),
+        "expected search request to reach server without transport error"
+    );
+    let search_response = search_res.unwrap();
+    assert!(
+        search_response.status().is_success(),
+        "expected search request to return a successful status, got {}",
+        search_response.status()
+    );
 
     // 3. Post-search health check: verify the server is still running and responsive
     let post_res = client.get(&address).send().await.unwrap();

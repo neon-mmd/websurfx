@@ -1,12 +1,28 @@
-//! This module provides the functionality to generate and select random user agent strings.
+//! This module provides functionality to generate and select random user agent strings.
 //!
 //! A curated list of realistic user agents is statically compiled into the binary to avoid
 //! runtime HTTP fetching, eliminating crashes from upstream failures or empty responses.
+//! In addition to built-in defaults, this module provides an extensible provider interface
+//! for callers that retrieve user agents dynamically.
+//!
+//! # Maintenance
+//!
+//! The static user agent list in [`DEFAULT_USER_AGENTS`] should be periodically reviewed and
+//! updated alongside major browser release cycles (e.g. Chrome and Firefox releases). Keeping
+//! browser versions modern prevents upstream search engines from flagging queries as automated
+//! bot traffic.
 
 /// A static slice of default user agent strings shipped directly in the binary.
 ///
 /// This avoids runtime network requests and ensures realistic browser user agents
 /// are immediately available offline and during startup without external dependencies.
+///
+/// # Maintenance & Freshness
+///
+/// The versions contained here (Chrome 133, Firefox 135, Safari 18.3, Edge 133) represent
+/// modern browser releases. Maintainers should update these version strings during
+/// regular release cycles to prevent upstream search engines from detecting stale
+/// user agents as automated traffic.
 pub static DEFAULT_USER_AGENTS: &[&str] = &[
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
@@ -21,6 +37,12 @@ pub static DEFAULT_USER_AGENTS: &[&str] = &[
 /// A static fallback user agent string used when no user agents are available.
 pub static FALLBACK_USER_AGENT: &str =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0";
+
+/// Maximum allowed response body size (1 MiB) when fetching user agents via HTTP.
+///
+/// Limits memory consumption and prevents denial-of-service from oversized or
+/// infinite HTTP responses when contacting external user agent endpoints.
+pub const MAX_USER_AGENT_BODY_BYTES: usize = 1024 * 1024;
 
 /// An error indicating that user agent generation or selection failed.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,7 +69,7 @@ impl std::fmt::Display for UserAgentError {
 
 impl std::error::Error for UserAgentError {}
 
-/// Picks a random user agent from a provided slice of user agent strings using a checked RNG.
+/// Picks a random user agent from a provided slice using a checked RNG.
 ///
 /// This function verifies that the slice is not empty before sampling the RNG, preventing
 /// any `low >= high` panic when `user_agents` is empty. Safe bounds-checked indexing via
@@ -56,6 +78,10 @@ impl std::error::Error for UserAgentError {}
 /// # Arguments
 ///
 /// * `user_agents` - A slice of user agent string slices.
+///
+/// # Returns
+///
+/// Returns a borrowed user agent string on success.
 ///
 /// # Errors
 ///
@@ -72,8 +98,9 @@ pub fn pick_random_user_agent<'a>(user_agents: &[&'a str]) -> Result<&'a str, Us
         .ok_or(UserAgentError::NoUserAgentsAvailable)
 }
 
-/// Picks a random user agent from a provided slice of user agent strings, falling back to
-/// [`FALLBACK_USER_AGENT`] if the slice is empty or no user agent could be picked.
+/// Picks a random user agent from a slice, or returns the fallback.
+///
+/// If `user_agents` is empty or no user agent could be picked, [`FALLBACK_USER_AGENT`] is returned.
 ///
 /// # Arguments
 ///
@@ -94,7 +121,7 @@ pub struct UserAgents {
 }
 
 impl UserAgents {
-    /// Creates a new `UserAgents` collection with the given list of user agents.
+    /// Creates a new collection with the given list of user agents.
     ///
     /// # Arguments
     ///
@@ -108,6 +135,10 @@ impl UserAgents {
     }
 
     /// Selects a random user agent from the collection using a checked RNG.
+    ///
+    /// # Returns
+    ///
+    /// Returns a borrowed user agent string on success.
     ///
     /// # Errors
     ///
@@ -124,7 +155,7 @@ impl UserAgents {
             .ok_or(UserAgentError::NoUserAgentsAvailable)
     }
 
-    /// Selects a random user agent, or returns [`FALLBACK_USER_AGENT`] if empty.
+    /// Selects a random user agent, returning the fallback if empty.
     ///
     /// # Returns
     ///
@@ -142,7 +173,7 @@ impl UserAgents {
         self.agents.len()
     }
 
-    /// Returns `true` if the collection contains no user agents.
+    /// Returns whether the collection contains no user agents.
     ///
     /// # Returns
     ///
@@ -156,13 +187,17 @@ impl UserAgents {
 pub trait UserAgentProvider {
     /// Fetches or retrieves a list of user agent strings.
     ///
+    /// # Returns
+    ///
+    /// Returns a vector of user agent strings on success.
+    ///
     /// # Errors
     ///
     /// Returns [`UserAgentError`] if user agents cannot be retrieved or provided.
     fn get_user_agents(&self) -> Result<Vec<String>, UserAgentError>;
 }
 
-/// A static user agent provider that supplies the built-in [`DEFAULT_USER_AGENTS`].
+/// A static user agent provider supplying built-in user agents.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct StaticUserAgentProvider;
 
@@ -181,26 +216,32 @@ impl UserAgentProvider for StaticUserAgentProvider {
 
 /// Fetches user agents from an HTTP endpoint using a supplied client with timeouts and status checks.
 ///
-/// Unlike the vulnerable `fake-useragent` implementation, this function:
+/// Unlike unvalidated HTTP implementations, this function:
 /// 1. Enforces an HTTP request timeout to ensure it never hangs.
-/// 2. Checks HTTP status codes: a 503 Service Unavailable (or any non-success status) yields an
+/// 2. Validates HTTP status codes: a 503 Service Unavailable (or any non-success status) yields an
 ///    explicit [`UserAgentError::HttpError`] instead of parsing invalid HTML.
 /// 3. Safely handles connection refused and network errors without panicking.
-/// 4. Returns [`UserAgentError::NoUserAgentsAvailable`] if the parsed list is empty (`[]`).
+/// 4. Enforces a maximum response body size limit of [`MAX_USER_AGENT_BODY_BYTES`] to prevent
+///    denial-of-service through memory exhaustion.
+/// 5. Returns [`UserAgentError::NoUserAgentsAvailable`] if the parsed list is empty (`[]`).
 ///
 /// # Arguments
 ///
 /// * `client` - The `reqwest::Client` to use for making the request.
 /// * `url` - The URL of the user agent provider endpoint.
 ///
+/// # Returns
+///
+/// Returns a parsed [`UserAgents`] collection on success.
+///
 /// # Errors
 ///
-/// Returns [`UserAgentError`] if the request fails, status is non-2xx, or parsed list is empty.
+/// Returns [`UserAgentError`] if the request fails, status is non-2xx, body exceeds size limits, or parsed list is empty.
 pub async fn fetch_user_agents(
     client: &reqwest::Client,
     url: &str,
 ) -> Result<UserAgents, UserAgentError> {
-    let response = client
+    let mut response = client
         .get(url)
         .timeout(std::time::Duration::from_secs(5))
         .send()
@@ -212,10 +253,30 @@ pub async fn fetch_user_agents(
         return Err(UserAgentError::HttpError(status.as_u16()));
     }
 
-    let text = response
-        .text()
+    if let Some(content_length) = response.content_length()
+        && content_length > MAX_USER_AGENT_BODY_BYTES as u64
+    {
+        return Err(UserAgentError::NetworkError(format!(
+            "Response body length ({content_length} bytes) exceeds limit of {MAX_USER_AGENT_BODY_BYTES} bytes"
+        )));
+    }
+
+    let mut body = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
         .await
-        .map_err(|e| UserAgentError::NetworkError(e.to_string()))?;
+        .map_err(|e| UserAgentError::NetworkError(e.to_string()))?
+    {
+        if body.len().saturating_add(chunk.len()) > MAX_USER_AGENT_BODY_BYTES {
+            return Err(UserAgentError::NetworkError(format!(
+                "Response body exceeded limit of {MAX_USER_AGENT_BODY_BYTES} bytes"
+            )));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    let text = String::from_utf8(body)
+        .map_err(|e| UserAgentError::NetworkError(format!("Invalid UTF-8 in response: {e}")))?;
 
     let agents: Vec<String> = text
         .lines()
@@ -231,7 +292,7 @@ pub async fn fetch_user_agents(
     Ok(UserAgents::new(agents))
 }
 
-/// A function to generate random user agent to improve privacy of the user.
+/// Generates a random user agent to improve privacy of the user.
 ///
 /// Picks a random user agent from the static [`DEFAULT_USER_AGENTS`] list using a checked RNG.
 /// No runtime network requests are performed.
@@ -248,7 +309,7 @@ pub async fn fetch_user_agents(
 ///
 /// Returns an error if no user agent could be selected and fallback is unavailable.
 pub async fn random_user_agent(_threads: u8) -> Result<&'static str, Box<dyn std::error::Error>> {
-    Ok(pick_random_user_agent(DEFAULT_USER_AGENTS).unwrap_or(FALLBACK_USER_AGENT))
+    Ok(pick_random_user_agent_or_fallback(DEFAULT_USER_AGENTS))
 }
 
 #[cfg(test)]
@@ -259,18 +320,27 @@ mod tests {
 
     #[test]
     fn test_default_user_agents_non_empty() {
-        assert!(!DEFAULT_USER_AGENTS.is_empty());
+        assert!(
+            !DEFAULT_USER_AGENTS.is_empty(),
+            "default user agents list should not be empty"
+        );
         for &ua in DEFAULT_USER_AGENTS {
-            assert!(!ua.is_empty());
-            assert!(ua.contains("Mozilla/5.0"));
+            assert!(!ua.is_empty(), "user agent string should not be empty");
+            assert!(
+                ua.contains("Mozilla/5.0"),
+                "user agent should contain Mozilla/5.0"
+            );
         }
     }
 
     #[tokio::test]
     async fn test_random_user_agent_success() {
         let ua = random_user_agent(1).await.unwrap();
-        assert!(!ua.is_empty());
-        assert!(DEFAULT_USER_AGENTS.contains(&ua));
+        assert!(!ua.is_empty(), "random user agent should not be empty");
+        assert!(
+            DEFAULT_USER_AGENTS.contains(&ua),
+            "user agent should be in default list"
+        );
     }
 
     #[test]
@@ -393,5 +463,30 @@ mod tests {
             .map(|uas| uas.random_or_fallback().to_string())
             .unwrap_or_else(|_| FALLBACK_USER_AGENT.to_string());
         assert_eq!(ua, FALLBACK_USER_AGENT);
+    }
+
+    /// Regression test: UA provider returning oversized response body must be rejected.
+    #[tokio::test]
+    async fn test_regression_ua_provider_oversized_response_rejected() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+
+        // Spawn a mock server returning HTTP 200 with Content-Length exceeding MAX_USER_AGENT_BODY_BYTES
+        tokio::spawn(async move {
+            if let Ok((mut socket, _)) = listener.accept().await {
+                let mut buf = [0u8; 1024];
+                let _ = socket.read(&mut buf).await;
+                let response =
+                    "HTTP/1.1 200 OK\r\nContent-Length: 2000000\r\nConnection: close\r\n\r\n";
+                let _ = socket.write_all(response.as_bytes()).await;
+                let _ = socket.flush().await;
+            }
+        });
+
+        let client = reqwest::Client::new();
+        let url = format!("http://127.0.0.1:{port}/");
+
+        let result = fetch_user_agents(&client, &url).await;
+        assert!(matches!(result, Err(UserAgentError::NetworkError(_))));
     }
 }
