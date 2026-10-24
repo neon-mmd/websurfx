@@ -154,9 +154,31 @@ function getClientSettings() {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', getClientSettings)
-} else {
+function initSettingsEventListeners() {
   getClientSettings()
+
+  document
+    .querySelectorAll('.settings_container .sidebar .btn')
+    .forEach((tab) => tab.addEventListener('click', () => setActiveTab(tab)))
+
+  document
+    .querySelector('#save-settings')
+    ?.addEventListener('click', setClientSettings)
+
+  document
+    .querySelector('#restore-settings')
+    ?.addEventListener('submit', () => {
+      setTimeout(() => window.location.reload(), 10)
+    })
+
+  document
+    .querySelector('.select_all')
+    ?.addEventListener('change', toggleAllSelection)
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSettingsEventListeners)
+} else {
+  initSettingsEventListeners()
 }
 

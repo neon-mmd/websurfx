@@ -38,7 +38,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                @if engine_names.values().all(|selected| *selected){
                    .toggle_btn{
                       label class="switch"{
-                         input type="checkbox" class="select_all" onchange="toggleAllSelection()" checked;
+                         input type="checkbox" class="select_all" checked;
                          span class="slider round"{}
                       }
                       "Select All"
@@ -47,7 +47,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                @else{
                    .toggle_btn {
                       label class="switch"{
-                         input type="checkbox" class="select_all" onchange="toggleAllSelection()";
+                         input type="checkbox" class="select_all";
                          span class="slider round"{}
                       }
                       "Select All"
