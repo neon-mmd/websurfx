@@ -41,14 +41,18 @@ function setClientSettingsOnPage(cookie) {
       engine_checkbox.checked = true
     })
   } else {
+    if (document.querySelector('.select_all')) {
+      document.querySelector('.select_all').checked = false
+    }
     engines.forEach((engines_checkbox) => {
       engines_checkbox.checked = false
     })
     engines_cookie.forEach((engine_name) => {
       engines.forEach((engine_checkbox) => {
         if (
+          engine_checkbox.value === engine_name.trim() ||
           engine_checkbox.parentNode.parentNode.innerText.trim() ===
-          engine_name.trim()
+            engine_name.trim()
         ) {
           engine_checkbox.checked = true
         }

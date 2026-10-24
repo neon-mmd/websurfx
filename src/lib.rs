@@ -84,6 +84,8 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
             .add(CacheControl(vec![CacheDirective::MaxAge(
                 config.http_cache_expiry_time as u32,
             )]))
+            // Strict Content Security Policy: scripts and styles are restricted to 'self',
+            // requiring unobtrusive event listeners rather than inline HTML event handlers.
             .add((
                 header::CONTENT_SECURITY_POLICY,
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
