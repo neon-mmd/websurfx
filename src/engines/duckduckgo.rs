@@ -1,6 +1,6 @@
-//! The `duckduckgo` module handles the scraping of results from the duckduckgo search engine
-//! by querying the upstream duckduckgo search engine with user provided query and with a page
-//! number if provided.
+// Rust guideline compliant 2026-10-09
+
+//! The `duckduckgo` module handles scraping results from the DuckDuckGo search engine.
 
 use std::collections::HashMap;
 
@@ -9,22 +9,25 @@ use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use error_stack::{Report, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
+use super::url_encode;
 
-/// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
-/// reduce code duplication as well as allows to create vector of different search engines easily.
+/// A DuckDuckGo engine handler implementing the [`SearchEngine`] trait.
 pub struct DuckDuckGo {
-    /// The parser, used to interpret the search result.
+    /// The parser used to interpret search results.
     parser: SearchResultParser,
 }
 
 impl DuckDuckGo {
-    /// Creates the DuckDuckGo parser.
+    /// Creates a new DuckDuckGo parser.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`EngineError`] if CSS selector compilation fails.
     pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
@@ -46,21 +49,27 @@ impl SearchEngine for DuckDuckGo {
         page: u32,
         user_agent: &str,
         client: &Client,
-        _safe_search: u8,
+        safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
-        // Page number can be missing or empty string and so appropriate handling is required
-        // so that upstream server recieves valid page number.
+        let kp = match safe_search {
+            0 => "-2",
+            1 => "-1",
+            _ => "1",
+        };
+
+        let encoded_query = url_encode(query);
         let url: String = if page == 0 {
-            format!("https://html.duckduckgo.com/html/?q={query}&s=&dc=&v=1&o=json&api=/d.js")
-        } else {
             format!(
-                "https://duckduckgo.com/html/?q={query}&s={}&dc={}&v=1&o=json&api=/d.js",
-                page * 30,
-                page * 30 + 1
+                "https://html.duckduckgo.com/html/?q={encoded_query}&s=&dc=&v=1&o=json&api=/d.js&kp={kp}"
+            )
+        } else {
+            let s = page.saturating_mul(30);
+            let dc = s.saturating_add(1);
+            format!(
+                "https://duckduckgo.com/html/?q={encoded_query}&s={s}&dc={dc}&v=1&o=json&api=/d.js&kp={kp}"
             )
         };
 
-        // initializing HeaderMap and adding appropriate headers.
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
             ("Referer".to_string(), "https://google.com/".to_string()),
@@ -68,7 +77,7 @@ impl SearchEngine for DuckDuckGo {
                 "Content-Type".to_string(),
                 "application/x-www-form-urlencoded".to_string(),
             ),
-            ("Cookie".to_string(), "kl=wt-wt".to_string()),
+            ("Cookie".to_string(), format!("kl=wt-wt; kp={kp}")),
         ]))
         .change_context(EngineError::UnexpectedError)?;
 
@@ -80,13 +89,22 @@ impl SearchEngine for DuckDuckGo {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
-        // scrape all the results from the html
         self.parser
             .parse_for_results(&document, |title, url, desc| {
+                let raw_url = url.text().collect::<String>();
+                let trimmed_url = raw_url.trim();
+                let full_url =
+                    if trimmed_url.starts_with("http://") || trimmed_url.starts_with("https://") {
+                        trimmed_url.to_string()
+                    } else {
+                        format!("https://{trimmed_url}")
+                    };
+                let clean_title = title.text().collect::<String>();
+                let clean_desc = desc.text().collect::<String>();
                 Some(SearchResult::new(
-                    title.inner_html().trim(),
-                    &format!("https://{}", url.inner_html().trim()),
-                    desc.inner_html().trim(),
+                    clean_title.trim(),
+                    &full_url,
+                    clean_desc.trim(),
                     &["duckduckgo"],
                 ))
             })

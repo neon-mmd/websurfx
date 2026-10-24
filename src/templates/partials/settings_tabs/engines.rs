@@ -1,8 +1,19 @@
-//! A module that handles the engines tab for setting page view in the `websurfx` frontend.
+// Rust guideline compliant 2026-10-09
+
+//! The engines settings tab view for configuring search engines.
 
 use std::collections::HashMap;
 
 use maud::{Markup, html};
+
+/// Formats an engine name with an uppercase first letter without panicking on empty or UTF-8 strings.
+fn format_engine_name(name: &str) -> String {
+    let mut chars = name.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
+}
 
 /// A functions that handles the html code for the engines tab for the settings page for the search page.
 ///
@@ -46,6 +57,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                }
                hr;
                @for (engine_name, selected) in engine_names{
+                   @let label_text = format_engine_name(engine_name);
                    // Checks whether the `engine_name` is selected or not if they are then the
                    // checked `engine` button is rendered otherwise the unchecked version is
                    // rendered.
@@ -55,7 +67,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                               input type="checkbox" class="engine" checked;
                               span class="slider round"{}
                            }
-                           (format!("{}{}",&engine_name[..1].to_uppercase(), &engine_name[1..]))
+                           (label_text)
                        }
                    }
                    @else {
@@ -64,7 +76,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                               input type="checkbox" class="engine";
                               span class="slider round"{}
                            }
-                           (format!("{}{}",&engine_name[..1], &engine_name[1..]))
+                           (label_text)
                        }
                    }
                }

@@ -1,3 +1,5 @@
+// Rust guideline compliant 2026-10-09
+
 //! This module provides the tests for each page whether they work as intended or not.
 
 use tokio::{net::TcpListener, sync::OnceCell};
@@ -17,7 +19,7 @@ async fn spawn_app() -> String {
         .get_or_try_init(|| async move {
             Config::parse(false)
                 .await
-                .map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e.to_string()))
+                .map_err(|e| std::io::Error::other(e.to_string()))
         })
         .await
         .unwrap();

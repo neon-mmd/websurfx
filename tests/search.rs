@@ -1,3 +1,5 @@
+// Rust guideline compliant 2026-10-09
+
 //! Integration tests for the search endpoint and user agent stability.
 
 use tokio::{net::TcpListener, sync::OnceCell};

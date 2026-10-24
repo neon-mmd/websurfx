@@ -1,3 +1,5 @@
+// Rust guideline compliant 2026-10-09
+
 //! This module provides the memory cache structures for enabling the use of memory caching.
 
 use super::{
@@ -34,6 +36,7 @@ impl Cacher for InMemoryCache {
             cache: Arc::new(
                 MokaCache::builder()
                     .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
+                    .max_capacity(10_000)
                     .build(),
             ),
         }

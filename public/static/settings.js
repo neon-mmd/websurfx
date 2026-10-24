@@ -77,7 +77,7 @@ function setClientSettings() {
   // Save the cookie to the user's machine
   document.cookie = `appCookie=${JSON.stringify(
     cookie_dictionary,
-  )}; expires=${expiration_date.toUTCString()}`
+  )}; expires=${expiration_date.toUTCString()}; path=/; SameSite=Lax`
 
   // Display a success message to the user
   document.querySelector('.message').innerText =

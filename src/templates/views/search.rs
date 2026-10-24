@@ -1,9 +1,11 @@
+// Rust guideline compliant 2026-10-09
+
 //! A module that handles the view for the search page in the `websurfx` frontend.
 
 use maud::{Markup, PreEscaped, html};
 
 use crate::{
-    models::aggregation::SearchResults,
+    models::aggregation::{SearchResults, is_safe_url},
     templates::partials::{footer::footer, header::header, search_bar::search_bar},
 };
 
@@ -34,10 +36,15 @@ pub fn search(
            .results_aggregated{
               @if !search_results.results.is_empty() {
                   @for result in search_results.results.iter(){
+                      @let safe_url = if is_safe_url(&result.url) {
+                          result.url.as_str()
+                      } else {
+                          "#"
+                      };
                       .result {
-                         h1{a href=(result.url){(PreEscaped(&result.title))}}
-                         small{(result.url)}
-                         p{(PreEscaped(&result.description))}
+                         h1{a href=(safe_url) rel="noopener noreferrer" {(result.title)}}
+                         small{(safe_url)}
+                         p{(result.description)}
                          .upstream_engines{
                             @for name in &result.engine {
                                span{(name)}
@@ -108,11 +115,12 @@ pub fn search(
                  }
               }
             }
+            @let encoded_query = crate::engines::url_encode(query);
             .page_navigation {
-               a href=(format!("/search?q={}&safesearch={}&page={}", query, search_results.safe_search_level, if page > 1 {page-1} else {1})) {
+               a href=(format!("/search?q={}&safesearch={}&page={}", encoded_query, search_results.safe_search_level, if page > 1 { page.saturating_sub(1) } else { 1 })) {
                    (PreEscaped("&#8592;")) "previous"
                }
-               a href=(format!("/search?q={}&safesearch={}&page={}", query, search_results.safe_search_level, page+2)) {
+               a href=(format!("/search?q={}&safesearch={}&page={}", encoded_query, search_results.safe_search_level, page.saturating_add(2))) {
                   "next" (PreEscaped("&#8594;"))}
             }
         }
@@ -120,4 +128,62 @@ pub fn search(
         script src="static/error_box.js"{}
         (footer())
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::aggregation::SearchResult;
+
+    #[test]
+    fn test_search_view_xss_escaping() {
+        let malicious_result = SearchResult::new(
+            "<script>alert(1)</script>",
+            "javascript:alert(document.cookie)",
+            "<img src=\"x\" onerror=\"alert(1)\">",
+            &["duckduckgo"],
+        );
+
+        let search_results = SearchResults::new(Box::new([malicious_result]), Box::new([]));
+
+        let rendered = search(
+            "catppuccin-mocha",
+            "simple",
+            &None,
+            "test query",
+            0,
+            &search_results,
+        )
+        .into_string();
+
+        // Raw malicious script tags must NOT be present in title or description
+        assert!(
+            !rendered.contains("<script>alert(1)</script>"),
+            "Raw script tag found in rendered HTML"
+        );
+        assert!(
+            !rendered.contains("<img src=\"x\" onerror=\"alert(1)\">"),
+            "Raw img tag found in rendered HTML"
+        );
+
+        // Escaped versions MUST be present
+        assert!(
+            rendered.contains("&lt;script&gt;alert(1)&lt;/script&gt;"),
+            "Escaped title was not found, rendered was: {rendered}"
+        );
+        assert!(
+            rendered.contains("&lt;img src=&quot;x&quot; onerror=&quot;alert(1)&quot;&gt;"),
+            "Escaped description was not found, rendered was: {rendered}"
+        );
+
+        // Malicious javascript: URL must be neutralized to "#"
+        assert!(
+            !rendered.contains("href=\"javascript:alert(document.cookie)\""),
+            "Dangerous javascript: URL found in href"
+        );
+        assert!(
+            rendered.contains("href=\"#\""),
+            "Safe placeholder '#' href was not found"
+        );
+    }
 }

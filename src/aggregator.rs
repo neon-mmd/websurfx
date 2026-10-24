@@ -1,6 +1,8 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
+// Rust guideline compliant 2026-10-09
+
 use crate::handler::{FileType, file_path};
 use crate::models::{
     aggregation::{EngineErrorInfo, SearchResult, SearchResults},
@@ -11,7 +13,6 @@ use crate::parser::Config;
 use error_stack::Report;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::slice::ParallelSliceMut;
-use regex::Regex;
 use reqwest::{Client, ClientBuilder};
 use std::sync::Arc;
 use tokio::task::JoinSet;
@@ -81,6 +82,7 @@ pub async fn aggregate(
     let client = CLIENT.get_or_init(|| {
         let mut cb = ClientBuilder::new()
             .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .redirect(reqwest::redirect::Policy::none()) // Prevent SSRF and open redirect hopping
             .pool_idle_timeout(Duration::from_secs(
                 config.pool_idle_connection_timeout as u64,
             ))
@@ -105,7 +107,8 @@ pub async fn aggregate(
             cb = cb.proxy(config.proxy.clone().unwrap());
         }
 
-        cb.build().unwrap()
+        cb.build()
+            .expect("Failed to initialize upstream HTTP client")
     });
 
     // create tasks for upstream result fetching
@@ -225,30 +228,31 @@ pub async fn filter_with_lists(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let reader = BufReader::new(File::open(file_path).await?);
     let mut lines = reader.lines();
+    let mut patterns = Vec::new();
 
     while let Some(line) = lines.next_line().await? {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
+        let trimmed = line.trim().to_string();
+        if !trimmed.is_empty() {
+            patterns.push(trimmed);
         }
-        let re = Regex::new(trimmed)?;
+    }
 
-        let mut length = map_to_be_filtered.len();
-        let mut idx: usize = Default::default();
-        // Iterate over each search result in the map and check if it matches the regex pattern
-        while idx < length {
-            let ele = &map_to_be_filtered[idx];
-            let ele_inner = &ele.1;
-            // If the search result matches the regex pattern, move it from the original map to the resultant map
-            if re.is_match(&ele.0.to_lowercase())
-                || re.is_match(&ele_inner.title.to_lowercase())
-                || re.is_match(&ele_inner.description.to_lowercase())
-            {
-                resultant_map.push(map_to_be_filtered.swap_remove(idx));
-                length -= 1;
-            } else {
-                idx += 1;
-            }
+    if patterns.is_empty() {
+        return Ok(());
+    }
+
+    let set = regex::RegexSet::new(&patterns)?;
+
+    let mut idx = 0;
+    while idx < map_to_be_filtered.len() {
+        let (url, res) = &map_to_be_filtered[idx];
+        let url_lower = url.to_lowercase();
+        let title_lower = res.title.to_lowercase();
+        let desc_lower = res.description.to_lowercase();
+        if set.is_match(&url_lower) || set.is_match(&title_lower) || set.is_match(&desc_lower) {
+            resultant_map.push(map_to_be_filtered.swap_remove(idx));
+        } else {
+            idx += 1;
         }
     }
 
@@ -451,7 +455,7 @@ mod tests {
 
         // Create a temporary file with empty lines and whitespace
         let mut file = NamedTempFile::new()?;
-        writeln!(file, "")?;
+        writeln!(file)?;
         writeln!(file, "   ")?;
         writeln!(file, "\n")?;
         file.flush()?;

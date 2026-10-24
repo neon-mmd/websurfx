@@ -1,3 +1,5 @@
+// Rust guideline compliant 2026-10-09
+
 //! This module handles the settings and download route of the search engine website.
 
 use crate::{
@@ -9,13 +11,12 @@ use actix_multipart::form::{MultipartForm, tempfile::TempFile};
 use actix_web::{
     HttpRequest, HttpResponse,
     cookie::{
-        Cookie,
+        Cookie, SameSite,
         time::{Duration, OffsetDateTime},
     },
     get, post, web,
 };
 use std::borrow::Cow;
-use std::io::Read;
 
 use tokio::fs::read_dir;
 
@@ -66,7 +67,7 @@ async fn style_option_list(
 /// # Error
 ///
 /// returns a standard error message on failure otherwise it returns the unit type.
-async fn sanitize(
+pub(crate) async fn sanitize(
     config: web::Data<&'static Config>,
     setting_value: &mut models::search_route::Cookie<'_>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -98,27 +99,23 @@ async fn sanitize(
             .map(|str| Cow::Borrowed(str.as_str()));
     }
 
-    // Filters out any engines in the list that are invalid by matching each engine against the
-    // available engine list.
+    // Filters out any engines in the list that are disabled or invalid by matching each engine against the
+    // server-enabled engine list.
     let engines: Vec<_> = setting_value
         .engines
         .iter()
-        .cloned()
-        .filter_map(|engine| {
+        .filter(|&engine| {
             config
                 .upstream_search_engines
-                .keys()
-                .any(|other_engine| *engine == *other_engine)
-                .then_some(engine.clone())
+                .get(engine.as_ref())
+                .copied()
+                .unwrap_or(false)
         })
+        .cloned()
         .collect();
     setting_value.engines = Cow::Owned(engines);
 
-    setting_value.safe_search_level = if setting_value.safe_search_level < 2 {
-        setting_value.safe_search_level
-    } else {
-        u8::default()
-    };
+    setting_value.safe_search_level = setting_value.safe_search_level.min(4);
 
     Ok(())
 }
@@ -126,16 +123,25 @@ async fn sanitize(
 /// A multipart struct which stores user provided input file data in memory.
 #[derive(MultipartForm)]
 struct File {
-    /// It stores the input file data in memory.
+    /// It stores the input file data in memory with a 16 KiB size cap.
+    #[multipart(limit = "16 KiB")]
     file: TempFile,
 }
 
 /// Handles the route of the post settings page.
 #[post("/settings")]
 pub async fn set_settings(
+    req: HttpRequest,
     config: web::Data<&'static Config>,
-    MultipartForm(mut form): MultipartForm<File>,
+    MultipartForm(form): MultipartForm<File>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
+    // CSRF defense: reject cross-site requests to settings modification endpoint
+    if let Some(sec_fetch_site) = req.headers().get("sec-fetch-site")
+        && sec_fetch_site == "cross-site"
+    {
+        return Ok(HttpResponse::Forbidden().body("Cross-site request blocked"));
+    }
+
     if let Some(file_name) = form.file.file_name {
         let mut file_name_parts = file_name.split('.');
         if file_name_parts.clone().count() >= 2 && file_name_parts.next_back() == Some("json") {
@@ -143,10 +149,10 @@ pub async fn set_settings(
                 return Ok(HttpResponse::BadRequest().finish());
             }
 
-            let mut data = String::new();
-            if form.file.file.read_to_string(&mut data).is_err() {
-                return Ok(HttpResponse::BadRequest().finish());
-            }
+            let data = match tokio::fs::read_to_string(form.file.file.path()).await {
+                Ok(content) => content,
+                Err(_) => return Ok(HttpResponse::BadRequest().finish()),
+            };
 
             let mut unsanitized_json_data: models::search_route::Cookie<'_> =
                 match serde_json::from_str(&data) {
@@ -159,8 +165,11 @@ pub async fn set_settings(
             let sanitized_json_data: String = serde_json::json!(unsanitized_json_data).to_string();
 
             return Ok(HttpResponse::Ok()
+                .insert_header(("Cache-Control", "no-store, private"))
                 .cookie(
                     Cookie::build("appCookie", sanitized_json_data)
+                        .path("/")
+                        .same_site(SameSite::Lax)
                         .expires(OffsetDateTime::now_utc().saturating_add(Duration::weeks(52)))
                         .finish(),
                 )
@@ -197,5 +206,56 @@ pub async fn download(
             )
         });
 
-    Ok(HttpResponse::Ok().json(preferences))
+    Ok(HttpResponse::Ok()
+        .insert_header(("Cache-Control", "no-store, private"))
+        .json(preferences))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::borrow::Cow;
+
+    #[tokio::test]
+    async fn test_sanitize_preserves_safesearch_and_filters_disabled_engines() {
+        let config = Box::leak(Box::new(Config::parse(true).await.unwrap()));
+        let data = web::Data::new(config as &'static Config);
+
+        // Test safe_search_level 0..=4 are preserved (not reset to 0)
+        for level in 0..=4 {
+            let mut cookie = models::search_route::Cookie {
+                theme: Cow::Borrowed("simple"),
+                colorscheme: Cow::Borrowed("catppuccin-mocha"),
+                animation: None,
+                engines: Cow::Owned(vec![
+                    Cow::Borrowed("bing"),
+                    Cow::Borrowed("nonexistent_engine_xyz"),
+                ]),
+                safe_search_level: level,
+            };
+            sanitize(data.clone(), &mut cookie).await.unwrap();
+            assert_eq!(
+                cookie.safe_search_level, level,
+                "SafeSearch level {level} was incorrectly modified"
+            );
+            // nonexistent_engine_xyz should have been stripped out
+            assert!(
+                !cookie
+                    .engines
+                    .contains(&Cow::Borrowed("nonexistent_engine_xyz")),
+                "Disabled or invalid engine was not filtered"
+            );
+        }
+
+        // Test level 5 is clamped to 4
+        let mut cookie = models::search_route::Cookie {
+            theme: Cow::Borrowed("simple"),
+            colorscheme: Cow::Borrowed("catppuccin-mocha"),
+            animation: None,
+            engines: Cow::Owned(vec![Cow::Borrowed("duckduckgo")]),
+            safe_search_level: 5,
+        };
+        sanitize(data.clone(), &mut cookie).await.unwrap();
+        assert_eq!(cookie.safe_search_level, 4);
+    }
 }

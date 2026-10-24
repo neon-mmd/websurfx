@@ -1,10 +1,16 @@
-//! This module provides the error enum to handle different errors associated while requesting data from
-//! the upstream search engines with the search query provided by the user.
+// Rust guideline compliant 2026-10-09
+
+//! Error models and search engine traits for upstream search providers.
 
 use super::aggregation::SearchResult;
 use error_stack::{Report, ResultExt};
 use reqwest::Client;
 use std::fmt;
+
+/// Maximum allowed response body size (2 MiB) for upstream engine responses.
+///
+/// Prevents denial-of-service from memory exhaustion or decompression bombs.
+pub const MAX_UPSTREAM_RESPONSE_BYTES: usize = 2 * 1024 * 1024;
 
 /// A custom error type used for handle engine associated errors.
 #[derive(Debug)]
@@ -77,16 +83,37 @@ pub trait SearchEngine: Sync + Send {
         header_map: reqwest::header::HeaderMap,
         client: &Client,
     ) -> EngineResult<String> {
-        // fetch the html from upstream search engine
-        Ok(client
+        let mut resp = client
             .get(url)
-            .headers(header_map) // add spoofed headers to emulate human behavior
+            .headers(header_map)
             .send()
             .await
-            .change_context(EngineError::RequestError)?
-            .text()
+            .change_context(EngineError::RequestError)?;
+
+        if let Some(len) = resp.content_length()
+            && len > MAX_UPSTREAM_RESPONSE_BYTES as u64
+        {
+            return Err(Report::new(EngineError::RequestError).attach(format!(
+                "Upstream response length {len} exceeds limit of {MAX_UPSTREAM_RESPONSE_BYTES} bytes"
+            )));
+        }
+
+        let mut body = Vec::new();
+        while let Some(chunk) = resp
+            .chunk()
             .await
-            .change_context(EngineError::RequestError)?)
+            .change_context(EngineError::RequestError)?
+        {
+            if body.len() + chunk.len() > MAX_UPSTREAM_RESPONSE_BYTES {
+                return Err(Report::new(EngineError::RequestError).attach(format!(
+                    "Upstream response exceeded limit of {MAX_UPSTREAM_RESPONSE_BYTES} bytes"
+                )));
+            }
+            body.extend_from_slice(&chunk);
+        }
+
+        Ok(String::from_utf8(body)
+            .unwrap_or_else(|e| String::from_utf8_lossy(&e.into_bytes()).to_string()))
     }
 
     /// This helper function fetches/requests the json search results from the upstream search engine as a vector of bytes.
@@ -111,18 +138,36 @@ pub trait SearchEngine: Sync + Send {
         header_map: reqwest::header::HeaderMap,
         client: &Client,
     ) -> EngineResult<Vec<u8>> {
-        // fetch the json response from upstream search engine
-
-        Ok(client
+        let mut resp = client
             .get(url)
-            .headers(header_map) // add spoofed headers to emulate human behavior
+            .headers(header_map)
             .send()
             .await
-            .change_context(EngineError::RequestError)?
-            .bytes()
+            .change_context(EngineError::RequestError)?;
+
+        if let Some(len) = resp.content_length()
+            && len > MAX_UPSTREAM_RESPONSE_BYTES as u64
+        {
+            return Err(Report::new(EngineError::RequestError).attach(format!(
+                "Upstream response length {len} exceeds limit of {MAX_UPSTREAM_RESPONSE_BYTES} bytes"
+            )));
+        }
+
+        let mut body = Vec::new();
+        while let Some(chunk) = resp
+            .chunk()
             .await
             .change_context(EngineError::RequestError)?
-            .to_vec())
+        {
+            if body.len() + chunk.len() > MAX_UPSTREAM_RESPONSE_BYTES {
+                return Err(Report::new(EngineError::RequestError).attach(format!(
+                    "Upstream response exceeded limit of {MAX_UPSTREAM_RESPONSE_BYTES} bytes"
+                )));
+            }
+            body.extend_from_slice(&chunk);
+        }
+
+        Ok(body)
     }
 
     /// This function scrapes results from the upstream engine and puts all the scraped results like

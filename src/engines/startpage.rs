@@ -1,6 +1,6 @@
-//! The `startpage` module handles the scraping of results from the startpage search engine
-//! by querying the upstream startpage search engine with user provided query and with a page
-//! number if provided.
+// Rust guideline compliant 2026-10-09
+
+//! The `startpage` module handles scraping results from the Startpage search engine.
 
 use std::collections::HashMap;
 
@@ -9,22 +9,25 @@ use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use error_stack::{Report, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
+use super::url_encode;
 
-/// A new Startpage engine type defined in-order to implement the `SearchEngine` trait which allows to
-/// reduce code duplication as well as allows to create vector of different search engines easily.
+/// A Startpage engine handler implementing the [`SearchEngine`] trait.
 pub struct Startpage {
-    /// The parser, used to interpret the search result.
+    /// The parser used to interpret search results.
     parser: SearchResultParser,
 }
 
 impl Startpage {
-    /// Creates the Startpage parser.
+    /// Creates a new Startpage parser.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`EngineError`] if CSS selector compilation fails.
     pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
@@ -46,16 +49,15 @@ impl SearchEngine for Startpage {
         page: u32,
         user_agent: &str,
         client: &Client,
-        _safe_search: u8,
+        safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
-        // Page number can be missing or empty string and so appropriate handling is required
-        // so that upstream server recieves valid page number.
-        let url: String = format!(
-            "https://startpage.com/do/dsearch?q={query}&num=10&start={}",
-            page * 10,
-        );
+        let encoded_query = url_encode(query);
+        let start = page.saturating_mul(10);
+        let url: String =
+            format!("https://startpage.com/do/dsearch?q={encoded_query}&num=10&start={start}",);
 
-        // initializing HeaderMap and adding appropriate headers.
+        let disable_family_filter = if safe_search == 0 { "1" } else { "0" };
+
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
             ("Referer".to_string(), "https://google.com/".to_string()),
@@ -63,7 +65,7 @@ impl SearchEngine for Startpage {
                 "Content-Type".to_string(),
                 "application/x-www-form-urlencoded".to_string(),
             ),
-            ("Cookie".to_string(), "preferences=connect_to_serverEEE0N1Ndate_timeEEEworldN1Ndisable_family_filterEEE0N1Ndisable_open_in_new_windowEEE0N1Nenable_post_methodEEE1N1Nenable_proxy_safety_suggestEEE1N1Nenable_stay_controlEEE0N1Ninstant_answersEEE1N1Nlang_homepageEEEs%2Fnight%2FenN1NlanguageEEEenglishN1Nlanguage_uiEEEenglishN1Nnum_of_resultsEEE10N1Nsearch_results_regionEEEallN1NsuggestionsEEE1N1Nwt_unitEEEcelsius".to_string()),
+            ("Cookie".to_string(), format!("preferences=connect_to_serverEEE0N1Ndate_timeEEEworldN1Ndisable_family_filterEEE{disable_family_filter}N1Ndisable_open_in_new_windowEEE0N1Nenable_post_methodEEE1N1Nenable_proxy_safety_suggestEEE1N1Nenable_stay_controlEEE0N1Ninstant_answersEEE1N1Nlang_homepageEEEs%2Fnight%2FenN1NlanguageEEEenglishN1Nlanguage_uiEEEenglishN1Nnum_of_resultsEEE10N1Nsearch_results_regionEEEallN1NsuggestionsEEE1N1Nwt_unitEEEcelsius")),
         ]))
         .change_context(EngineError::UnexpectedError)?;
 
@@ -75,13 +77,21 @@ impl SearchEngine for Startpage {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
-        // scrape all the results from the html
         self.parser
             .parse_for_results(&document, |title, url, desc| {
+                let clean_url = url
+                    .attr("href")
+                    .map(|h| h.trim().to_string())
+                    .unwrap_or_else(|| url.text().collect::<String>().trim().to_string());
+                if clean_url.is_empty() {
+                    return None;
+                }
+                let clean_title = title.text().collect::<String>();
+                let clean_desc = desc.text().collect::<String>();
                 Some(SearchResult::new(
-                    title.inner_html().trim(),
-                    url.inner_html().trim(),
-                    desc.inner_html().trim(),
+                    clean_title.trim(),
+                    &clean_url,
+                    clean_desc.trim(),
                     &["startpage"],
                 ))
             })
