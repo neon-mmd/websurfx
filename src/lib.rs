@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Main application server and routing configuration for Websurfx.
 
 mod aggregator;

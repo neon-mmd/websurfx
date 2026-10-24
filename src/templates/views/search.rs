@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! A module that handles the view for the search page in the `websurfx` frontend.
 
 use maud::{Markup, PreEscaped, html};

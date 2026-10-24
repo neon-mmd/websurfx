@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! This module provides the functionality to handle different routes of the `websurfx`
 //! meta search engine website and provide appropriate response to each route/page
 //! when requested.

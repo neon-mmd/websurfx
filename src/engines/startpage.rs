@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `startpage` module handles scraping results from the Startpage search engine.
 
 use std::collections::HashMap;

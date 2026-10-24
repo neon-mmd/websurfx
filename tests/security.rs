@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Integration tests verifying security hardening and audit remediations.
 //!
 //! Tests covers HTTP 404 status codes, query length limits, security headers,

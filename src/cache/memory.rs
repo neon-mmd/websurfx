@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! This module provides the memory cache structures for enabling the use of memory caching.
 
 use super::{

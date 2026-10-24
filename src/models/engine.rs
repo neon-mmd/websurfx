@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Error models and search engine traits for upstream search providers.
 
 use super::aggregation::SearchResult;

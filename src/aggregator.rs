@@ -1,8 +1,6 @@
 //! This module provides the functionality to scrape and gathers all the results from the upstream
 //! search engines and then removes duplicate results.
 
-// Rust guideline compliant 2026-10-09
-
 use crate::handler::{FileType, file_path};
 use crate::models::{
     aggregation::{EngineErrorInfo, SearchResult, SearchResults},

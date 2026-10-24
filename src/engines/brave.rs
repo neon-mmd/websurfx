@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `brave` module handles scraping results from the Brave search engine.
 
 use std::collections::HashMap;

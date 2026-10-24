@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `bing` module handles scraping results from the Bing search engine.
 
 use std::collections::HashMap;

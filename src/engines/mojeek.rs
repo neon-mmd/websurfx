@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `mojeek` module handles scraping results from the Mojeek search engine.
 
 use std::collections::HashMap;

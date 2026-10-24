@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `duckduckgo` module handles scraping results from the DuckDuckGo search engine.
 
 use std::collections::HashMap;

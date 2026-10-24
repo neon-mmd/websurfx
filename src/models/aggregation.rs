@@ -1,8 +1,6 @@
 //! This module provides public models for handling, storing and serializing of search results
 //! data scraped from the upstream search engines.
 
-// Rust guideline compliant 2026-10-09
-
 use super::engine::EngineError;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};

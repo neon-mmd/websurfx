@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The engines settings tab view for configuring search engines.
 
 use std::collections::HashMap;

@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `searx` module handles scraping results from a Searx search engine instance.
 
 use reqwest::Client;

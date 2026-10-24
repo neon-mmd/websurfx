@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Models to parse cookies and search parameters.
 //!
 use super::parser::Style;

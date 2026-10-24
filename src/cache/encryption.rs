@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Encryption primitives for securing cached search results.
 
 use chacha20poly1305::ChaCha20Poly1305;

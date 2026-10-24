@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! This module handles the settings and download route of the search engine website.
 
 use crate::{

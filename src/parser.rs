@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Configuration parser and models for `config.lua`.
 
 use crate::handler::{FileType, file_path};

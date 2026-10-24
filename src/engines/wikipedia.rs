@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `wikipedia` module handles scraping results from Wikipedia.
 
 use std::collections::HashMap;

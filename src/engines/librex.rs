@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `librex` module contains the implementation of a search engine for LibreX.
 
 use std::collections::HashMap;

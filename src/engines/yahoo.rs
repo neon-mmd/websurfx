@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! The `yahoo` module handles scraping results from the Yahoo search engine.
 
 use error_stack::{Report, ResultExt};

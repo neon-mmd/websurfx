@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! Engine integrations for querying upstream search providers.
 //!
 //! Submodules implement the [`SearchEngine`] trait to query upstream engines,

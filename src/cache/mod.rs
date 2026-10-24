@@ -1,8 +1,6 @@
 //! This module provides the modules which provide the functionality to cache the aggregated
 //! results fetched and aggregated from the upstream search engines in a json format.
 
-// Rust guideline compliant 2026-10-09
-
 use crate::{models::aggregation::SearchResults, parser::Config};
 use arc_swap::ArcSwap;
 use error::{CacheError, CacheResult};

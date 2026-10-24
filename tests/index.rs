@@ -1,5 +1,3 @@
-// Rust guideline compliant 2026-10-09
-
 //! This module provides the tests for each page whether they work as intended or not.
 
 use tokio::{net::TcpListener, sync::OnceCell};
