@@ -19,10 +19,9 @@
 ///
 /// # Maintenance & Freshness
 ///
-/// The versions contained here (Chrome 133, Firefox 135, Safari 18.3, Edge 133) represent
-/// modern browser releases. Maintainers should update these version strings during
-/// regular release cycles to prevent upstream search engines from detecting stale
-/// user agents as automated traffic.
+/// The versions contained here (Chrome 133, Firefox 135, Safari 18.3, Edge 133) were
+/// released in early 2025 and are no longer current. Maintainers should update these
+/// version strings during regular release cycles.
 pub static DEFAULT_USER_AGENTS: &[&str] = &[
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
