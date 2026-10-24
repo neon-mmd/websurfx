@@ -1,0 +1,8 @@
+.results_aggregated .result {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.results_aggregated .result:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

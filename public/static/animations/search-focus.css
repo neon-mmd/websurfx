@@ -1,0 +1,8 @@
+.search_bar input {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.search_bar input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--foreground-color) 15%, transparent);
+}
