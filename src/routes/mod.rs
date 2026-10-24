@@ -32,14 +32,16 @@ pub async fn index(
 pub async fn not_found(
     config: web::Data<&'static Config>,
 ) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
-        crate::templates::views::not_found::not_found(
-            &config.style.colorscheme,
-            &config.style.theme,
-            &config.style.animation,
-        )
-        .0,
-    ))
+    Ok(HttpResponse::NotFound()
+        .content_type(ContentType::html())
+        .body(
+            crate::templates::views::not_found::not_found(
+                &config.style.colorscheme,
+                &config.style.theme,
+                &config.style.animation,
+            )
+            .0,
+        ))
 }
 
 /// Handles the route of robots.txt page of the `websurfx` meta search engine website.

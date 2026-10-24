@@ -64,7 +64,7 @@ function setClientSettings() {
 
   document.querySelectorAll('.engine').forEach((engine_checkbox) => {
     if (engine_checkbox.checked) {
-      engines.push(engine_checkbox.parentNode.parentNode.innerText.trim())
+      engines.push(engine_checkbox.value)
     }
   })
 
@@ -77,7 +77,7 @@ function setClientSettings() {
   // Save the cookie to the user's machine
   document.cookie = `appCookie=${JSON.stringify(
     cookie_dictionary,
-  )}; expires=${expiration_date.toUTCString()}`
+  )}; expires=${expiration_date.toUTCString()}; path=/; SameSite=Lax`
 
   // Display a success message to the user
   document.querySelector('.message').innerText =
@@ -153,3 +153,10 @@ function getClientSettings() {
     }
   }
 }
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', getClientSettings)
+} else {
+  getClientSettings()
+}
+
