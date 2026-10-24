@@ -12,10 +12,12 @@ use websurfx::{parser::Config, run};
 /// A dhat heap memory profiler
 #[cfg(feature = "dhat-heap")]
 #[global_allocator]
+/// Global allocator using dhat for memory profiling.
 static ALLOC: dhat::Alloc = dhat::Alloc;
 
 #[cfg(not(feature = "dhat-heap"))]
 #[global_allocator]
+/// Global allocator using mimalloc for performance.
 static GLOBAL: MiMalloc = MiMalloc;
 
 /// A static constant for holding the parsed config.
