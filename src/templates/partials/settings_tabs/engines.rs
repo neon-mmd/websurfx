@@ -1,8 +1,17 @@
-//! A module that handles the engines tab for setting page view in the `websurfx` frontend.
+//! The engines settings tab view for configuring search engines.
 
 use std::collections::HashMap;
 
 use maud::{Markup, html};
+
+/// Formats an engine name with an uppercase first letter without panicking on empty or UTF-8 strings.
+fn format_engine_name(name: &str) -> String {
+    let mut chars = name.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
+}
 
 /// A functions that handles the html code for the engines tab for the settings page for the search page.
 ///
@@ -29,7 +38,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                @if engine_names.values().all(|selected| *selected){
                    .toggle_btn{
                       label class="switch"{
-                         input type="checkbox" class="select_all" onchange="toggleAllSelection()" checked;
+                         input type="checkbox" class="select_all" checked;
                          span class="slider round"{}
                       }
                       "Select All"
@@ -38,7 +47,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                @else{
                    .toggle_btn {
                       label class="switch"{
-                         input type="checkbox" class="select_all" onchange="toggleAllSelection()";
+                         input type="checkbox" class="select_all";
                          span class="slider round"{}
                       }
                       "Select All"
@@ -46,29 +55,46 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                }
                hr;
                @for (engine_name, selected) in engine_names{
+                   @let label_text = format_engine_name(engine_name);
                    // Checks whether the `engine_name` is selected or not if they are then the
                    // checked `engine` button is rendered otherwise the unchecked version is
                    // rendered.
                    @if *selected {
                        .toggle_btn{
                            label class="switch"{
-                              input type="checkbox" class="engine" checked;
+                              input type="checkbox" class="engine" value=(engine_name) checked;
                               span class="slider round"{}
                            }
-                           (format!("{}{}",&engine_name[..1].to_uppercase(), &engine_name[1..]))
+                           (label_text)
                        }
                    }
                    @else {
                        .toggle_btn {
                            label class="switch"{
-                              input type="checkbox" class="engine";
+                              input type="checkbox" class="engine" value=(engine_name);
                               span class="slider round"{}
                            }
-                           (format!("{}{}",&engine_name[..1], &engine_name[1..]))
+                           (label_text)
                        }
                    }
                }
            }
         }
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_engines_checkbox_values_contain_raw_engine_key() {
+        let mut map = HashMap::new();
+        map.insert("bing".to_string(), true);
+        map.insert("duckduckgo".to_string(), false);
+
+        let markup = engines(&map).into_string();
+        assert!(markup.contains(r#"value="bing""#));
+        assert!(markup.contains(r#"value="duckduckgo""#));
+    }
 }

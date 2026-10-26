@@ -40,10 +40,10 @@ pub async fn settings(
            hr;
            .settings_container{
               .sidebar{
-                  div class="btn active" onclick="setActiveTab(this)"{"general"}
-                  .btn onclick="setActiveTab(this)"{"user interface"}
-                  .btn onclick="setActiveTab(this)"{"engines"}
-                  .btn onclick="setActiveTab(this)"{"cookies"}
+                  div class="btn active"{"general"}
+                  .btn{"user interface"}
+                  .btn{"engines"}
+                  .btn{"cookies"}
               }
               .main_container{
                   (general(safe_search_level))
@@ -51,7 +51,7 @@ pub async fn settings(
                   (engines(engine_names))
                   (cookies())
                   p class="message"{}
-                  button type="submit" onclick="setClientSettings()"{"Save"}
+                  button type="submit" id="save-settings"{"Save"}
               }
            }
         }

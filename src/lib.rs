@@ -1,12 +1,11 @@
-//! This main library module provides the functionality to provide and handle the Tcp server
-//! and register all the routes for the `websurfx` meta search engine website.
+//! Main application server and routing configuration for Websurfx.
 
 mod aggregator;
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 mod cache;
-mod engines;
+pub mod engines;
 mod handler;
-mod models;
+pub mod models;
 pub mod parser;
 mod routes;
 pub mod templates;
@@ -63,10 +62,17 @@ use tokio::{net::TcpListener, time::Duration};
 pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::Result<Server> {
     let public_folder_path = file_path(FileType::Theme).await?;
 
+    let seconds_per_request = (config.rate_limiter.time_limit as u64).max(1);
+    let burst_size = (config.rate_limiter.number_of_requests as u32).max(1);
+    let governor_conf = GovernorConfigBuilder::default()
+        .seconds_per_request(seconds_per_request)
+        .burst_size(burst_size)
+        .finish()
+        .expect("Valid rate limiter configuration");
+
     let server = HttpServer::new(move || {
         let cors: Cors = Cors::default()
-            .allow_any_origin()
-            .allowed_methods(vec!["GET"])
+            .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![
                 header::ORIGIN,
                 header::CONTENT_TYPE,
@@ -74,37 +80,32 @@ pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::R
                 header::COOKIE,
             ]);
 
+        let default_headers = DefaultHeaders::new()
+            .add(CacheControl(vec![CacheDirective::MaxAge(
+                config.http_cache_expiry_time as u32,
+            )]))
+            // Strict Content Security Policy: scripts and styles are restricted to 'self',
+            // requiring unobtrusive event listeners rather than inline HTML event handlers.
+            .add((
+                header::CONTENT_SECURITY_POLICY,
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
+            ))
+            .add((header::X_CONTENT_TYPE_OPTIONS, "nosniff"))
+            .add((header::X_FRAME_OPTIONS, "DENY"))
+            .add((header::REFERRER_POLICY, "strict-origin-when-cross-origin"));
+
         App::new()
-            // Compress the responses provided by the server for the client requests.
             .wrap(Compress::default())
-            .wrap(Logger::default()) // added logging middleware for logging.
+            // Mask query strings in access logs to preserve user privacy
+            .wrap(Logger::new(r#"%a "%U" %s %b "%{User-Agent}i" %T"#))
             .app_data(web::Data::new(config))
             .wrap(cors)
-            .wrap(Governor::new(
-                &GovernorConfigBuilder::default()
-                    .seconds_per_request(config.rate_limiter.time_limit as u64)
-                    .burst_size(config.rate_limiter.number_of_requests as u32)
-                    .finish()
-                    .unwrap(),
-            ))
-            .wrap(
-                DefaultHeaders::new().add(CacheControl(vec![CacheDirective::MaxAge(
-                    config.http_cache_expiry_time as u32,
-                )])),
-            )
-            // Serve images and static files (css and js files).
-            .service(
-                fs::Files::new("/static", format!("{}/static", public_folder_path))
-                    .show_files_listing(),
-            )
-            .service(
-                fs::Files::new("/favicon", format!("{}/favicon", public_folder_path))
-                    .show_files_listing(),
-            )
-            .service(
-                fs::Files::new("/images", format!("{}/images", public_folder_path))
-                    .show_files_listing(),
-            )
+            .wrap(Governor::new(&governor_conf))
+            .wrap(default_headers)
+            // Serve images and static files without directory browsing
+            .service(fs::Files::new("/static", format!("{}/static", public_folder_path)))
+            .service(fs::Files::new("/favicon", format!("{}/favicon", public_folder_path)))
+            .service(fs::Files::new("/images", format!("{}/images", public_folder_path)))
             .service(routes::robots_data) // robots.txt
             .service(routes::index) // index page
             .service(routes::search::search) // search page

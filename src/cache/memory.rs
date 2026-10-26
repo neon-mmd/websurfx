@@ -34,6 +34,7 @@ impl Cacher for InMemoryCache {
             cache: Arc::new(
                 MokaCache::builder()
                     .time_to_live(Duration::from_secs(config.cache_expiry_time.into()))
+                    .max_capacity(10_000)
                     .build(),
             ),
         }

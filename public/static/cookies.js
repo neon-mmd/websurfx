@@ -35,20 +35,27 @@ function setClientSettingsOnPage(cookie) {
   let engines = document.querySelectorAll('.engine')
   let engines_cookie = cookie_value['engines']
 
+  if (!Array.isArray(engines_cookie)) return
+
   if (engines_cookie.length === engines.length) {
     document.querySelector('.select_all').checked = true
     engines.forEach((engine_checkbox) => {
       engine_checkbox.checked = true
     })
   } else {
+    if (document.querySelector('.select_all')) {
+      document.querySelector('.select_all').checked = false
+    }
     engines.forEach((engines_checkbox) => {
       engines_checkbox.checked = false
     })
     engines_cookie.forEach((engine_name) => {
+      if (typeof engine_name !== 'string') return
       engines.forEach((engine_checkbox) => {
         if (
+          engine_checkbox.value === engine_name.trim() ||
           engine_checkbox.parentNode.parentNode.innerText.trim() ===
-          engine_name.trim()
+            engine_name.trim()
         ) {
           engine_checkbox.checked = true
         }
