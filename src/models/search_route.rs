@@ -1,5 +1,4 @@
-//! This module provides the models to parse cookies and search parameters from the search
-//! engine website.
+//! Models to parse cookies and search parameters.
 //!
 use super::parser::Style;
 use serde::{Deserialize, Serialize};
@@ -24,7 +23,7 @@ pub struct SearchParams {
 
 /// A named struct which is used to deserialize the cookies fetched from the client side.
 #[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Cookie<'a> {
     #[serde(borrow)]
     /// It stores the theme name used in the website.

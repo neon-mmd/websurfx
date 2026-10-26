@@ -1,5 +1,4 @@
-//! The `yahoo` module handles the scraping of results from the yahoo search engine
-//! by querying the upstream yahoo search engine with user provided query and with a page
+//! The `yahoo` module handles scraping results from the Yahoo search engine.
 
 use error_stack::{Report, ResultExt};
 
@@ -13,6 +12,7 @@ use crate::models::aggregation::SearchResult;
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use super::search_result_parser::SearchResultParser;
+use super::url_encode;
 
 /// A new Yahoo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
@@ -126,16 +126,21 @@ impl SearchEngine for Yahoo {
         page: u32,
         user_agent: &str,
         client: &Client,
-        _safe_search: u8,
+        safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
+        let vm = match safe_search {
+            0 => "p",
+            1 => "p",
+            _ => "r",
+        };
+
+        let encoded_query = url_encode(query);
+        let b = page.saturating_mul(10).saturating_add(1);
+
         let url: String = if page == 0 {
-            format!("https://search.yahoo.com/search/?p={}", query)
+            format!("https://search.yahoo.com/search/?p={encoded_query}&vm={vm}")
         } else {
-            format!(
-                "https://search.yahoo.com/search/?p={}&b={}",
-                query,
-                (page * 10) + 1
-            )
+            format!("https://search.yahoo.com/search/?p={encoded_query}&b={b}&vm={vm}")
         };
 
         let header_map = HeaderMap::try_from(&HashMap::from([
@@ -163,14 +168,13 @@ impl SearchEngine for Yahoo {
             .parse_for_results(&document, |title, url, desc| {
                 let cleaned_title = title
                     .attr("aria-label")
-                    .unwrap_or("No Title Found")
-                    .trim()
-                    .to_owned();
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_else(|| title.text().collect::<String>().trim().to_string());
 
                 let raw_url = url.value().attr("href").unwrap_or("No Link Found");
                 let cleaned_url = parse_yahoo_redirect_url(raw_url);
 
-                let cleaned_description = desc.inner_html().trim().to_owned();
+                let cleaned_description = desc.text().collect::<String>().trim().to_owned();
 
                 Some(SearchResult::new(
                     &cleaned_title,

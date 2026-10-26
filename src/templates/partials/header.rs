@@ -34,7 +34,7 @@ pub fn header(colorscheme: &str, theme: &str, animation: &Option<String>) -> Mar
             }
         }
 
-        (PreEscaped("<body onload=\"getClientSettings()\">"))
+        (PreEscaped("<body>"))
             header{
                 h1{a href="/"{"Websurfx"}}
                 (navbar())

@@ -1,6 +1,6 @@
 [package]
 name = "websurfx"
-version = "1.30.0"
+version = "1.31.0"
 edition = "2024"
 description = "An open-source alternative to Searx that provides clean, ad-free, and organic results with incredible speed while keeping privacy and security in mind."
 repository = "https://github.com/neon-mmd/websurfx"
@@ -21,7 +21,7 @@ reqwest = { version = "0.13.5", default-features = false, features = [
     "http2",
     "socks",
 ] }
-tokio = { version = "1.53.3", features = [
+tokio = { version = "1.54.1", features = [
     "rt-multi-thread",
     "macros",
     "fs",
@@ -36,14 +36,14 @@ maud = { version = "0.27.0", default-features = false, features = [
     "actix-web",
 ] }
 scraper = { version = "0.27.0", default-features = false }
-actix-web = { version = "4.17.0", features = [
+actix-web = { version = "4.18.1", features = [
     "cookies",
     "macros",
     "compress-brotli",
 ], default-features = false }
-actix-files = { version = "0.7.1", default-features = false }
+actix-files = { version = "0.7.2", default-features = false }
 actix-cors = { version = "0.7.2", default-features = false }
-fastrand = { version = "2.4.1", default-features = false, features = ["alloc", "std"] }
+fastrand = { version = "2.5.0", default-features = false, features = ["alloc", "std"] }
 env_logger = { version = "0.11.11", default-features = false }
 log = { version = "0.4.34", default-features = false }
 mlua = { version = "0.12.2", features = [
@@ -51,7 +51,7 @@ mlua = { version = "0.12.2", features = [
     "luajit",
     "vendored",
 ], default-features = false }
-redis = { version = "1.7.1", features = [
+redis = { version = "1.8.0", features = [
     "tokio-comp",
     "connection-manager",
 ], default-features = false, optional = true }
@@ -93,7 +93,7 @@ actix-multipart = { version = "0.8.5", default-features = false, features = [
     "derive",
     "tempfile",
 ]}
-webpki-root-certs = { version = "1.0.9", default-features = false }
+webpki-root-certs = { version = "1.0.11", default-features = false }
 
 [dev-dependencies]
 rusty-hook = { version = "0.11.2", default-features = false }

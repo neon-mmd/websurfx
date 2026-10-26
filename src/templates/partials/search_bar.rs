@@ -29,7 +29,7 @@ pub fn search_bar(
             (bar(query))
                 .error_box {
                    @if !engine_errors_info.is_empty(){
-                      button type="button" onclick="toggleErrorBox()" class="error_box_toggle_button"{
+                      button type="button" class="error_box_toggle_button"{
                          img src="./images/warning.svg" alt="Info icon for error box";
                       }
                       .dropdown_error_box{
@@ -43,7 +43,7 @@ pub fn search_bar(
                       }
                    }
                    @else {
-                      button type="button" onclick="toggleErrorBox()" class="error_box_toggle_button"{
+                      button type="button" class="error_box_toggle_button"{
                          img src="./images/info.svg" alt="Warning icon for error box";
                       }
                       .dropdown_error_box {

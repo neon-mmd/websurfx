@@ -16,16 +16,12 @@ use crate::{
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
 use actix_web::{HttpRequest, HttpResponse, ResponseError, get, http::header::ContentType, web};
-use regex::Regex;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{borrow::Cow, time::Duration};
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, BufReader},
 };
-
-#[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 /// A static constant for holding the cache struct.
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
@@ -65,6 +61,30 @@ pub async fn search(
         params_result.unwrap()
     };
 
+    if let Some(ref q) = params.q
+        && q.chars().count() > 512
+    {
+        if let Some(json) = &params.json
+            && *json
+        {
+            return Ok(HttpResponse::BadRequest()
+                .insert_header((
+                    "Cache-Control",
+                    "no-store, no-cache, must-revalidate, private",
+                ))
+                .json(serde_json::json!({
+                    "code": "400",
+                    "error": "Query exceeds maximum allowed length of 512 characters"
+                })));
+        }
+        return Ok(HttpResponse::BadRequest()
+            .insert_header((
+                "Cache-Control",
+                "no-store, no-cache, must-revalidate, private",
+            ))
+            .body("Query exceeds maximum allowed length of 512 characters"));
+    }
+
     let result = fetch_results(req, &config, &params).await?;
 
     if let Some((current_results, query, page)) = result {
@@ -72,28 +92,43 @@ pub async fn search(
             && *json
         {
             return Ok(HttpResponse::Ok()
+                .insert_header((
+                    "Cache-Control",
+                    "no-store, no-cache, must-revalidate, private",
+                ))
                 .content_type(ContentType::json())
                 .json(&current_results));
         }
-        Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
-            crate::templates::views::search::search(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-                &query,
-                page,
-                &current_results,
-            )
-            .0,
-        ))
+        Ok(HttpResponse::Ok()
+            .insert_header((
+                "Cache-Control",
+                "no-store, no-cache, must-revalidate, private",
+            ))
+            .content_type(ContentType::html())
+            .body(
+                crate::templates::views::search::search(
+                    &config.style.colorscheme,
+                    &config.style.theme,
+                    &config.style.animation,
+                    &query,
+                    page,
+                    &current_results,
+                )
+                .0,
+            ))
     } else {
         if let Some(json) = &params.json
             && *json
         {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "code": "400",
-                "error": "Empty query provided"
-            })));
+            return Ok(HttpResponse::BadRequest()
+                .insert_header((
+                    "Cache-Control",
+                    "no-store, no-cache, must-revalidate, private",
+                ))
+                .json(serde_json::json!({
+                    "code": "400",
+                    "error": "Empty query provided"
+                })));
         }
         Ok(HttpResponse::TemporaryRedirect()
             .insert_header(("location", "/"))
@@ -158,6 +193,21 @@ async fn fetch_results(
             )
         });
 
+    // Enforce server policy: filter requested engines against enabled engines in config
+    let effective_engines: Vec<Cow<'_, str>> = search_settings
+        .engines
+        .iter()
+        .filter(|engine| {
+            config
+                .upstream_search_engines
+                .get(engine.as_ref())
+                .copied()
+                .unwrap_or(false)
+        })
+        .cloned()
+        .collect();
+    search_settings.engines = Cow::Owned(effective_engines);
+
     search_settings.safe_search_level = get_safesearch_level(
         params.safesearch,
         search_settings.safe_search_level,
@@ -173,97 +223,48 @@ async fn fetch_results(
 
     let user_agent: &'static str = random_user_agent(config.threads).await?;
 
-    // .max(1) makes sure that the page >= 0.
-    let page = params.page.unwrap_or(1).max(1) - 1;
+    // Clamp page to valid range 1..=50
+    let page = params.page.unwrap_or(1).clamp(1, 50) - 1;
     let query_owned = query.to_owned();
 
     let current_results: SearchResults;
 
     #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
     {
-        let previous_page = page.saturating_sub(1);
-
-        let next_page = page + 1;
-
-        let mut pages = vec![next_page, previous_page, page];
-        pages.dedup();
-
-        let urls: Vec<String> = pages
+        let mut sorted_engines: Vec<String> = search_settings
+            .engines
             .iter()
-            .map(|page| {
-                format!(
-                    "http://{}:{}/search?q={}&page={}&safesearch={}&engines={}",
-                    config.binding_ip,
-                    config.port,
-                    query,
-                    page,
-                    search_settings.safe_search_level,
-                    search_settings.engines.join(",")
-                )
-            })
+            .map(|e| e.to_string())
             .collect();
+        sorted_engines.sort();
+        sorted_engines.dedup();
 
-        let mut cache_keys: Vec<String> =
-            tokio::task::spawn_blocking(move || urls.par_iter().cloned().map(hash_url).collect())
-                .await?;
+        let current_page_cache_key = canonical_cache_key(
+            query,
+            page,
+            search_settings.safe_search_level,
+            &sorted_engines,
+        );
 
-        let current_page_cache_key = cache_keys.pop().unwrap();
-
-        // Use match to avoid eagerly evaluating the upstream fetch on cache hits.
         current_results = match cache.cached_results(&current_page_cache_key).await {
             Ok(cached) => cached,
             Err(_) => {
                 let fetched_results =
                     results(config, &query_owned, page, &search_settings, user_agent).await?;
                 let fetched_results_clone = fetched_results.clone();
-                tokio::spawn(async move {
-                    cache
-                        .cache_results(&[fetched_results], &[current_page_cache_key])
-                        .await
-                });
-                fetched_results_clone
-            }
-        };
-
-        if let Ok(resolved_results) = cache.cached_results_exists(&cache_keys).await {
-            let cache_results_not_exists: (Vec<String>, Vec<u32>) = resolved_results
-                .iter()
-                .zip(cache_keys.iter())
-                .zip(pages.iter())
-                .filter(|resolved_result| !*resolved_result.0.0)
-                .map(|resolved_result| (resolved_result.0.1.to_string(), *resolved_result.1))
-                .unzip();
-
-            // TODO: Move the entire fetch+cache into a background tokio::spawn
-            // for non-blocking responses. Currently blocked by `results()`
-            // returning `Box<dyn Error>` (not Send); fixing this would require
-            // changing the error type to `Box<dyn Error + Send>` across the
-            // codebase.
-            if !cache_results_not_exists.0.is_empty() {
-                let tasks = cache_results_not_exists
-                    .1
-                    .iter()
-                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-                if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+                if !fetched_results.no_engines_selected()
+                    && !fetched_results.disallowed
+                    && !fetched_results.results().is_empty()
+                {
                     tokio::spawn(async move {
                         let _ = cache
-                            .cache_results(&fetched_results, &cache_results_not_exists.0)
+                            .cache_results(&[fetched_results], &[current_page_cache_key])
                             .await;
                     });
                 }
+                fetched_results_clone
             }
-        } else {
-            // TODO: Same as above — spawn the entire fetch+cache once results()
-            // returns Send-safe errors.
-            let tasks = pages
-                .iter()
-                .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-            if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
-                tokio::spawn(async move {
-                    let _ = cache.cache_results(&fetched_results, &cache_keys).await;
-                });
-            }
-        }
+        };
     }
 
     #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
@@ -304,10 +305,10 @@ async fn results(
     if safe_search_level == 4 {
         let mut results: SearchResults = SearchResults::default();
 
-        let flag: bool =
-            !is_match_from_filter_list(&file_path(FileType::BlockList).await?, query).await?;
-        // Return early when query contains disallowed words,
-        if flag {
+        let is_blocked: bool =
+            is_match_from_filter_list(&file_path(FileType::BlockList).await?, query).await?;
+        // Return early when query contains disallowed words
+        if is_blocked {
             results.set_disallowed();
             results.set_safe_search_level(safe_search_level);
             return Ok(results);
@@ -326,6 +327,13 @@ async fn results(
             &search_settings
                 .engines
                 .iter()
+                .filter(|engine| {
+                    config
+                        .upstream_search_engines
+                        .get(engine.as_ref())
+                        .copied()
+                        .unwrap_or(false)
+                })
                 .filter_map(|engine| EngineHandler::new(engine).ok())
                 .collect::<Vec<EngineHandler>>(),
             safe_search_level,
@@ -348,14 +356,33 @@ async fn results(
     Ok(results)
 }
 
-/// A helper function which computes the hash of the url and formats and returns it as string.
+/// Computes an unambiguous canonical cache key for a search request.
+///
+/// Encodes query, page number, safe search level, and sorted enabled engines
+/// using length prefixes to prevent collision and delimiter-injection attacks.
 ///
 /// # Arguments
 ///
-/// * `url` - It takes an url as string.
+/// * `query` - Search query string.
+/// * `page` - Zero-based page index.
+/// * `safe_search_level` - Active SafeSearch level.
+/// * `sorted_engines` - Slice of sorted upstream engine names.
+///
+/// # Returns
+///
+/// Returns a hex-encoded BLAKE3 hash representing the canonical cache key.
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-fn hash_url(url: String) -> String {
-    blake3::hash(url.as_bytes()).to_string()
+pub fn canonical_cache_key(
+    query: &str,
+    page: u32,
+    safe_search_level: u8,
+    sorted_engines: &[String],
+) -> String {
+    let mut key = format!("v2|q:{query}|p:{page}|s:{safe_search_level}|e:");
+    for engine in sorted_engines {
+        key.push_str(&format!("{}:{}|", engine.len(), engine));
+    }
+    blake3::hash(key.as_bytes()).to_string()
 }
 
 /// A helper function which checks whether the search query contains any keywords which should be
@@ -376,14 +403,18 @@ async fn is_match_from_filter_list(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let reader = BufReader::new(File::open(file_path).await?);
     let mut lines = reader.lines();
+    let mut patterns = Vec::new();
     while let Some(line) = lines.next_line().await? {
-        let re = Regex::new(&line)?;
-        if re.is_match(query) {
-            return Ok(true);
+        let trimmed = line.trim().to_string();
+        if !trimmed.is_empty() {
+            patterns.push(trimmed);
         }
     }
-
-    Ok(false)
+    if patterns.is_empty() {
+        return Ok(false);
+    }
+    let set = regex::RegexSet::new(&patterns)?;
+    Ok(set.is_match(query))
 }
 
 /// A helper function to choose the safe search level value based on the URL parameters,
@@ -404,12 +435,13 @@ fn get_safesearch_level(
     cookie_safe_search_level: u8,
     config_safe_search_level: u8,
 ) -> u8 {
-    (u8::from(safe_search_level_from_url.is_some())
+    let raw = (u8::from(safe_search_level_from_url.is_some())
         * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
             + (u8::from(config_safe_search_level < 3) * safe_search_level_from_url.unwrap_or(0))))
         + (u8::from(safe_search_level_from_url.is_none())
             * ((u8::from(config_safe_search_level >= 3) * config_safe_search_level)
-                + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)))
+                + (u8::from(config_safe_search_level < 3) * cookie_safe_search_level)));
+    raw.min(4)
 }
 
 #[cfg(test)]
@@ -472,6 +504,56 @@ mod tests {
         assert_eq!(
             safe_search_level_value_from_branched_code,
             safe_search_level_value_from_branchless_code
+        );
+    }
+
+    #[test]
+    fn test_get_safesearch_level_clamping() {
+        // SafeSearch levels 0..=4 should be preserved without truncation
+        assert_eq!(super::get_safesearch_level(Some(0), 0, 0), 0);
+        assert_eq!(super::get_safesearch_level(Some(1), 0, 0), 1);
+        assert_eq!(super::get_safesearch_level(Some(2), 0, 0), 2);
+        assert_eq!(super::get_safesearch_level(Some(3), 0, 0), 3);
+        assert_eq!(super::get_safesearch_level(Some(4), 0, 0), 4);
+        // Level 5 and above clamped to 4
+        assert_eq!(super::get_safesearch_level(Some(5), 0, 0), 4);
+        assert_eq!(super::get_safesearch_level(Some(99), 0, 0), 4);
+    }
+
+    #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+    #[test]
+    fn test_canonical_cache_key_unambiguous() {
+        let engines_separate = vec!["bing".to_string(), "duckduckgo".to_string()];
+        let engines_combined = vec!["bing,duckduckgo".to_string()];
+
+        let key1 = super::canonical_cache_key("cats", 0, 1, &engines_separate);
+        let key2 = super::canonical_cache_key("cats", 0, 1, &engines_combined);
+
+        // Different engine arrays must produce distinct hashes even if comma-separated representation looks similar
+        assert_ne!(key1, key2);
+
+        // Deterministic
+        assert_eq!(
+            key1,
+            super::canonical_cache_key("cats", 0, 1, &engines_separate)
+        );
+
+        // Different query
+        assert_ne!(
+            key1,
+            super::canonical_cache_key("dogs", 0, 1, &engines_separate)
+        );
+
+        // Different page
+        assert_ne!(
+            key1,
+            super::canonical_cache_key("cats", 1, 1, &engines_separate)
+        );
+
+        // Different safe search level
+        assert_ne!(
+            key1,
+            super::canonical_cache_key("cats", 0, 2, &engines_separate)
         );
     }
 }
