@@ -25,23 +25,30 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
-      - name: Ensure initial tag exists
+      - name: Clean invalid tags and ensure initial tag exists
         run: |
+          # Delete malformed vl.22.3 tag from remote and prevent re-fetching
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/vl.22.3" 2>/dev/null || true
+          git config --add remote.origin.fetch "^refs/tags/vl*"
+          git tag -d vl.22.3 2>/dev/null || true
           git fetch --tags
+          git tag -d vl.22.3 2>/dev/null || true
           if ! git tag -l "v*" | grep -q .; then
             git tag v0.0.0
-            git push origin v0.0.0
+            git push origin v0.0.0 || true
           fi
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Bump version and push tag
         id: version-bump
         uses: hennejg/github-tag-action@v4.4.0
         with:
-          github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
           release_branches: rolling
       - name: create branch
         uses: peterjgrainger/action-create-branch@v4.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
         with:
           branch: update-from-${{ github.sha }}
       - name: update cargo.toml
@@ -60,15 +67,24 @@ jobs:
       # create PR using GitHub CLI
       - name: create PR with update info
         id: create-pr
-        run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
+        run: |
+          gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action' || {
+            echo "::warning::Unable to create update PR with the current token. Ensure ADMIN_RIGHTS_TOKEN is provided or 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
+            exit 1
+          }
         env:
-          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
       # merge PR using GitHub CLI
       - name: merge PR with update info
         id: merge-pr
-        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
+        run: |
+          gh pr merge --admin --merge --subject 'Merge update info' --delete-branch || \
+          gh pr merge --merge --subject 'Merge update info' --delete-branch || {
+            echo "::warning::Unable to merge update PR. Ensure token has PR merge permissions or branch protection permits action merge."
+            exit 1
+          }
         env:
-          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
   build-linux:
     name: build linux binaries
     needs: build
@@ -123,12 +139,12 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
-          token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          token: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           name: ${{ needs.build.outputs.release_tag }}
           tag_name: ${{ needs.build.outputs.release_tag }}
           prerelease: false
           files: |
-            websurfx-*/websurfx-*
+            websurfx-*/*
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
