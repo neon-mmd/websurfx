@@ -144,6 +144,7 @@ jobs:
           name: ${{ needs.build.outputs.release_tag }}
           tag_name: ${{ needs.build.outputs.release_tag }}
           prerelease: false
+          make_latest: false
           files: |
             websurfx-*/*
         env:
