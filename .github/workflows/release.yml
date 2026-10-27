@@ -27,26 +27,13 @@ jobs:
           fetch-depth: 0
       - name: Clean invalid tags and ensure initial tag exists
         run: |
-          # Fetch remote tag list and prevent non-SemVer tags from being fetched
-          git ls-remote --tags origin | awk '{print $2}' | sed 's|^refs/tags/||' | grep -v '\^{}' | while read -r tag; do
-            if ! echo "$tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-              # Attempt to delete the invalid tag on the remote repository via GitHub API and git push
-              gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$tag" 2>/dev/null || true
-              git push origin ":refs/tags/$tag" 2>/dev/null || true
-              # Configure negative refspec so git fetch --tags in subsequent actions will not fetch it
-              git config --add remote.origin.fetch "^refs/tags/$tag"
-              # Delete invalid tag locally if already present
-              git tag -d "$tag" 2>/dev/null || true
-            fi
-          done
+          # Delete malformed vl.22.3 tag from remote and prevent re-fetching
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/vl.22.3" 2>/dev/null || true
+          git config --add remote.origin.fetch "^refs/tags/vl*"
+          git tag -d vl.22.3 2>/dev/null || true
           git fetch --tags
-          # Delete any remaining local tags that do not conform strictly to anchored SemVer format
-          git tag -l | while read -r t; do
-            if ! echo "$t" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-              git tag -d "$t" 2>/dev/null || true
-            fi
-          done
-          if ! git tag -l | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+          git tag -d vl.22.3 2>/dev/null || true
+          if ! git tag -l "v*" | grep -q .; then
             git tag v0.0.0
             git push origin v0.0.0 || true
           fi
@@ -83,6 +70,7 @@ jobs:
         run: |
           gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action' || {
             echo "::warning::Unable to create update PR with the current token. Ensure ADMIN_RIGHTS_TOKEN is provided or 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
+            exit 1
           }
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
@@ -93,6 +81,7 @@ jobs:
           gh pr merge --admin --merge --subject 'Merge update info' --delete-branch || \
           gh pr merge --merge --subject 'Merge update info' --delete-branch || {
             echo "::warning::Unable to merge update PR. Ensure token has PR merge permissions or branch protection permits action merge."
+            exit 1
           }
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
