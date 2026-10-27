@@ -27,20 +27,26 @@ jobs:
           fetch-depth: 0
       - name: Clean invalid tags and ensure initial tag exists
         run: |
-          # Exclude malformed tags like vl.* from being fetched
-          git config --add remote.origin.fetch "^refs/tags/vl*"
-          # Attempt to delete the invalid tag on the remote repository via GitHub API
-          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/vl.22.3" 2>/dev/null || true
-          # Delete invalid tag locally if already present
-          git tag -d vl.22.3 2>/dev/null || true
+          # Fetch remote tag list and prevent non-SemVer tags from being fetched
+          git ls-remote --tags origin | awk '{print $2}' | sed 's|^refs/tags/||' | grep -v '\^{}' | while read -r tag; do
+            if ! echo "$tag" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              # Attempt to delete the invalid tag on the remote repository via GitHub API and git push
+              gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$tag" 2>/dev/null || true
+              git push origin ":refs/tags/$tag" 2>/dev/null || true
+              # Configure negative refspec so git fetch --tags in subsequent actions will not fetch it
+              git config --add remote.origin.fetch "^refs/tags/$tag"
+              # Delete invalid tag locally if already present
+              git tag -d "$tag" 2>/dev/null || true
+            fi
+          done
           git fetch --tags
-          # Delete any local tags that do not conform to v<number> SemVer format
+          # Delete any remaining local tags that do not conform strictly to anchored SemVer format
           git tag -l | while read -r t; do
-            if ! echo "$t" | grep -qE '^v[0-9]+'; then
+            if ! echo "$t" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
               git tag -d "$t" 2>/dev/null || true
             fi
           done
-          if ! git tag -l "v[0-9]*" | grep -q .; then
+          if ! git tag -l | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
             git tag v0.0.0
             git push origin v0.0.0 || true
           fi
@@ -74,13 +80,20 @@ jobs:
       # create PR using GitHub CLI
       - name: create PR with update info
         id: create-pr
-        run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
+        run: |
+          gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action' || {
+            echo "::warning::Unable to create update PR with the current token. Ensure ADMIN_RIGHTS_TOKEN is provided or 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
+          }
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
       # merge PR using GitHub CLI
       - name: merge PR with update info
         id: merge-pr
-        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch || gh pr merge --merge --subject 'Merge update info' --delete-branch
+        run: |
+          gh pr merge --admin --merge --subject 'Merge update info' --delete-branch || \
+          gh pr merge --merge --subject 'Merge update info' --delete-branch || {
+            echo "::warning::Unable to merge update PR. Ensure token has PR merge permissions or branch protection permits action merge."
+          }
         env:
           GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
   build-linux:
