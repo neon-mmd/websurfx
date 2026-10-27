@@ -25,23 +25,37 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
-      - name: Ensure initial tag exists
+      - name: Clean invalid tags and ensure initial tag exists
         run: |
+          # Exclude malformed tags like vl.* from being fetched
+          git config --add remote.origin.fetch "^refs/tags/vl*"
+          # Attempt to delete the invalid tag on the remote repository via GitHub API
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/vl.22.3" 2>/dev/null || true
+          # Delete invalid tag locally if already present
+          git tag -d vl.22.3 2>/dev/null || true
           git fetch --tags
-          if ! git tag -l "v*" | grep -q .; then
+          # Delete any local tags that do not conform to v<number> SemVer format
+          git tag -l | while read -r t; do
+            if ! echo "$t" | grep -qE '^v[0-9]+'; then
+              git tag -d "$t" 2>/dev/null || true
+            fi
+          done
+          if ! git tag -l "v[0-9]*" | grep -q .; then
             git tag v0.0.0
-            git push origin v0.0.0
+            git push origin v0.0.0 || true
           fi
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Bump version and push tag
         id: version-bump
         uses: hennejg/github-tag-action@v4.4.0
         with:
-          github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          github_token: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
           release_branches: rolling
       - name: create branch
         uses: peterjgrainger/action-create-branch@v4.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
         with:
           branch: update-from-${{ github.sha }}
       - name: update cargo.toml
@@ -62,13 +76,13 @@ jobs:
         id: create-pr
         run: gh pr create --base rolling --head update-from-${{ github.sha }} --title 'Merge new update into rolling' --body 'Created by Github action'
         env:
-          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
       # merge PR using GitHub CLI
       - name: merge PR with update info
         id: merge-pr
-        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch
+        run: gh pr merge --admin --merge --subject 'Merge update info' --delete-branch || gh pr merge --merge --subject 'Merge update info' --delete-branch
         env:
-          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
   build-linux:
     name: build linux binaries
     needs: build
@@ -123,12 +137,12 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v3
         with:
-          token: ${{ secrets.ADMIN_RIGHTS_TOKEN }}
+          token: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           name: ${{ needs.build.outputs.release_tag }}
           tag_name: ${{ needs.build.outputs.release_tag }}
           prerelease: false
           files: |
-            websurfx-*/websurfx-*
+            websurfx-*/*
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
