@@ -6,8 +6,13 @@ on:
       - rolling
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publish:
+    if: github.ref == 'refs/heads/rolling'
     strategy:
       fail-fast: false
       matrix:

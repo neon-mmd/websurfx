@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:1.94.1-alpine AS chef
+FROM rust:1.94.1-alpine AS chef
 # We only pay the installation cost once,
 # it will be cached from the second build onwards
 ENV PKG_BASE="alpine-sdk musl-dev g++ make libcrypto3 libressl-dev upx perl build-base"
@@ -12,7 +12,7 @@ FROM chef AS planner
 COPY ./Cargo.toml ./Cargo.lock ./
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM --platform=$BUILDPLATFORM chef AS builder
+FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 # Specify the cache type to use (memory, redis, hybrid, no-cache)
 ARG CACHE=memory
@@ -38,7 +38,7 @@ RUN export ARCH=$(uname -m) \
   && cp /app/target/$ARCH-unknown-linux-musl/release/websurfx /usr/local/bin/websurfx
 
 
-FROM --platform=$BUILDPLATFORM scratch
+FROM scratch
 COPY --from=builder /app/public/ /opt/websurfx/public/
 VOLUME ["/etc/xdg/websurfx/"]
 COPY --from=builder /usr/local/bin/websurfx /usr/local/bin/websurfx
