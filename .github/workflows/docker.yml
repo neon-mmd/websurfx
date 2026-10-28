@@ -7,6 +7,7 @@ on:
 
 jobs:
   publish:
+    if: github.event.release.target_commitish == 'stable' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -47,7 +48,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.ADMIN_RIGHTS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
