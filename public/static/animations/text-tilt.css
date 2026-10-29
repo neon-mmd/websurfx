@@ -1,0 +1,7 @@
+.results_aggregated .result {
+  transition: transform 0.2s ease-out;
+}
+
+.results_aggregated .result:hover {
+  transform: skewX(2deg);
+}
