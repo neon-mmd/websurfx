@@ -21,10 +21,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || 'neonmmd' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -33,10 +36,11 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to Docker Hub
+        if: env.DOCKERHUB_TOKEN != ''
         uses: docker/login-action@v4
         with:
-          username: neonmmd
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -50,8 +54,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: |
-            neonmmd/websurfx
-            ghcr.io/${{ github.repository_owner }}/websurfx
+            name=${{ env.DOCKERHUB_USERNAME }}/websurfx,enable=${{ env.DOCKERHUB_TOKEN != '' }}
+            name=ghcr.io/${{ github.repository_owner }}/websurfx,enable=true
           tags: |
             type=semver,pattern={{raw}},suffix=-${{ matrix.cache }}
             type=raw,value=latest,enable=${{ matrix.cache == 'memory' && !github.event.release.prerelease }}
