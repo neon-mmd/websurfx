@@ -1,6 +1,4 @@
-//! The `brave` module handles the scraping of results from the brave search engine
-//! by querying the upstream brave search engine with user provided query and with a page
-//! number if provided.
+//! The `brave` module handles scraping results from the Brave search engine.
 
 use std::collections::HashMap;
 
@@ -13,6 +11,7 @@ use error_stack::{Report, ResultExt};
 use crate::models::engine::{EngineError, SearchEngine};
 
 use super::search_result_parser::SearchResultParser;
+use super::url_encode;
 
 /// Scrapes the results from the Brave search engine.  
 pub struct Brave {
@@ -45,7 +44,8 @@ impl SearchEngine for Brave {
         client: &Client,
         safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
-        let url = format!("https://search.brave.com/search?q={query}&offset={page}");
+        let encoded_query = url_encode(query);
+        let url = format!("https://search.brave.com/search?q={encoded_query}&offset={page}");
 
         let safe_search_level = match safe_search {
             0 => "off",
@@ -82,10 +82,12 @@ impl SearchEngine for Brave {
         self.parser
             .parse_for_results(&document, |title, url, desc| {
                 url.value().attr("href").map(|url| {
+                    let clean_title = title.text().collect::<String>();
+                    let clean_desc = desc.text().collect::<String>();
                     SearchResult::new(
-                        title.text().collect::<Vec<_>>().join("").trim(),
+                        clean_title.trim(),
                         url.trim(),
-                        desc.inner_html().trim(),
+                        clean_desc.trim(),
                         &["brave"],
                     )
                 })

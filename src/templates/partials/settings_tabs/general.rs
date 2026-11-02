@@ -41,7 +41,7 @@ pub fn general(safe_search_level: u8) -> Markup {
            p class="description"{
                "Select a json file to restore preferences for the search engine."
            }
-           form method="post" enctype="multipart/form-data" onsubmit="setTimeout(function () { window.location.reload(); }, 10)" action="/settings" target="_self"{
+           form id="restore-settings" method="post" enctype="multipart/form-data" action="/settings" target="_self"{
                 input type="file" name="file" accept="application/json";
                 button type="submit" {"Submit"}
            }

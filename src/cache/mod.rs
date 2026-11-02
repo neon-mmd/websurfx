@@ -12,7 +12,6 @@ use redis::RedisCache;
 #[cfg(feature = "memory-cache")]
 use {memory::InMemoryCache, std::sync::Arc};
 
-#[cfg(feature = "redis-cache")]
 #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
 use encryption::*;
 
@@ -67,6 +66,7 @@ trait Cacher: Send + Sync {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
+    #[allow(dead_code)]
     async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>>;
 
     /// A function which caches the results by using the `url` as the key and
@@ -100,14 +100,10 @@ trait Cacher: Send + Sync {
     ///
     /// Returns  either encrypted or decrypted bytes on success otherwise it returns a CacheError
     /// on failure.
-    #[cfg(any(
-      //  feature = "compress-cache-results",
-        feature = "encrypt-cache-results",
-        feature = "cec-cache-results"
-    ))]
+    #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
     async fn encrypt_or_decrypt_results(
         &mut self,
-        mut bytes: Vec<u8>,
+        bytes: Vec<u8>,
         encrypt: bool,
     ) -> CacheResult<Vec<u8>> {
         use chacha20poly1305::{
@@ -122,19 +118,28 @@ trait Cacher: Send + Sync {
                     ChaCha20Poly1305::new(&key)
                 });
 
-                let encryption_key = ENCRYPTION_KEY.get_or_init(Nonce::generate);
-
-                bytes = if encrypt {
-                    cipher
-                        .encrypt(encryption_key, bytes.as_ref())
-                        .map_err(|_| CacheError::EncryptionError)?
+                if encrypt {
+                    // Generate a fresh random 96-bit (12-byte) nonce per entry
+                    let nonce = Nonce::generate();
+                    let ciphertext = cipher
+                        .encrypt(&nonce, bytes.as_ref())
+                        .map_err(|_| CacheError::EncryptionError)?;
+                    let mut output = Vec::with_capacity(12 + ciphertext.len());
+                    output.extend_from_slice(nonce.as_slice());
+                    output.extend_from_slice(&ciphertext);
+                    Ok(output)
                 } else {
-                    cipher
-                        .decrypt(encryption_key, bytes.as_ref())
-                        .map_err(|_| CacheError::EncryptionError)?
-                };
-
-                Ok(bytes)
+                    // Payload must have at least 12 bytes nonce + 16 bytes Poly1305 tag
+                    if bytes.len() < 28 {
+                        return Err(CacheError::EncryptionError);
+                    }
+                    let nonce =
+                        Nonce::try_from(&bytes[..12]).map_err(|_| CacheError::EncryptionError)?;
+                    let plaintext = cipher
+                        .decrypt(&nonce, &bytes[12..])
+                        .map_err(|_| CacheError::EncryptionError)?;
+                    Ok(plaintext)
+                }
             })
             .await
             .map_err(|_| CacheError::EncryptionError)??,
@@ -371,6 +376,7 @@ impl SwitchCache {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
+    #[allow(dead_code)]
     async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
@@ -522,6 +528,7 @@ impl SharedCache {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
+    #[allow(dead_code)]
     pub async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>> {
         self.cache().cached_results_exists(urls).await
     }
@@ -567,5 +574,79 @@ impl SharedCache {
         self.0.store(Arc::new(mut_cache));
 
         cache_results
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
+    use super::*;
+
+    #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
+    struct MockCacher;
+
+    #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
+    #[async_trait::async_trait]
+    impl Cacher for MockCacher {
+        async fn build(_config: &Config) -> Self {
+            Self
+        }
+        async fn cached_results(&mut self, _url: &str) -> CacheResult<SearchResults> {
+            Err(CacheError::MissingValue)
+        }
+        async fn cached_results_exists(&mut self, _urls: &[String]) -> CacheResult<Vec<bool>> {
+            Ok(vec![])
+        }
+        async fn cache_results(
+            &mut self,
+            _search_results: &[SearchResults],
+            _urls: &[String],
+        ) -> CacheResult<()> {
+            Ok(())
+        }
+    }
+
+    #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
+    #[tokio::test]
+    async fn test_chacha20_unique_nonces_and_roundtrip() {
+        let mut cache = MockCacher;
+
+        let plaintext = b"sensitive search results data payload".to_vec();
+
+        // Encrypt the same plaintext twice
+        let ct1 = cache
+            .encrypt_or_decrypt_results(plaintext.clone(), true)
+            .await
+            .unwrap();
+        let ct2 = cache
+            .encrypt_or_decrypt_results(plaintext.clone(), true)
+            .await
+            .unwrap();
+
+        // Nonce uniqueness: ct1 and ct2 MUST differ because a fresh 12-byte random nonce is generated per encryption
+        assert_ne!(
+            ct1, ct2,
+            "Two encryptions produced identical ciphertexts! Nonce reuse detected."
+        );
+
+        // First 12 bytes are the nonce: verify nonces differ
+        assert_ne!(
+            &ct1[..12],
+            &ct2[..12],
+            "Nonces are identical! Nonce reuse detected."
+        );
+
+        // Decrypt ct1
+        let pt1 = cache.encrypt_or_decrypt_results(ct1, false).await.unwrap();
+        assert_eq!(pt1, plaintext);
+
+        // Decrypt ct2
+        let pt2 = cache.encrypt_or_decrypt_results(ct2, false).await.unwrap();
+        assert_eq!(pt2, plaintext);
+
+        // Truncated ciphertext (< 28 bytes) must return error, not panic
+        let truncated = vec![0u8; 15];
+        let err_res = cache.encrypt_or_decrypt_results(truncated, false).await;
+        assert!(err_res.is_err());
     }
 }

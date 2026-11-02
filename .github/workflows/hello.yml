@@ -16,7 +16,10 @@ jobs:
     steps:
       - uses: actions/first-interaction@v3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-message: |-
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_message: |-
             Congrats on making your first Pull Request and thanks for taking the time to improve Websurfx! ❤️!
+            Say hello by joining the conversation in our [Discord](https://discord.gg/SWnda7Mw5u)
+          issue_message: |-
+            Thanks for opening your first issue and thanks for taking the time to improve Websurfx! ❤️!
             Say hello by joining the conversation in our [Discord](https://discord.gg/SWnda7Mw5u)

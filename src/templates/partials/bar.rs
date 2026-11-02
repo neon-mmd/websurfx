@@ -17,7 +17,7 @@ pub fn bar(query: &str) -> Markup {
         (PreEscaped("<form action=\"/search\">"))
         (PreEscaped("<div class=\"search_bar\">"))
             input type="search" name="q" value=(query) placeholder="Type to search";
-            button type="button" onclick="clearSearchText()" {
+            button type="button" class="clear_search_btn" {
                 img src="./images/close.svg" alt="Clear button icon for clearing search input text";
             }
             button type="submit" {

@@ -30,6 +30,31 @@ static PUNCTUATION: std::sync::LazyLock<Vec<String>> = std::sync::LazyLock::new(
     .collect()
 });
 
+/// Validates whether a URL uses an allowlisted safe scheme (`http` or `https`).
+///
+/// Prevents cross-site scripting (XSS) via `javascript:`, `data:`, or `file:` URLs.
+///
+/// # Arguments
+///
+/// * `url` - The candidate URL string to validate.
+///
+/// # Returns
+///
+/// Returns `true` if the URL begins with `http://` or `https://`, `false` otherwise.
+///
+/// # Examples
+///
+/// ```rust
+/// use websurfx::models::aggregation::is_safe_url;
+///
+/// assert!(is_safe_url("https://example.com"));
+/// assert!(!is_safe_url("javascript:alert(1)"));
+/// ```
+pub fn is_safe_url(url: &str) -> bool {
+    let trimmed = url.trim();
+    trimmed.starts_with("http://") || trimmed.starts_with("https://")
+}
+
 /// A named struct to store the raw scraped search results from the
 /// upstream search engines before aggregating it. It derives the Clone trait which is needed
 /// to write idiomatic rust using `Iterators`.
@@ -259,10 +284,7 @@ fn calculate_tf_idf(
         feature = "use-synonyms-search",
         feature = "use-non-static-synonyms-search"
     ))]
-    let extra_tokens: Vec<String> = query_tokens
-        .par_iter()
-        .flat_map(|token| synonyms(token))
-        .collect();
+    let extra_tokens: Vec<String> = query_tokens.par_iter().flat_map(synonyms).collect();
 
     let total_score: f32 = query_tokens
         .par_iter()
@@ -378,5 +400,26 @@ mod tests {
         let info2 = EngineErrorInfo::new(&EngineError::UnexpectedError, "bing");
         assert_eq!(info2.error, "UnexpectedError");
         assert_eq!(info2.severity_color, "red");
+    }
+
+    /// Test is_safe_url correctly accepts http/https and rejects malicious schemes.
+    #[test]
+    fn test_is_safe_url() {
+        // Safe URLs
+        assert!(super::is_safe_url("http://example.com"));
+        assert!(super::is_safe_url("https://example.com/path?arg=val"));
+        assert!(super::is_safe_url("  https://example.com  "));
+
+        // Malicious/unsafe URLs
+        assert!(!super::is_safe_url("javascript:alert(1)"));
+        assert!(!super::is_safe_url("JAVASCRIPT:alert(document.cookie)"));
+        assert!(!super::is_safe_url(
+            "data:text/html,<script>alert(1)</script>"
+        ));
+        assert!(!super::is_safe_url("vbscript:msgbox(1)"));
+        assert!(!super::is_safe_url("file:///etc/passwd"));
+        assert!(!super::is_safe_url(""));
+        assert!(!super::is_safe_url("   "));
+        assert!(!super::is_safe_url("ftp://example.com"));
     }
 }

@@ -64,7 +64,7 @@ function setClientSettings() {
 
   document.querySelectorAll('.engine').forEach((engine_checkbox) => {
     if (engine_checkbox.checked) {
-      engines.push(engine_checkbox.parentNode.parentNode.innerText.trim())
+      engines.push(engine_checkbox.value)
     }
   })
 
@@ -77,7 +77,7 @@ function setClientSettings() {
   // Save the cookie to the user's machine
   document.cookie = `appCookie=${JSON.stringify(
     cookie_dictionary,
-  )}; expires=${expiration_date.toUTCString()}`
+  )}; expires=${expiration_date.toUTCString()}; path=/; SameSite=Lax`
 
   // Display a success message to the user
   document.querySelector('.message').innerText =
@@ -96,60 +96,112 @@ function setClientSettings() {
  * website otherwise the function does nothing and the default server side settings are loaded.
  */
 function getClientSettings() {
-  // Get the appCookie from the user's machine
-  let cookie = decodeURIComponent(document.cookie)
+  // Only the `appCookie` holds the user's saved preferences. Every other cookie
+  // set on this origin (sessions, analytics, other self-hosted apps) is unrelated
+  // and must never be parsed as JSON, otherwise a single unrelated cookie would
+  // throw and abort the whole initialization in `initSettingsEventListeners()`.
+  const app_cookie = document.cookie
+    .split(';')
+    .map((item) => item.trim())
+    .find((item) => item.startsWith('appCookie='))
 
-  // If the cookie is not empty, parse it and use it to set the user's preferences
-  if (cookie.length) {
-    let cookie_value = cookie
-      .split(';')
-      .map((item) => item.split('='))
-      .reduce((acc, [_, v]) => (acc = JSON.parse(v)) && acc, {})
+  if (!app_cookie) return
 
-    let links = Array.from(document.querySelectorAll('link'))
+  let cookie_value
+  try {
+    cookie_value = JSON.parse(
+      decodeURIComponent(app_cookie.slice('appCookie='.length)),
+    )
+  } catch (error) {
+    // Never let a malformed cookie break the page; fall back to the server side
+    // defaults and keep the rest of the initialization running.
+    console.error('Error decoding the saved settings cookie:', error)
+    return
+  }
 
-    // A check to determine whether the animation link exists under the head tag or not.
-    // If it does not exists then create and add a new animation link under the head tag
-    // and update the other link tags href according to the settings provided by the user
-    // via the UI. On the other hand if it does exist then just update all the link tags
-    // href according to the settings provided by the user via the UI.
-    if (!links.some((item) => item.href.includes('static/animations'))) {
-      if (cookie_value['animation']) {
-        let animation_link = document.createElement('link')
-        animation_link.href = `static/animations/${cookie_value['animation']}.css`
-        animation_link.rel = 'stylesheet'
-        animation_link.type = 'text/css'
-        document.querySelector('head').appendChild(animation_link)
+  if (!cookie_value || typeof cookie_value !== 'object') return
+
+  let links = Array.from(document.querySelectorAll('link'))
+
+  // A check to determine whether the animation link exists under the head tag or not.
+  // If it does not exists then create and add a new animation link under the head tag
+  // and update the other link tags href according to the settings provided by the user
+  // via the UI. On the other hand if it does exist then just update all the link tags
+  // href according to the settings provided by the user via the UI.
+  if (!links.some((item) => item.href.includes('static/animations'))) {
+    if (cookie_value['animation']) {
+      let animation_link = document.createElement('link')
+      animation_link.href = `static/animations/${cookie_value['animation']}.css`
+      animation_link.rel = 'stylesheet'
+      animation_link.type = 'text/css'
+      document.querySelector('head').appendChild(animation_link)
+    }
+    // Loop through all link tags and update their href values to match the user's preferences
+    links.forEach((item) => {
+      if (item.href.includes('static/themes') && cookie_value['theme']) {
+        item.href = `static/themes/${cookie_value['theme']}.css`
+      } else if (
+        item.href.includes('static/colorschemes') &&
+        cookie_value['colorscheme']
+      ) {
+        item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
       }
-      // Loop through all link tags and update their href values to match the user's preferences
-      links.forEach((item) => {
-        if (item.href.includes('static/themes')) {
-          item.href = `static/themes/${cookie_value['theme']}.css`
-        } else if (item.href.includes('static/colorschemes')) {
-          item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
-        }
-      })
-    } else {
-      // Loop through all link tags and update their href values to match the user's preferences
-      links.forEach((item) => {
-        if (item.href.includes('static/themes')) {
-          item.href = `static/themes/${cookie_value['theme']}.css`
-        } else if (item.href.includes('static/colorschemes')) {
-          item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
-        } else if (
-          item.href.includes('static/animations') &&
-          cookie_value['animation']
-        ) {
-          item.href = `static/colorschemes/${cookie_value['animation']}.css`
-        }
-      })
-      if (!cookie_value['animation']) {
-        document
-          .querySelector('head')
-          .removeChild(
-            links.filter((item) => item.href.includes('static/animations')),
-          )
+    })
+  } else {
+    // Loop through all link tags and update their href values to match the user's preferences
+    links.forEach((item) => {
+      if (item.href.includes('static/themes') && cookie_value['theme']) {
+        item.href = `static/themes/${cookie_value['theme']}.css`
+      } else if (
+        item.href.includes('static/colorschemes') &&
+        cookie_value['colorscheme']
+      ) {
+        item.href = `static/colorschemes/${cookie_value['colorscheme']}.css`
+      } else if (
+        item.href.includes('static/animations') &&
+        cookie_value['animation']
+      ) {
+        item.href = `static/animations/${cookie_value['animation']}.css`
       }
+    })
+    if (!cookie_value['animation']) {
+      links
+        .filter((item) => item.href.includes('static/animations'))
+        .forEach((item) => item.remove())
     }
   }
+}
+
+function initSettingsEventListeners() {
+  document
+    .querySelectorAll('.settings_container .sidebar .btn')
+    .forEach((tab) => tab.addEventListener('click', () => setActiveTab(tab)))
+
+  document
+    .querySelector('#save-settings')
+    ?.addEventListener('click', setClientSettings)
+
+  document
+    .querySelector('#restore-settings')
+    ?.addEventListener('submit', () => {
+      setTimeout(() => window.location.reload(), 10)
+    })
+
+  document
+    .querySelector('.select_all')
+    ?.addEventListener('change', toggleAllSelection)
+
+  // Restore the saved preferences last, and never let a bad cookie prevent the
+  // event listeners above from being registered.
+  try {
+    getClientSettings()
+  } catch (error) {
+    console.error('Error restoring the saved settings:', error)
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSettingsEventListeners)
+} else {
+  initSettingsEventListeners()
 }

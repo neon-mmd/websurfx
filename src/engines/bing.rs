@@ -1,32 +1,31 @@
-//! The `bing` module handles the scraping of results from the bing search engine
-//! by querying the upstream bing search engine with user provided query and with a page
-//! number if provided.
+//! The `bing` module handles scraping results from the Bing search engine.
 
 use std::collections::HashMap;
 
-use regex::Regex;
 use reqwest::Client;
 use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use error_stack::{Report, ResultExt};
 
-use super::build_cookie;
 use super::search_result_parser::SearchResultParser;
+use super::{build_cookie, url_encode};
 
-/// A new Bing engine type defined in-order to implement the `SearchEngine` trait which allows to
-/// reduce code duplication as well as allows to create vector of different search engines easily.
+/// A Bing engine handler implementing the [`SearchEngine`] trait.
 pub struct Bing {
-    /// The parser, used to interpret the search result.
+    /// The parser used to interpret search results.
     parser: SearchResultParser,
 }
 
 impl Bing {
-    /// Creates the Bing parser.
+    /// Creates a new Bing parser.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`EngineError`] if CSS selector compilation fails.
     pub fn new() -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
@@ -48,18 +47,25 @@ impl SearchEngine for Bing {
         page: u32,
         user_agent: &str,
         client: &Client,
-        _safe_search: u8,
+        safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
-        // Bing uses `start results from this number` convention
-        // So, for 10 results per page, page 0 starts at 1, page 1
-        // starts at 11, and so on.
-        let results_per_page = 10;
-        let start_result = results_per_page * page + 1;
+        // Bing uses 1-based indexing for search result pagination.
+        let results_per_page: u32 = 10;
+        let start_result = results_per_page.saturating_mul(page).saturating_add(1);
 
+        let adlt = match safe_search {
+            0 => "off",
+            1 => "demote",
+            _ => "strict",
+        };
+
+        let encoded_query = url_encode(query);
         let url: String = if page == 0 {
-            format!("https://www.bing.com/search?q={query}")
+            format!("https://www.bing.com/search?q={encoded_query}&adlt={adlt}")
         } else {
-            format!("https://www.bing.com/search?q={query}&first={start_result}")
+            format!(
+                "https://www.bing.com/search?q={encoded_query}&first={start_result}&adlt={adlt}"
+            )
         };
 
         let query_params: Vec<(&str, &str)> = vec![
@@ -68,7 +74,7 @@ impl SearchEngine for Bing {
             ("_Rwho=u", "d"),
             ("bngps=s", "0"),
             ("_UR=QS=0&TQS", "0"),
-            ("_UR=QS=0&TQS", "0"),
+            ("adlt", adlt),
         ];
 
         let cookie_string = build_cookie(&query_params);
@@ -88,9 +94,6 @@ impl SearchEngine for Bing {
             &Bing::fetch_html_from_upstream(self, &url, header_map, client).await?,
         );
 
-        // Bing is very aggressive in finding matches
-        // even with the most absurd of queries. ".b_algo" is the
-        // class for the list item of results
         if let Some(no_result_msg) = self.parser.parse_for_no_results(&document).nth(0)
             && no_result_msg
                 .value()
@@ -101,16 +104,15 @@ impl SearchEngine for Bing {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
-        let re_span = Regex::new(r#"<span.*?>.*?(?:</span>&nbsp;·|</span>)"#).unwrap();
-        let re_strong = Regex::new(r#"(<strong>|</strong>)"#).unwrap();
-
-        // scrape all the results from the html
         self.parser
             .parse_for_results(&document, |title, url, desc| {
+                let href = url.value().attr("href")?;
+                let clean_title = title.text().collect::<String>();
+                let clean_desc = desc.text().collect::<String>();
                 Some(SearchResult::new(
-                    &re_strong.replace_all(title.inner_html().trim(), ""),
-                    url.value().attr("href").unwrap(),
-                    &re_span.replace_all(desc.inner_html().trim(), ""),
+                    clean_title.trim(),
+                    href.trim(),
+                    clean_desc.trim(),
                     &["bing"],
                 ))
             })

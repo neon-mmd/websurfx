@@ -1,11 +1,10 @@
-//! This module provides the functionality to parse the lua config and convert the config options
-//! into rust readable form.
+//! Configuration parser and models for `config.lua`.
 
 use crate::handler::{FileType, file_path};
 
 use crate::models::parser::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
-use mlua::Lua;
+use mlua::{Lua, LuaOptions, StdLib};
 use reqwest::Proxy;
 use std::{collections::HashMap, fs, thread::available_parallelism};
 
@@ -75,7 +74,11 @@ impl Config {
     /// or io error if the config.lua file doesn't exists otherwise it returns a newly constructed
     /// Config struct with all the parsed config options from the parsed config file.
     pub async fn parse(logging_initialized: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        let lua = Lua::new();
+        // Restrict Lua execution to safe math/string/table standard libraries (no os/io/package/debug)
+        let lua = Lua::new_with(
+            StdLib::TABLE | StdLib::STRING | StdLib::MATH,
+            LuaOptions::default(),
+        )?;
         let globals = lua.globals();
 
         lua.load(&fs::read_to_string(file_path(FileType::Config).await?)?)
@@ -86,7 +89,10 @@ impl Config {
 
         let debug: bool = globals.get("debug")?;
         let logging: bool = globals.get("logging")?;
-        let adaptive_window: bool = globals.get("adaptive_window")?;
+        let adaptive_window: bool = globals
+            .get("adaptive_window")
+            .or_else(|_| globals.get("https_adaptive_window_size"))
+            .unwrap_or(true);
 
         if !logging_initialized {
             set_logging_level(debug, logging);
@@ -170,8 +176,11 @@ impl Config {
             threads,
             client_connection_keep_alive: globals.get("client_connection_keep_alive")?,
             rate_limiter: RateLimiter {
-                number_of_requests: rate_limiter["number_of_requests"],
-                time_limit: rate_limiter["time_limit"],
+                number_of_requests: rate_limiter
+                    .get("number_of_requests")
+                    .copied()
+                    .unwrap_or(20),
+                time_limit: rate_limiter.get("time_limit").copied().unwrap_or(3),
             },
             safe_search,
             #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
@@ -207,4 +216,40 @@ fn set_logging_level(debug: bool, logging: bool) {
     };
 
     env_logger::Builder::new().filter(None, log_level).init();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_lua_sandbox_blocks_os_and_io() {
+        let lua = Lua::new_with(
+            StdLib::TABLE | StdLib::STRING | StdLib::MATH,
+            LuaOptions::default(),
+        )
+        .unwrap();
+
+        // Attempting to use `os.execute` must fail because `os` is not in the safe stdlib set
+        let os_result = lua.load("os.execute('echo hacked')").exec_async().await;
+        assert!(
+            os_result.is_err(),
+            "Expected os.execute to fail in sandboxed Lua"
+        );
+
+        // Attempting to use `io.open` must fail because `io` is not loaded
+        let io_result = lua.load("io.open('/etc/passwd')").exec_async().await;
+        assert!(
+            io_result.is_err(),
+            "Expected io.open to fail in sandboxed Lua"
+        );
+
+        // Allowed libraries (math, string, table) work normally
+        let safe_result: i32 = lua
+            .load("return math.max(10, 20)")
+            .eval_async()
+            .await
+            .unwrap();
+        assert_eq!(safe_result, 20);
+    }
 }

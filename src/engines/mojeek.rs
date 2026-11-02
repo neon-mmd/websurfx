@@ -1,6 +1,4 @@
-//! The `mojeek` module handles the scraping of results from the mojeek search engine
-//! by querying the upstream mojeek search engine with user provided query and with a page
-//! number if provided.
+//! The `mojeek` module handles scraping results from the Mojeek search engine.
 
 use std::collections::HashMap;
 
@@ -9,13 +7,12 @@ use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
-
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
 use error_stack::{Report, ResultExt};
 
 use super::search_result_parser::SearchResultParser;
-use super::{build_cookie, build_query};
+use super::{build_cookie, build_query, url_encode};
 
 /// A new Mojeek engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
@@ -74,7 +71,8 @@ impl SearchEngine for Mojeek {
             "You",
         ];
 
-        let qss = search_engines.join("%2C");
+        let qss_url = search_engines.join(",");
+        let qss_cookie = search_engines.join("%2C");
 
         // A branchless condition to check whether the `safe_search` parameter has the
         // value 0 or not. If it is zero then it sets the value 0 otherwise it sets
@@ -104,19 +102,28 @@ impl SearchEngine for Mojeek {
             ("ref", "1"),
             ("hp", "minimal"),
             ("lb", "en"),
-            ("qss", &qss),
+            ("qss", &qss_url),
             ("safe", &safe),
         ];
 
         let query_params_string = build_query(&query_params);
+        let encoded_query = url_encode(query);
 
         let url: String = if page == 0 {
-            format!("https://www.mojeek.com/search?q={query}{query_params_string}")
+            format!("https://www.mojeek.com/search?q={encoded_query}&{query_params_string}")
         } else {
-            format!("https://www.mojeek.com/search?q={query}&s={start_result}{query_params_string}")
+            format!(
+                "https://www.mojeek.com/search?q={encoded_query}&s={start_result}&{query_params_string}"
+            )
         };
 
-        let cookie_string = build_cookie(&query_params);
+        let mut cookie_params = query_params.clone();
+        for param in &mut cookie_params {
+            if param.0 == "qss" {
+                *param = ("qss", &qss_cookie);
+            }
+        }
+        let cookie_string = build_cookie(&cookie_params);
 
         let header_map = HeaderMap::try_from(&HashMap::from([
             ("User-Agent".to_string(), user_agent.to_string()),
@@ -144,10 +151,13 @@ impl SearchEngine for Mojeek {
         // scrape all the results from the html
         self.parser
             .parse_for_results(&document, |title, url, desc| {
+                let href = url.attr("href")?;
+                let clean_title = title.text().collect::<String>();
+                let clean_desc = desc.text().collect::<String>();
                 Some(SearchResult::new(
-                    title.inner_html().trim(),
-                    url.attr("href")?.trim(),
-                    desc.inner_html().trim(),
+                    clean_title.trim(),
+                    href.trim(),
+                    clean_desc.trim(),
                     &["mojeek"],
                 ))
             })
