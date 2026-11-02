@@ -54,10 +54,11 @@ safe_search = 2
 -- }}
 colorscheme = "catppuccin-mocha" -- the colorscheme name which should be used for the website theme
 -- The different themes provided are:
--- {{
--- simple
--- }}
-theme = "simple" -- the theme name which should be used for the website
+ -- {{
+ -- simple
+ -- oscar
+ -- }}
+ theme = "oscar" -- the theme name which should be used for the website
 -- The different animations provided are:
 -- {{
 -- simple-frosted-glow
