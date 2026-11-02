@@ -2,13 +2,11 @@
 //! by querying the upstream brave search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
-use reqwest::{Client, header::HeaderMap};
+use reqwest::Client;
 use scraper::Html;
 
 use crate::models::{aggregation::SearchResult, engine::EngineResult};
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use crate::models::engine::{EngineError, SearchEngine};
 
@@ -53,19 +51,13 @@ impl SearchEngine for Brave {
             _ => "strict",
         };
 
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
-            ),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            (
-                "Cookie".to_string(),
-                format!("safe_search={safe_search_level}"),
-            ),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let cookie = format!("safe_search={safe_search_level}");
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Content-Type", "application/x-www-form-urlencoded"),
+            ("Referer", "https://google.com/"),
+            ("Cookie", &cookie),
+        ])?;
 
         let document: Html = Html::parse_document(
             &Brave::fetch_html_from_upstream(self, &url, header_map, client).await?,

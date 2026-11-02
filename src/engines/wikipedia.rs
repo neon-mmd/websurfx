@@ -1,17 +1,14 @@
 //! The `wikipedia` module handles the scraping of results from wikipedia
 //! with user provided query and with a page number if provided.
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::build_query;
 use super::search_result_parser::SearchResultParser;
@@ -30,8 +27,8 @@ pub struct Wikipedia {
 impl Wikipedia {
     /// Creates the Wikipedia parser.
     pub fn new(language: &str) -> EngineResult<Self> {
-        let host = format!("https://{}.wikipedia.org", &language);
-        let id = format!("wikipedia-{}", &language);
+        let host = format!("https://{}.wikipedia.org", language);
+        let id = format!("wikipedia-{}", language);
         Ok(Self {
             parser: SearchResultParser::new(
                 "p.mw-search-nonefound",
@@ -56,11 +53,13 @@ impl SearchEngine for Wikipedia {
         client: &Client,
         _safe_search: u8,
     ) -> EngineResult<Vec<(String, SearchResult)>> {
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), self.host.to_string()),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", &self.host),
+            // This endpoint answers with JSON, so it overrides the HTML `Accept` that the
+            // shared client sets as a default.
+            ("Accept", "application/json, text/javascript, */*; q=0.01"),
+        ])?;
 
         let offset = (page * 20).to_string();
         let query_params: Vec<(&str, &str)> = vec![

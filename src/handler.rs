@@ -18,7 +18,7 @@ const ALLOWLIST_FILE_NAME: &str = "allowlist.txt";
 const BLOCKLIST_FILE_NAME: &str = "blocklist.txt";
 
 /// An enum type which provides different variants to handle paths for various files/folders.
-#[derive(Hash, PartialEq, Eq, Debug)]
+#[derive(Hash, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum FileType {
     /// This variant handles all the paths associated with the config file.
     Config,
@@ -33,6 +33,10 @@ pub enum FileType {
 /// A static variable which stores the different filesystem paths for various file/folder types.
 static FILE_PATHS_FOR_DIFF_FILE_TYPES: OnceCell<Vec<(FileType, Vec<String>)>> =
     OnceCell::const_new();
+
+/// A cache of already-resolved file paths to avoid repeating filesystem checks.
+static RESOLVED_PATHS: std::sync::OnceLock<tokio::sync::RwLock<Vec<(FileType, String)>>> =
+    std::sync::OnceLock::new();
 
 /// A function which returns an appropriate path for thr provided file type by checking if the path
 /// for the given file type exists on that path.
@@ -103,8 +107,19 @@ pub async fn file_path(file_type: FileType) -> Result<String, Error> {
         .find_map(|paths| (paths.0 == file_type).then_some(paths.1.clone()))
         .unwrap();
 
+    let resolved = RESOLVED_PATHS.get_or_init(Default::default);
+    if let Some(cached) = resolved
+        .read()
+        .await
+        .iter()
+        .find_map(|(t, p)| (*t == file_type).then_some(p.clone()))
+    {
+        return Ok(cached);
+    }
+
     for path in file_path {
         if try_exists(&path).await? {
+            resolved.write().await.push((file_type, path.clone()));
             return Ok(path);
         }
     }

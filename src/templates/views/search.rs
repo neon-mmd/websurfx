@@ -3,11 +3,14 @@
 use maud::{Markup, PreEscaped, html};
 
 use crate::{
-    models::aggregation::SearchResults,
+    models::aggregation::ArchivedSearchResults,
     templates::partials::{footer::footer, header::header, search_bar::search_bar},
 };
 
 /// A function that handles the html code for the search page view in the search engine frontend.
+///
+/// The results are read straight out of an rkyv archive, so every field below borrows from
+/// the encoded buffer rather than from an owned `String`.
 ///
 /// # Arguments
 ///
@@ -25,22 +28,22 @@ pub fn search(
     animation: &Option<String>,
     query: &str,
     page: u32,
-    search_results: &SearchResults,
+    search_results: &ArchivedSearchResults,
 ) -> Markup {
     html!(
         (header(colorscheme, theme, animation))
         main class="results"{
-           (search_bar(&search_results.engine_errors_info, search_results.safe_search_level, query))
+           (search_bar(&search_results.engine_errors_info[..], search_results.safe_search_level, query))
            .results_aggregated{
               @if !search_results.results.is_empty() {
                   @for result in search_results.results.iter(){
                       .result {
-                         h1{a href=(result.url){(PreEscaped(&result.title))}}
-                         small{(result.url)}
-                         p{(PreEscaped(&result.description))}
+                         h1{a href=(result.url.as_str()){(PreEscaped(result.title.as_str()))}}
+                         small{(result.url.as_str())}
+                         p{(PreEscaped(result.description.as_str()))}
                          .upstream_engines{
-                            @for name in &result.engine {
-                               span{(name)}
+                            @for name in result.engine.iter(){
+                               span{(name.as_str())}
                             }
                          }
                       }
@@ -95,6 +98,24 @@ pub fn search(
                     img src="./images/no_selection.png" alt="Image of a white cross inside a red circle";
                  }
               }
+              @else if !search_results.engine_errors_info.is_empty() {
+                 .result_upstream_error {
+                    .description{
+                       p{
+                          "Your search - "{span class="user_query"{(query)}}" -
+                          could not be completed."
+                       }
+                       p class="description_paragraph"{"Dear user,"}
+                       p class="description_paragraph"{
+                          "Results could not be fetched from one or more upstream search
+                          engines (see the error indicators next to the search bar). This is
+                          usually a temporary issue with the upstream engines — please try
+                          again."
+                       }
+                    }
+                    img src="./images/no_results.gif" alt="Man fishing gif";
+                 }
+              }
               @else {
                  .result_not_found {
                     p{"Your search - "{(query)}" - did not match any documents."}
@@ -120,4 +141,104 @@ pub fn search(
         script src="static/error_box.js"{}
         (footer())
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::aggregation::{
+        EngineErrorInfo, SearchResult, SearchResults, SearchResultsArchive,
+    };
+
+    /// Renders the search view for the given results and returns the generated markup.
+    fn render(results: &SearchResults) -> String {
+        let archive = SearchResultsArchive::encode(results).unwrap();
+
+        search(
+            "catppuccin-mocha",
+            "catppuccin-latte",
+            &None,
+            "rust",
+            1,
+            archive.get().unwrap(),
+        )
+        .0
+    }
+
+    /// Builds a result set with one result attributed to two upstream engines.
+    fn sample_results() -> SearchResults {
+        SearchResults::new(
+            vec![SearchResult {
+                title: "Rust <Programming> Language".to_owned(),
+                url: "https://www.rust-lang.org/?a=1&b=2".to_owned(),
+                description: "A language & a community".to_owned(),
+                engine: vec!["searx".to_owned(), "brave".to_owned()],
+                relevance_score: 1.0,
+            }]
+            .into_boxed_slice(),
+            Box::new([]),
+        )
+    }
+
+    #[test]
+    fn renders_results_straight_out_of_the_archive() {
+        let markup = render(&sample_results());
+
+        // The url is escaped by maud when it is spliced into the attribute and the body,
+        // while the title and description are emitted pre-escaped by the template.
+        assert!(markup.contains("<h1><a href=\"https://www.rust-lang.org/?a=1&amp;b=2\">Rust <Programming> Language</a></h1>"));
+        assert!(markup.contains("<p>A language & a community</p>"));
+        assert!(markup.contains("<span>searx</span>"));
+        assert!(markup.contains("<span>brave</span>"));
+    }
+
+    #[test]
+    fn renders_the_disallowed_notice_when_the_query_is_blocked() {
+        let mut results = SearchResults::default();
+        results.set_disallowed();
+
+        let markup = render(&results);
+
+        assert!(markup.contains("result_disallowed"));
+        assert!(markup.contains("has been disallowed"));
+    }
+
+    #[test]
+    fn renders_the_not_found_notice_for_an_empty_result_set() {
+        let markup = render(&SearchResults::default());
+
+        assert!(markup.contains("result_not_found"));
+        assert!(markup.contains("did not match any documents"));
+    }
+
+    #[test]
+    fn renders_the_no_engines_notice() {
+        let mut results = SearchResults::default();
+        results.set_no_engines_selected();
+
+        let markup = render(&results);
+
+        assert!(markup.contains("result_engine_not_selected"));
+    }
+
+    #[test]
+    fn renders_the_upstream_error_notice_with_the_engine_names() {
+        let results = SearchResults::new(
+            Box::new([]),
+            vec![EngineErrorInfo {
+                error: "EmptyResultSet".to_owned(),
+                engine: "mojeek".to_owned(),
+                severity_color: "blue".to_owned(),
+            }]
+            .into_boxed_slice(),
+        );
+
+        let markup = render(&results);
+
+        assert!(markup.contains("result_upstream_error"));
+        assert!(markup.contains("be completed"));
+        assert!(markup.contains("error_item"));
+        assert!(markup.contains("mojeek"));
+        assert!(markup.contains("EmptyResultSet"));
+    }
 }

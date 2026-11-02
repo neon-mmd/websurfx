@@ -1,16 +1,13 @@
 //! The `librex` module contains the implementation of a search engine for LibreX using the reqwest and scraper libraries.
 //! It includes a `SearchEngine` trait implementation for interacting with the search engine and retrieving search results.
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::search_result_parser::SearchResultParser;
 
@@ -18,6 +15,11 @@ use super::search_result_parser::SearchResultParser;
 pub struct LibreX {
     /// The parser used to extract search results from HTML documents.
     parser: SearchResultParser,
+    /// The base URL of the LibreX instance to query.
+    ///
+    /// These instances are run by volunteers and go offline without notice, so this comes
+    /// from the config rather than being named here.
+    url: String,
 }
 
 impl LibreX {
@@ -26,7 +28,11 @@ impl LibreX {
     /// # Returns
     ///
     /// Returns a `Result` containing `LibreX` if successful, otherwise an `EngineError`.
-    pub fn new() -> EngineResult<Self> {
+    ///
+    /// # Arguments
+    ///
+    /// * `url` - It is the base URL of the LibreX instance to query.
+    pub fn new(url: String) -> EngineResult<Self> {
         Ok(Self {
             parser: SearchResultParser::new(
                 ".text-result-container>p",
@@ -35,6 +41,7 @@ impl LibreX {
                 ".text-result-wrapper>a",
                 ".text-result-wrapper>span",
             )?,
+            url,
         })
     }
 }
@@ -53,7 +60,7 @@ impl SearchEngine for LibreX {
     ///
     /// # Returns
     ///
-    /// Returns a `Result` containing a `HashMap` of search results if successful, otherwise an `EngineError`.
+    /// Returns a `Result` containing a `Vec` of search results if successful, otherwise an `EngineError`.
     /// The `Err` variant is explicit for better documentation.
     async fn results(
         &self,
@@ -66,21 +73,21 @@ impl SearchEngine for LibreX {
         // Page number can be missing or empty string and so appropriate handling is required
         // so that upstream server recieves valid page number.
         let url: String = format!(
-            "https://search.davidovski.xyz/search.php?q={query}&p={}&t=10",
+            "{}/search.php?q={query}&p={}&t=10",
+            self.url.trim_end_matches('/'),
             page * 10
         );
 
         // initializing HeaderMap and adding appropriate headers.
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            ("Content-Type".to_string(), "application/x-www-form-urlencoded".to_string()),
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
             (
-                "Cookie".to_string(),
-                "theme=amoled; disable_special=on; disable_frontends=on; language=en; number_of_results=10; safe_search=on; save=1".to_string(),
+                "Cookie",
+                "theme=amoled; disable_special=on; disable_frontends=on; language=en; number_of_results=10; safe_search=on; save=1",
             ),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        ])?;
 
         let document: Html = Html::parse_document(
             &LibreX::fetch_html_from_upstream(self, &url, header_map, client).await?,
@@ -91,7 +98,8 @@ impl SearchEngine for LibreX {
         }
 
         // scrape all the results from the html
-        self.parser
+        let results = self
+            .parser
             .parse_for_results(&document, |title, url, desc| {
                 Some(SearchResult::new(
                     title.inner_html().trim(),
@@ -99,6 +107,42 @@ impl SearchEngine for LibreX {
                     desc.inner_html().trim(),
                     &["librex"],
                 ))
-            })
+            })?;
+
+        // An empty result set is reported rather than returned as an empty list, because an
+        // instance that is rate limiting us or serving a block page also produces nothing
+        // to scrape, and the two should not look alike.
+        if results.is_empty() {
+            return Err(Report::new(EngineError::EmptyResultSet));
+        }
+
+        Ok(results)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The instance URL comes from the config, so an operator can replace a public instance
+    /// that has gone offline without touching the code.
+    #[test]
+    fn the_instance_url_is_kept_and_trimmed_for_the_request() {
+        let engine = LibreX::new("https://example.invalid/".to_owned()).unwrap();
+
+        assert_eq!(engine.url, "https://example.invalid/");
+        // The request path is appended to the trimmed base, so a trailing slash from the
+        // config cannot turn into a doubled separator.
+        assert_eq!(engine.url.trim_end_matches('/'), "https://example.invalid");
+    }
+
+    /// The parser selectors still have to compile, whichever instance is configured.
+    #[test]
+    fn an_instance_url_does_not_affect_the_selectors() {
+        let first = LibreX::new("https://a.invalid".to_owned()).unwrap();
+        let second = LibreX::new("https://b.invalid/".to_owned()).unwrap();
+
+        // Both engines parsed their selectors, so neither construction returned an error.
+        assert_ne!(first.url, second.url);
     }
 }

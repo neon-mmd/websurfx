@@ -7,7 +7,7 @@ use crate::models::parser::{AggregatorConfig, RateLimiter, Style};
 use log::LevelFilter;
 use mlua::Lua;
 use reqwest::Proxy;
-use std::{collections::HashMap, fs, thread::available_parallelism};
+use std::{fs, thread::available_parallelism};
 
 /// A named struct which stores the parsed config file options.
 pub struct Config {
@@ -32,8 +32,12 @@ pub struct Config {
     pub debug: bool,
     /// It toggles whether to use adaptive HTTP windows
     pub adaptive_window: bool,
+    /// It stores the base URL of the SearXNG instance the `searx` engine queries.
+    pub searx_url: String,
+    /// It stores the base URL of the LibreX instance the `librex` engine queries.
+    pub librex_url: String,
     /// It stores all the engine names that were enabled by the user.
-    pub upstream_search_engines: HashMap<String, bool>,
+    pub upstream_search_engines: Vec<(String, bool)>,
     /// It stores the time (secs) which controls the server request timeout.
     pub request_timeout: u8,
     /// It stores the number of threads which controls the app will use to run.
@@ -86,7 +90,11 @@ impl Config {
 
         let debug: bool = globals.get("debug")?;
         let logging: bool = globals.get("logging")?;
-        let adaptive_window: bool = globals.get("adaptive_window")?;
+        // The shipped config uses `https_adaptive_window_size`; accept the old key too.
+        let adaptive_window: bool = globals
+            .get("https_adaptive_window_size")
+            .or_else(|_| globals.get("adaptive_window"))
+            .unwrap_or(false);
 
         if !logging_initialized {
             set_logging_level(debug, logging);
@@ -103,7 +111,9 @@ impl Config {
             parsed_threads
         };
 
-        let rate_limiter: HashMap<String, u8> = globals.get("rate_limiter")?;
+        let rate_limiter_table: mlua::Table = globals.get("rate_limiter")?;
+        let rate_limiter_number_of_requests: u8 = rate_limiter_table.get("number_of_requests")?;
+        let rate_limiter_time_limit: u8 = rate_limiter_table.get("time_limit")?;
 
         let parsed_safe_search: u8 = globals.get("safe_search")?;
         let safe_search: u8 = if parsed_safe_search <= 4 {
@@ -117,7 +127,7 @@ impl Config {
         };
 
         #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-        let parsed_cet = globals.get("cache_expiry_time")?;
+        let parsed_cet: u16 = globals.get("cache_expiry_time").unwrap_or(60);
         #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
         let cache_expiry_time = if parsed_cet < 60 {
             log::error!("Config Error: The value of `cache_expiry_time` must be greater than 60");
@@ -126,6 +136,16 @@ impl Config {
         } else {
             parsed_cet
         };
+
+        // The public SearXNG and LibreX instances these engines used to name are run by
+        // volunteers and go offline without notice, which left the engines broken with no
+        // way to point them somewhere else. They are configurable for that reason.
+        let searx_url: String = globals
+            .get("searx_url")
+            .unwrap_or_else(|_| "https://searx.be".to_owned());
+        let librex_url: String = globals
+            .get("librex_url")
+            .unwrap_or_else(|_| "https://search.davidovski.xyz".to_owned());
 
         let proxy_opt: Option<String> = globals.get("proxy")?;
         let proxy = proxy_opt.and_then(|proxy_str| {
@@ -162,7 +182,16 @@ impl Config {
             logging,
             debug,
             adaptive_window,
-            upstream_search_engines: globals.get("upstream_search_engines")?,
+            searx_url,
+            librex_url,
+            upstream_search_engines: {
+                let engines_table: mlua::Table = globals.get("upstream_search_engines")?;
+                let mut engines = Vec::new();
+                for pair in engines_table.pairs::<String, bool>() {
+                    engines.push(pair?);
+                }
+                engines
+            },
             request_timeout: globals.get("request_timeout")?,
             tcp_connection_keep_alive: globals.get("tcp_connection_keep_alive")?,
             pool_idle_connection_timeout: globals.get("pool_idle_connection_timeout")?,
@@ -170,8 +199,8 @@ impl Config {
             threads,
             client_connection_keep_alive: globals.get("client_connection_keep_alive")?,
             rate_limiter: RateLimiter {
-                number_of_requests: rate_limiter["number_of_requests"],
-                time_limit: rate_limiter["time_limit"],
+                number_of_requests: rate_limiter_number_of_requests,
+                time_limit: rate_limiter_time_limit,
             },
             safe_search,
             #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]

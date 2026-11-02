@@ -3,10 +3,7 @@
 
 use error_stack::{Report, ResultExt};
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
@@ -138,16 +135,12 @@ impl SearchEngine for Yahoo {
             )
         };
 
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
-            ),
-            ("Cookie".to_string(), "kl=wt-wt".to_string()),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
+            ("Cookie", "kl=wt-wt"),
+        ])?;
 
         let html_str = Yahoo::fetch_html_from_upstream(self, &url, header_map, client)
             .await

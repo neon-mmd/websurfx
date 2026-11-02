@@ -3,8 +3,9 @@
 use crate::{
     aggregator::aggregate,
     handler::{FileType, file_path},
+    json::JsonWriter,
     models::{
-        aggregation::SearchResults,
+        aggregation::{SearchResults, SearchResultsArchive},
         engine::EngineHandler,
         search_route::{self, SearchParams},
     },
@@ -15,21 +16,42 @@ use crate::{
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 use {crate::cache::SharedCache, tokio::sync::OnceCell};
 
-use actix_web::{HttpRequest, HttpResponse, ResponseError, get, http::header::ContentType, web};
 use regex::Regex;
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::{borrow::Cow, time::Duration};
+use std::borrow::Cow;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::{
     fs::File,
     io::{AsyncBufReadExt, BufReader},
 };
+use xitca_web::{
+    WebContext,
+    http::{WebResponse, header},
+};
 
-#[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use crate::server::{
+    APP_COOKIE, HTML, JSON, bad_request, cookie_value, internal_error, ok, preferences, redirect,
+};
 
 /// A static constant for holding the cache struct.
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
+
+/// A helper which builds the JSON body of an error response.
+///
+/// # Arguments
+///
+/// * `code` - It takes the status code reported to the client.
+/// * `error` - It takes the human readable message reported to the client.
+fn json_error(code: &str, error: &str) -> WebResponse {
+    let mut writer = JsonWriter::with_capacity(error.len() + 32);
+
+    writer.begin_object();
+    writer.field("code").string(code);
+    writer.field("error").string(error);
+    writer.end_object();
+
+    bad_request(JSON, writer.finish())
+}
 
 /// Handles the route of search page of the `websurfx` meta search engine website and it takes
 /// two search url parameters `q` and `page` where `page` parameter is optional.
@@ -45,86 +67,97 @@ static SHARED_CACHE: OnceCell<SharedCache> = OnceCell::const_new();
 /// curl "http://127.0.0.1:8080/search?q=sweden&format=json=true"
 /// ```
 ///
-/// Detect `format=json` from the raw query string before deserialization,
-/// so that parse failures can still return a JSON-shaped 400 response.
-#[get("/search")]
-pub async fn search(
-    req: HttpRequest,
-    config: web::Data<&'static Config>,
-) -> Result<HttpResponse, Box<dyn std::error::Error>> {
-    let params_result = web::Query::<SearchParams>::from_query(req.query_string());
-    let params = if let Err(e) = params_result {
-        if req.query_string().contains("&json") {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "code": format!("{}", e.status_code()),
-                "error": format!("Invalid query parameters: {}", e)
-            })));
+/// Detect `format=json` from the raw query string before parsing the parameters, so that
+/// parse failures can still return a JSON-shaped 400 response.
+pub async fn search(ctx: &WebContext<'_, &'static Config>) -> WebResponse {
+    let config = ctx.state();
+    let query_string = ctx.req().uri().query().unwrap_or_default();
+
+    let params = match SearchParams::parse(query_string) {
+        Ok(params) => params,
+        Err(e) => {
+            if query_string.contains("&json") {
+                return json_error("400", &format!("Invalid query parameters: {e}"));
+            }
+            return internal_error(e);
         }
-        return Err(e.into());
-    } else {
-        params_result.unwrap()
     };
 
-    let result = fetch_results(req, &config, &params).await?;
+    let settings = search_settings(ctx, config);
 
-    if let Some((current_results, query, page)) = result {
-        if let Some(json) = &params.json
-            && *json
-        {
-            return Ok(HttpResponse::Ok()
-                .content_type(ContentType::json())
-                .json(&current_results));
+    let result = match fetch_results(config, settings, &params).await {
+        Ok(result) => result,
+        Err(e) => return internal_error(e),
+    };
+
+    let Some((current_results, query, page)) = result else {
+        if params.json == Some(true) {
+            return json_error("400", "Empty query provided");
         }
-        Ok(HttpResponse::Ok().content_type(ContentType::html()).body(
-            crate::templates::views::search::search(
-                &config.style.colorscheme,
-                &config.style.theme,
-                &config.style.animation,
-                &query,
-                page,
-                &current_results,
-            )
-            .0,
-        ))
-    } else {
-        if let Some(json) = &params.json
-            && *json
-        {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "code": "400",
-                "error": "Empty query provided"
-            })));
-        }
-        Ok(HttpResponse::TemporaryRedirect()
-            .insert_header(("location", "/"))
-            .finish())
+        return redirect("/");
+    };
+
+    if params.json == Some(true) {
+        return match current_results.to_json() {
+            Ok(body) => ok(JSON, body),
+            Err(e) => internal_error(e),
+        };
     }
+
+    // Read the archive once: the archived results borrow straight out of the encoded
+    // buffer, so rendering a page allocates nothing beyond the markup itself.
+    let archived_results = match current_results.get() {
+        Ok(archived) => archived,
+        Err(e) => return internal_error(e),
+    };
+
+    ok(
+        HTML,
+        crate::templates::views::search::search(
+            &config.style.colorscheme,
+            &config.style.theme,
+            &config.style.animation,
+            &query,
+            page,
+            archived_results,
+        )
+        .0,
+    )
+}
+
+/// Builds the search preferences from the `appCookie`, falling back to the server config.
+///
+/// The returned cookie borrows its strings from the request when the client sent one, so a
+/// request that carries no preferences allocates nothing extra.
+fn search_settings<'a>(
+    ctx: &'a WebContext<'_, &'static Config>,
+    config: &'a Config,
+) -> search_route::Cookie<'a> {
+    preferences(
+        cookie_value(ctx.req().headers().get(header::COOKIE), APP_COOKIE),
+        config,
+        config.safe_search,
+    )
 }
 
 /// Fetches search results from cache or upstream engines.
 ///
 /// # Arguments
 ///
-/// * `req` - The HTTP request used to extract cookies and pass to upstream calls.
-/// * `config` - A reference to the application configuration.
+/// * `config` - The parsed application config.
+/// * `mut search_settings` - The user's preferences, taken from the `appCookie` when present.
 /// * `params` - The parsed search parameters including query string and page number.
 ///
 /// # Returns
 ///
-/// Returns `Ok(Some((SearchResults, query, page)))` on success with the results,
+/// Returns `Ok(Some((SearchResultsArchive, query, page)))` on success with the results,
 /// query string, and zero-based page number. Returns `Ok(None)` for empty queries.
 /// Returns an error if results could not be fetched from cache or upstream engines.
-///
-/// # Examples
-///
-/// ```rust,ignore
-/// let result = fetch_results(req, &config, params).await?;
-/// ```
 async fn fetch_results(
-    req: HttpRequest,
-    config: &web::Data<&'static Config>,
+    config: &'static Config,
+    mut search_settings: search_route::Cookie<'_>,
     params: &SearchParams,
-) -> Result<Option<(SearchResults, String, u32)>, Box<dyn std::error::Error>> {
+) -> Result<Option<(SearchResultsArchive, String, u32)>, Box<dyn std::error::Error>> {
     // Validate the query early, before touching the cache or doing any setup.
     if params.q.as_ref().is_none_or(|q| q.trim().is_empty()) {
         return Ok(None);
@@ -137,26 +170,6 @@ async fn fetch_results(
 
     // Safe to unwrap: we validated q is Some and non-empty above.
     let query = params.q.as_deref().unwrap();
-
-    let cookie = req.cookie("appCookie");
-
-    // Get search settings using the user's cookie or from the server's config
-    let mut search_settings: search_route::Cookie<'_> = cookie
-        .as_ref()
-        .and_then(|cookie_value| serde_json::from_str(cookie_value.value()).ok())
-        .unwrap_or_else(|| {
-            search_route::Cookie::build(
-                &config.style,
-                config
-                    .upstream_search_engines
-                    .iter()
-                    .filter_map(|(engine, enabled)| {
-                        enabled.then_some(Cow::Borrowed(engine.as_str()))
-                    })
-                    .collect(),
-                config.safe_search,
-            )
-        });
 
     search_settings.safe_search_level = get_safesearch_level(
         params.safesearch,
@@ -177,7 +190,7 @@ async fn fetch_results(
     let page = params.page.unwrap_or(1).max(1) - 1;
     let query_owned = query.to_owned();
 
-    let current_results: SearchResults;
+    let current_results: SearchResultsArchive;
 
     #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
     {
@@ -187,6 +200,9 @@ async fn fetch_results(
 
         let mut pages = vec![next_page, previous_page, page];
         pages.dedup();
+
+        // Built once rather than per page: the engine list is the same for every URL.
+        let engines = search_settings.engines.join(",");
 
         let urls: Vec<String> = pages
             .iter()
@@ -198,14 +214,15 @@ async fn fetch_results(
                     query,
                     page,
                     search_settings.safe_search_level,
-                    search_settings.engines.join(",")
+                    engines
                 )
             })
             .collect();
 
-        let mut cache_keys: Vec<String> =
-            tokio::task::spawn_blocking(move || urls.par_iter().cloned().map(hash_url).collect())
-                .await?;
+        // Hashing three URLs of a few dozen bytes costs well under a microsecond in total.
+        // Handing them to a blocking pool and waiting for a thread round trip cost several
+        // times more than the hashing itself, on every request, cache hit included.
+        let mut cache_keys: Vec<String> = urls.iter().map(|url| hash_url(url)).collect();
 
         let current_page_cache_key = cache_keys.pop().unwrap();
 
@@ -213,99 +230,186 @@ async fn fetch_results(
         current_results = match cache.cached_results(&current_page_cache_key).await {
             Ok(cached) => cached,
             Err(_) => {
-                let fetched_results =
-                    results(config, &query_owned, page, &search_settings, user_agent).await?;
+                let fetched_results = results(
+                    config,
+                    &query_owned,
+                    page,
+                    &search_settings.engines,
+                    search_settings.safe_search_level,
+                    user_agent,
+                )
+                .await
+                .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+                // Cloning an archive only bumps a refcount, so the same encoded buffer can
+                // be rendered here and stored in the background.
                 let fetched_results_clone = fetched_results.clone();
                 tokio::spawn(async move {
-                    cache
-                        .cache_results(&[fetched_results], &[current_page_cache_key])
-                        .await
+                    if let Some(cache) = SHARED_CACHE.get() {
+                        let _ = cache
+                            .cache_results(
+                                std::slice::from_ref(&fetched_results_clone),
+                                std::slice::from_ref(&current_page_cache_key),
+                            )
+                            .await;
+                    }
                 });
-                fetched_results_clone
+                fetched_results
             }
         };
 
         if let Ok(resolved_results) = cache.cached_results_exists(&cache_keys).await {
-            let cache_results_not_exists: (Vec<String>, Vec<u32>) = resolved_results
+            // The two branches below are exclusive and the current page's key was already
+            // popped, so the keys are moved rather than cloned on the way to the background
+            // task.
+            let missing: Vec<(String, u32)> = resolved_results
                 .iter()
-                .zip(cache_keys.iter())
+                .zip(cache_keys)
                 .zip(pages.iter())
                 .filter(|resolved_result| !*resolved_result.0.0)
-                .map(|resolved_result| (resolved_result.0.1.to_string(), *resolved_result.1))
-                .unzip();
+                .map(|resolved_result| (resolved_result.0.1, *resolved_result.1))
+                .collect();
 
-            // TODO: Move the entire fetch+cache into a background tokio::spawn
-            // for non-blocking responses. Currently blocked by `results()`
-            // returning `Box<dyn Error>` (not Send); fixing this would require
-            // changing the error type to `Box<dyn Error + Send>` across the
-            // codebase.
-            if !cache_results_not_exists.0.is_empty() {
-                let tasks = cache_results_not_exists
-                    .1
-                    .iter()
-                    .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-                if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
-                    tokio::spawn(async move {
-                        let _ = cache
-                            .cache_results(&fetched_results, &cache_results_not_exists.0)
-                            .await;
-                    });
-                }
-            }
-        } else {
-            // TODO: Same as above — spawn the entire fetch+cache once results()
-            // returns Send-safe errors.
-            let tasks = pages
-                .iter()
-                .map(|page| results(config, &query_owned, *page, &search_settings, user_agent));
-            if let Ok(fetched_results) = futures::future::try_join_all(tasks).await {
+            // Fetch and cache adjacent pages in the background so the current
+            // response isn't blocked on them.
+            if !missing.is_empty() {
+                let (missing_keys, missing_pages): (Vec<String>, Vec<u32>) =
+                    missing.into_iter().unzip();
+                let query_for_bg = query_owned.clone();
+                // The background task outlives the request, so the names are detached from
+                // the borrow. This runs once per request on the prefetch path, next to a
+                // full upstream fetch, so owning them costs nothing measurable.
+                let engines_for_bg = own_engines(&search_settings.engines);
+                let safe_search_bg = search_settings.safe_search_level;
                 tokio::spawn(async move {
-                    let _ = cache.cache_results(&fetched_results, &cache_keys).await;
+                    let tasks = missing_pages.iter().map(|page| {
+                        results(
+                            config,
+                            &query_for_bg,
+                            *page,
+                            &engines_for_bg,
+                            safe_search_bg,
+                            user_agent,
+                        )
+                    });
+                    let fetched = futures::future::try_join_all(tasks).await.ok();
+                    if let (Some(fetched_results), Some(cache)) = (fetched, SHARED_CACHE.get()) {
+                        let _ = cache.cache_results(&fetched_results, &missing_keys).await;
+                    }
                 });
             }
+        } else {
+            let cache_keys_for_bg = cache_keys;
+            let pages_for_bg = pages.clone();
+            let query_for_bg = query_owned.clone();
+            // See the note on the other background-prefetch site above.
+            let engines_for_bg = own_engines(&search_settings.engines);
+            let safe_search_bg = search_settings.safe_search_level;
+            tokio::spawn(async move {
+                let tasks = pages_for_bg.iter().map(|page| {
+                    results(
+                        config,
+                        &query_for_bg,
+                        *page,
+                        &engines_for_bg,
+                        safe_search_bg,
+                        user_agent,
+                    )
+                });
+                let fetched = futures::future::try_join_all(tasks).await.ok();
+                if let (Some(fetched_results), Some(cache)) = (fetched, SHARED_CACHE.get()) {
+                    let _ = cache
+                        .cache_results(&fetched_results, &cache_keys_for_bg)
+                        .await;
+                }
+            });
         }
     }
 
     #[cfg(not(any(feature = "redis-cache", feature = "memory-cache")))]
     {
-        current_results = results(config, &query_owned, page, &search_settings, user_agent).await?;
+        current_results = results(
+            config,
+            &query_owned,
+            page,
+            &search_settings.engines,
+            search_settings.safe_search_level,
+            user_agent,
+        )
+        .await
+        .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
     }
 
     Ok(Some((current_results, query_owned, page)))
 }
 
-/// Fetches the results for a query and page. It First checks the redis cache, if that
-/// fails it gets proper results by requesting from the upstream search engines.
+/// Fetches the results for a query and page and encodes them into a zero-copy archive.
 ///
 /// # Arguments
 ///
-/// * `url` - It takes the url of the current page that requested the search results for a
-///   particular search query.
 /// * `config` - It takes a parsed config struct.
-/// * `query` - It takes the page number as u32 value.
-/// * `req` - It takes the `HttpRequest` struct as a value.
+/// * `query` - It takes the search query.
+/// * `page` - It takes the page number as u32 value.
+/// * `engines` - It takes the selected upstream search engines.
+/// * `safe_search_level` - It takes the safe search level value.
+/// * `user_agent` - It takes the user agent string used for the upstream requests.
 ///
 /// # Error
 ///
-/// It returns the `SearchResults` struct if the search results could be successfully fetched from
-/// the cache or from the upstream search engines otherwise it returns an appropriate error.
+/// It returns the `SearchResultsArchive` if the search results could be successfully gathered
+/// from the upstream search engines and encoded, otherwise it returns a `String` describing the
+/// failure.
 async fn results(
-    config: &'static Config,
+    config: &Config,
     query: &str,
     page: u32,
-    search_settings: &search_route::Cookie<'_>,
+    engines: &[Cow<'_, str>],
+    safe_search_level: u8,
     user_agent: &'static str,
-) -> Result<SearchResults, Box<dyn std::error::Error>> {
-    // eagerly parse cookie value to evaluate safe search level
-    let safe_search_level = search_settings.safe_search_level;
+) -> Result<SearchResultsArchive, String> {
+    // Encoding once here means the rendered page, the JSON API response and the cache write
+    // all share a single buffer instead of each rebuilding their own copy of the results.
+    let search_results =
+        collect_results(config, query, page, engines, safe_search_level, user_agent).await?;
 
+    SearchResultsArchive::encode(&search_results).map_err(|error| error.to_string())
+}
+
+/// Aggregates (or synthesises) the owned results for a query and page.
+///
+/// # Arguments
+///
+/// * `config` - It takes a parsed config struct.
+/// * `query` - It takes the search query.
+/// * `page` - It takes the page number as u32 value.
+/// * `engines` - It takes the selected upstream search engines.
+/// * `safe_search_level` - It takes the safe search level value.
+/// * `user_agent` - It takes the user agent string used for the upstream requests.
+///
+/// # Error
+///
+/// Returns a `String` describing the failure if the upstream search engines could not be
+/// queried.
+async fn collect_results(
+    config: &Config,
+    query: &str,
+    page: u32,
+    engines: &[Cow<'_, str>],
+    safe_search_level: u8,
+    user_agent: &'static str,
+) -> Result<SearchResults, String> {
     // check if fetched cache results was indeed fetched or it was an error and if so
     // handle the data accordingly.
     if safe_search_level == 4 {
         let mut results: SearchResults = SearchResults::default();
 
-        let flag: bool =
-            !is_match_from_filter_list(&file_path(FileType::BlockList).await?, query).await?;
+        let flag: bool = !is_match_from_filter_list(
+            &file_path(FileType::BlockList)
+                .await
+                .map_err(|e| e.to_string())?,
+            query,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
         // Return early when query contains disallowed words,
         if flag {
             results.set_disallowed();
@@ -318,34 +422,50 @@ async fn results(
     // default selected upstream search engines from the config file otherwise
     // parse the non-empty cookie and grab the user selected engines from the
     // UI and use that.
-    let mut results: SearchResults = if !search_settings.engines.is_empty() {
+    let mut results: SearchResults = if !engines.is_empty() {
+        // The handlers are shared process-wide, so this no longer compiles an engine's CSS
+        // selectors on every request.
+        let handlers = engines
+            .iter()
+            .filter_map(|engine| EngineHandler::shared(engine.as_ref()).ok())
+            .collect::<Vec<&'static EngineHandler>>();
+
         aggregate(
             query,
             page,
             config,
-            &search_settings
-                .engines
-                .iter()
-                .filter_map(|engine| EngineHandler::new(engine).ok())
-                .collect::<Vec<EngineHandler>>(),
+            &handlers,
             safe_search_level,
             user_agent,
         )
-        .await?
+        .await
+        .map_err(|e| e.to_string())?
     } else {
         let mut search_results = SearchResults::default();
         search_results.set_no_engines_selected();
         search_results
     };
 
-    let (engine_errors_info, results_empty_check, no_engines_selected) = (
-        results.engine_errors_info().is_empty(),
-        results.results().is_empty(),
-        results.no_engines_selected(),
-    );
-    results.set_filtered(engine_errors_info & results_empty_check & !no_engines_selected);
+    let engine_errors_empty = results.engine_errors_info.is_empty();
+    let results_empty = results.results.is_empty();
+    let no_engines_selected = results.no_engines_selected();
+
+    results.set_filtered(engine_errors_empty & results_empty & !no_engines_selected);
     results.set_safe_search_level(safe_search_level);
     Ok(results)
+}
+
+/// Detaches engine names from a borrow so a background task can own them.
+///
+/// # Arguments
+///
+/// * `engines` - It takes the borrowed engine names.
+#[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+fn own_engines(engines: &[Cow<'_, str>]) -> Vec<Cow<'static, str>> {
+    engines
+        .iter()
+        .map(|engine| Cow::Owned(engine.clone().into_owned()))
+        .collect()
 }
 
 /// A helper function which computes the hash of the url and formats and returns it as string.
@@ -354,7 +474,7 @@ async fn results(
 ///
 /// * `url` - It takes an url as string.
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
-fn hash_url(url: String) -> String {
+fn hash_url(url: &str) -> String {
     blake3::hash(url.as_bytes()).to_string()
 }
 
@@ -374,10 +494,41 @@ async fn is_match_from_filter_list(
     file_path: &str,
     query: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let reader = BufReader::new(File::open(file_path).await?);
-    let mut lines = reader.lines();
-    while let Some(line) = lines.next_line().await? {
-        let re = Regex::new(&line)?;
+    // Use the same cached patterns as filter_with_lists
+    use crate::aggregator::FILTER_PATTERNS_CACHE;
+
+    let cache = FILTER_PATTERNS_CACHE.get_or_init(|| {
+        std::sync::Mutex::new(std::collections::HashMap::with_hasher(
+            ahash::RandomState::new(),
+        ))
+    });
+
+    let patterns = {
+        let cache_guard = cache.lock().unwrap();
+        if let Some(cached) = cache_guard.get(file_path) {
+            cached.clone()
+        } else {
+            Vec::new()
+        }
+    };
+
+    let patterns = if patterns.is_empty() {
+        let reader = BufReader::new(File::open(file_path).await?);
+        let mut lines = reader.lines();
+        let mut compiled: Vec<Regex> = Vec::new();
+        while let Some(line) = lines.next_line().await? {
+            compiled.push(Regex::new(&line)?);
+        }
+        {
+            let mut cache_guard = cache.lock().unwrap();
+            cache_guard.insert(file_path.to_string(), compiled.clone());
+        }
+        compiled
+    } else {
+        patterns
+    };
+
+    for re in &patterns {
         if re.is_match(query) {
             return Ok(true);
         }

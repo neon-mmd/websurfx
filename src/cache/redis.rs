@@ -5,10 +5,12 @@ use super::{
     Cacher,
     error::{CacheError, CacheResult},
 };
-use crate::models::aggregation::SearchResults;
+use crate::models::aggregation::SearchResultsArchive;
 use crate::parser::Config;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use redis::{AsyncCommands, Client, ExistenceCheck, SetExpiry, SetOptions, aio::ConnectionManager};
+use rkyv::util::AlignedVec;
+use std::sync::Arc;
 use tokio::task::JoinSet;
 
 /// A constant holding the redis pipeline size.
@@ -22,8 +24,6 @@ pub struct RedisCache {
     connection_pool: Box<[ConnectionManager]>,
     /// It stores the max TTL for keys.
     cache_ttl: u16,
-    /// It stores the redis pipeline struct of size 3.
-    pipeline: redis::Pipeline,
 }
 
 impl RedisCache {
@@ -62,7 +62,6 @@ impl RedisCache {
         let redis_cache = RedisCache {
             connection_pool: outputs.into_boxed_slice(),
             cache_ttl,
-            pipeline: redis::Pipeline::with_capacity(REDIS_PIPELINE_SIZE),
         };
 
         Ok(redis_cache)
@@ -96,13 +95,13 @@ impl RedisCache {
     ///
     /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json_exists(&mut self, keys: &[String]) -> CacheResult<Vec<bool>> {
+    pub async fn cached_json_exists(&self, keys: &[String]) -> CacheResult<Vec<bool>> {
+        let mut pipe = redis::Pipeline::with_capacity(REDIS_PIPELINE_SIZE);
         for key in keys {
-            self.pipeline.exists(key);
+            pipe.exists(key);
         }
 
-        self.pipeline
-            .query_async(&mut self.connection().await?)
+        pipe.query_async(&mut self.connection().await?)
             .await
             .map_err(CacheError::RedisError)
     }
@@ -117,7 +116,7 @@ impl RedisCache {
     ///
     /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
-    pub async fn cached_json(&mut self, key: &str) -> CacheResult<String> {
+    pub async fn cached_json(&self, key: &str) -> CacheResult<String> {
         self.connection()
             .await?
             .get(key)
@@ -139,12 +138,13 @@ impl RedisCache {
     /// Returns an unit type if the results are cached succesfully otherwise returns a `CacheError`
     /// on a failure.
     pub async fn cache_json(
-        &mut self,
+        &self,
         json_results: impl Iterator<Item = String>,
         keys: impl Iterator<Item = String>,
     ) -> CacheResult<()> {
+        let mut pipeline = redis::Pipeline::with_capacity(REDIS_PIPELINE_SIZE);
         for (key, json_result) in keys.zip(json_results) {
-            self.pipeline.set_options(
+            pipeline.set_options(
                 key,
                 json_result,
                 SetOptions::default()
@@ -154,7 +154,7 @@ impl RedisCache {
             );
         }
 
-        self.pipeline
+        pipeline
             .query_async(&mut self.connection().await?)
             .await
             .map_err(CacheError::RedisError)
@@ -166,34 +166,44 @@ impl Cacher for RedisCache {
     async fn build(config: &Config) -> Self {
         log::info!(
             "Initialising redis cache. Listening to {}",
-            &config.redis_url
+            config.redis_url
         );
         RedisCache::new(&config.redis_url, 5, config.cache_expiry_time)
             .await
             .expect("Redis cache configured")
     }
 
-    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
+    async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>> {
         Ok(self.cached_json_exists(urls).await?)
     }
 
-    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults> {
+    async fn cached_results(&self, url: &str) -> CacheResult<SearchResultsArchive> {
         use base64::Engine;
         let base64_string = self.cached_json(url).await?;
 
-        let bytes = tokio::task::spawn_blocking(|| {
-            base64::engine::general_purpose::STANDARD_NO_PAD.decode(base64_string)
+        // Decode straight into an rkyv aligned buffer: every four base64 characters carry at
+        // most three bytes, so this bound is always large enough and the decoded bytes never
+        // have to be copied into a second allocation.
+        let bytes = tokio::task::spawn_blocking(move || -> CacheResult<Arc<AlignedVec>> {
+            let mut buffer = AlignedVec::with_capacity(base64_string.len() / 4 * 3 + 3);
+
+            let decoded = base64::engine::general_purpose::STANDARD_NO_PAD
+                .decode_slice(base64_string.as_bytes(), buffer.as_mut_slice())
+                .map_err(|_| CacheError::Base64DecodingOrEncodingError)?;
+
+            buffer.resize(decoded, 0);
+
+            Ok(Arc::new(buffer))
         })
         .await
-        .map_err(|_| CacheError::Base64DecodingOrEncodingError)?
-        .map_err(|_| CacheError::Base64DecodingOrEncodingError)?;
+        .map_err(|_| CacheError::Base64DecodingOrEncodingError)??;
 
         self.post_process_search_results(bytes).await
     }
 
     async fn cache_results(
-        &mut self,
-        search_results: &[SearchResults],
+        &self,
+        search_results: &[SearchResultsArchive],
         urls: &[String],
     ) -> CacheResult<()> {
         use base64::Engine;
@@ -211,7 +221,9 @@ impl Cacher for RedisCache {
         let base64_strings = tokio::task::spawn_blocking(move || {
             bytes
                 .par_iter()
-                .map(|bytes_vec| base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes_vec))
+                .map(|bytes_vec| {
+                    base64::engine::general_purpose::STANDARD_NO_PAD.encode(bytes_vec.as_slice())
+                })
                 .collect::<Box<[String]>>()
         })
         .await

@@ -84,4 +84,10 @@ upstream_search_engines = {
 	SepiaSearch = false,
 } -- select the upstream search engines from which the results should be fetched.
 
+-- The public instances the `searx` (SearXNG) and `librex` (LibreX) engines query.
+-- These are run by volunteers and go offline without notice, so point them at an instance
+-- you trust rather than relying on the defaults below.
+searx_url = "https://searx.be" -- Base URL of the SearXNG instance.
+librex_url = "https://search.davidovski.xyz" -- Base URL of the LibreX instance.
+
 proxy = nil -- Proxy to send outgoing requests through. Set to nil to disable.

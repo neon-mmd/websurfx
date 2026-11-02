@@ -2,18 +2,20 @@
 //! by querying the upstream bing search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
 use regex::Regex;
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
+
+/// Pre-compiled regexes for Bing result cleaning
+static BING_SPAN_RE: std::sync::OnceLock<Regex> = std::sync::OnceLock::new();
+/// Matches the `<strong>` runs Bing wraps highlighted query terms in.
+static BING_STRONG_RE: std::sync::OnceLock<Regex> = std::sync::OnceLock::new();
 
 use crate::models::aggregation::SearchResult;
 
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::build_cookie;
 use super::search_result_parser::SearchResultParser;
@@ -73,16 +75,12 @@ impl SearchEngine for Bing {
 
         let cookie_string = build_cookie(&query_params);
 
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
-            ),
-            ("Cookie".to_string(), cookie_string),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
+            ("Cookie", &cookie_string),
+        ])?;
 
         let document: Html = Html::parse_document(
             &Bing::fetch_html_from_upstream(self, &url, header_map, client).await?,
@@ -101,8 +99,10 @@ impl SearchEngine for Bing {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
-        let re_span = Regex::new(r#"<span.*?>.*?(?:</span>&nbsp;·|</span>)"#).unwrap();
-        let re_strong = Regex::new(r#"(<strong>|</strong>)"#).unwrap();
+        let re_span = BING_SPAN_RE
+            .get_or_init(|| Regex::new(r#"<span.*?>.*?(?:</span>&nbsp;·|</span>)"#).unwrap());
+        let re_strong =
+            BING_STRONG_RE.get_or_init(|| Regex::new(r#"(<strong>|</strong>)"#).unwrap());
 
         // scrape all the results from the html
         self.parser

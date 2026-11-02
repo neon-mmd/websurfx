@@ -6,8 +6,7 @@
 use mimalloc::MiMalloc;
 
 use tokio::net::TcpListener;
-use tokio::sync::OnceCell;
-use websurfx::{parser::Config, run};
+use websurfx::{parser::Config, serve};
 
 /// A dhat heap memory profiler
 #[cfg(feature = "dhat-heap")]
@@ -18,29 +17,21 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-/// A static constant for holding the parsed config.
-static CONFIG: OnceCell<Config> = OnceCell::const_new();
-
 /// The function that launches the main server and registers all the routes of the website.
 ///
 /// # Error
 ///
 /// Returns an error if the port is being used by something else on the system and is not
 /// available for being used for other applications.
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> tokio::io::Result<()> {
     // A dhat heap profiler initialization.
     #[cfg(feature = "dhat-heap")]
     let _profiler = dhat::Profiler::new_heap();
 
-    // Initialize the parsed config globally.
-    let config = CONFIG
-        .get_or_try_init(|| async move {
-            Config::parse(false)
-                .await
-                .map_err(|e| tokio::io::Error::other(e.to_string()))
-        })
-        .await?;
+    let config = Config::parse(false)
+        .await
+        .map_err(|e| tokio::io::Error::other(e.to_string()))?;
 
     log::info!(
         "started server on port {} and IP {}",
@@ -55,5 +46,5 @@ async fn main() -> tokio::io::Result<()> {
 
     let listener = TcpListener::bind((config.binding_ip.as_str(), config.port)).await?;
 
-    run(listener, config).await?.await
+    serve(listener, config).await
 }

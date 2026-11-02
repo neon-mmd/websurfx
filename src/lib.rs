@@ -2,125 +2,151 @@
 //! and register all the routes for the `websurfx` meta search engine website.
 
 mod aggregator;
+mod assets;
 #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
 mod cache;
 mod engines;
 mod handler;
+mod json;
 mod models;
 pub mod parser;
 mod routes;
+mod server;
 pub mod templates;
 mod user_agent;
 
-use actix_cors::Cors;
-use actix_files as fs;
-use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{
-    App, HttpServer,
-    dev::Server,
-    http::header::{self, CacheControl, CacheDirective},
-    middleware::{Compress, DefaultHeaders, Logger},
-    web,
-};
 use handler::{FileType, file_path};
 use parser::Config;
-use tokio::{net::TcpListener, time::Duration};
+use std::path::Path;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::net::TcpListener;
+use xitca_web::{
+    App,
+    handler::handler_service,
+    middleware::{compress::Compress, eraser::TypeEraser, tower_http_compat::TowerHttpCompat},
+    route::get,
+};
 
-/// Runs the web server on the provided TCP listener and returns a `Server` instance.
+/// A catch-all path used to render the 404 page for anything that is not a known route.
+const CATCH_ALL_PATH: &str = "/{*path}";
+
+/// Runs the web server on the provided TCP listener and registers all the routes.
+///
+/// The config is installed as xitca's typed application state, so every handler reads the
+/// same one back out of the request context.
 ///
 /// # Arguments
 ///
-/// * `listener` - A `TcpListener` instance representing the address and port to listen on.
+/// * `listener` - It takes the `TcpListener` to serve requests on.
+/// * `config` - It takes the parsed application config.
 ///
-/// # Returns
+/// # Errors
 ///
-/// Returns a `Result` containing a `Server` instance on success, or an `std::io::Error` on failure.
+/// Returns an error if the public folder cannot be located, or if the listener cannot be
+/// taken over by the server.
 ///
 /// # Example
 ///
-/// ```rust
-/// use tokio::{sync::OnceCell, net::TcpListener};
-/// use websurfx::{parser::Config, run};
-///
-/// /// A static constant for holding the parsed config.
-/// static CONFIG: OnceCell<Config> = OnceCell::const_new();
+/// ```no_run
+/// use websurfx::{parser::Config, serve};
 ///
 /// #[tokio::main]
-/// async fn main(){
-///     // Initialize the parsed config globally.
-///     let config = CONFIG
-///        .get_or_try_init(|| async move {
-///            Config::parse(false)
-///                .await
-///                .map_err(|e| tokio::io::Error::new(tokio::io::ErrorKind::Other, e.to_string()))
-///        })
-///        .await
-///        .unwrap();
-///     let listener = TcpListener::bind("127.0.0.1:8080").await.expect("Failed to bind address");
-///     let server = run(listener,&config).await.expect("Failed to start server");
+/// async fn main() -> std::io::Result<()> {
+///     let config = Config::parse(false)
+///         .await
+///         .map_err(|error| std::io::Error::other(error.to_string()))?;
+///     let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
+///     serve(listener, config).await
 /// }
 /// ```
-pub async fn run(listener: TcpListener, config: &'static Config) -> tokio::io::Result<Server> {
-    let public_folder_path = file_path(FileType::Theme).await?;
+pub async fn serve(listener: TcpListener, config: Config) -> std::io::Result<()> {
+    let public_folder_path = file_path(FileType::Theme)
+        .await
+        .map_err(std::io::Error::other)?;
 
-    let server = HttpServer::new(move || {
-        let cors: Cors = Cors::default()
-            .allow_any_origin()
-            .allowed_methods(vec!["GET"])
-            .allowed_headers(vec![
-                header::ORIGIN,
-                header::CONTENT_TYPE,
-                header::REFERER,
-                header::COOKIE,
-            ]);
+    // The route tree is built inline rather than handed back to the caller: xitca boxes the
+    // state builder inside `App`, and that box only infers when the app is consumed directly
+    // here. Both values are therefore leaked, which also gives the background prefetch tasks
+    // the `'static` config they need. A server holds one config for its whole life anyway, so
+    // neither allocation is ever freed.
+    let config: &'static Config = Box::leak(Box::new(config));
+    server::set_cache_expiry(config.http_cache_expiry_time);
+    crate::models::engine::set_instances(config.searx_url.clone(), config.librex_url.clone());
+    server::set_rate_limit(
+        config.rate_limiter.time_limit,
+        config.rate_limiter.number_of_requests,
+    );
 
-        App::new()
-            // Compress the responses provided by the server for the client requests.
-            .wrap(Compress::default())
-            .wrap(Logger::default()) // added logging middleware for logging.
-            .app_data(web::Data::new(config))
-            .wrap(cors)
-            .wrap(Governor::new(
-                &GovernorConfigBuilder::default()
-                    .seconds_per_request(config.rate_limiter.time_limit as u64)
-                    .burst_size(config.rate_limiter.number_of_requests as u32)
-                    .finish()
-                    .unwrap(),
-            ))
-            .wrap(
-                DefaultHeaders::new().add(CacheControl(vec![CacheDirective::MaxAge(
-                    config.http_cache_expiry_time as u32,
-                )])),
-            )
-            // Serve images and static files (css and js files).
-            .service(
-                fs::Files::new("/static", format!("{}/static", public_folder_path))
-                    .show_files_listing(),
-            )
-            .service(
-                fs::Files::new("/favicon", format!("{}/favicon", public_folder_path))
-                    .show_files_listing(),
-            )
-            .service(
-                fs::Files::new("/images", format!("{}/images", public_folder_path))
-                    .show_files_listing(),
-            )
-            .service(routes::robots_data) // robots.txt
-            .service(routes::index) // index page
-            .service(routes::search::search) // search page
-            .service(routes::about) // about page
-            .service(routes::settings) // settings page
-            .service(routes::export_import::download) // download page
-            .service(routes::opensearch_description) // opensearch description file
-            .default_service(web::route().to(routes::not_found)) // error page
-    })
-    .workers(config.threads as usize)
-    // Set the keep-alive timer for client connections
-    .keep_alive(Duration::from_secs(
-        config.client_connection_keep_alive as u64,
-    ))
-    // Start server on 127.0.0.1 with the user provided port number. for example 127.0.0.1:8080.
-    .listen(listener.into_std()?)?
-    .run();
-    Ok(server)
+    let public_folder_path: &'static str = Box::leak(public_folder_path.into_boxed_str());
+
+    routes::set_assets(Arc::new(assets::PublicFolder::new(Path::new(
+        public_folder_path,
+    ))));
+
+    App::new()
+        .with_state(config)
+        .at("/robots.txt", get(handler_service(routes::robots_data)))
+        .at(
+            "/websurfx.xml",
+            get(handler_service(routes::opensearch_description)),
+        )
+        .at("/", get(handler_service(routes::index)))
+        .at("/search", get(handler_service(routes::search::search)))
+        .at("/about", get(handler_service(routes::about)))
+        .at(
+            "/settings",
+            get(handler_service(routes::settings))
+                // xitca's router rejects a second registration for a path that already has
+                // one, even for a different method, so the POST is chained onto the GET.
+                .post(handler_service(routes::export_import::set_settings)),
+        )
+        .at(
+            "/download",
+            get(handler_service(routes::export_import::download)),
+        )
+        .at(
+            "/static/{*path}",
+            get(handler_service(routes::static_files)).head(handler_service(routes::static_files)),
+        )
+        .at(
+            "/favicon/{*path}",
+            get(handler_service(routes::favicon)).head(handler_service(routes::favicon)),
+        )
+        .at(
+            "/images/{*path}",
+            get(handler_service(routes::images)).head(handler_service(routes::images)),
+        )
+        // Everything that is not a known route renders the 404 page.
+        .at(
+            CATCH_ALL_PATH,
+            get(handler_service(routes::not_found))
+                .post(handler_service(routes::not_found))
+                .put(handler_service(routes::not_found))
+                .delete(handler_service(routes::not_found))
+                .patch(handler_service(routes::not_found))
+                .head(handler_service(routes::not_found))
+                .options(handler_service(routes::not_found)),
+        )
+        .enclosed_fn(server::rate_limit)
+        // `enclosed` wraps from the inside out, so the last call is the outermost. The
+        // logging and cache-control middlewares therefore come first, before `Compress`
+        // changes the response body type.
+        .enclosed_fn(server::with_cache_control)
+        .enclosed_fn(server::access_log)
+        .enclosed(Compress)
+        // `TowerHttpCompat` rewrites the response body type, so `TypeEraser` restores it
+        // before the outermost middleware sees the response.
+        .enclosed(TowerHttpCompat::new(server::cors_layer()))
+        .enclosed(TypeEraser::response_body())
+        .serve()
+        .server_threads(config.threads as usize)
+        .keep_alive_timeout(Duration::from_secs(
+            config.client_connection_keep_alive as u64,
+        ))
+        .listen(listener.into_std()?)?
+        .run()
+        .await?;
+
+    Ok(())
 }

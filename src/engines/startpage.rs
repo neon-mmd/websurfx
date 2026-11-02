@@ -2,17 +2,14 @@
 //! by querying the upstream startpage search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::search_result_parser::SearchResultParser;
 
@@ -56,16 +53,15 @@ impl SearchEngine for Startpage {
         );
 
         // initializing HeaderMap and adding appropriate headers.
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
             (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
+                "Cookie",
+                "preferences=connect_to_serverEEE0N1Ndate_timeEEEworldN1Ndisable_family_filterEEE0N1Ndisable_open_in_new_windowEEE0N1Nenable_post_methodEEE1N1Nenable_proxy_safety_suggestEEE1N1Nenable_stay_controlEEE0N1Ninstant_answersEEE1N1Nlang_homepageEEEs%2Fnight%2FenN1NlanguageEEEenglishN1Nlanguage_uiEEEenglishN1Nnum_of_resultsEEE10N1Nsearch_results_regionEEEallN1NsuggestionsEEE1N1Nwt_unitEEEcelsius",
             ),
-            ("Cookie".to_string(), "preferences=connect_to_serverEEE0N1Ndate_timeEEEworldN1Ndisable_family_filterEEE0N1Ndisable_open_in_new_windowEEE0N1Nenable_post_methodEEE1N1Nenable_proxy_safety_suggestEEE1N1Nenable_stay_controlEEE0N1Ninstant_answersEEE1N1Nlang_homepageEEEs%2Fnight%2FenN1NlanguageEEEenglishN1Nlanguage_uiEEEenglishN1Nnum_of_resultsEEE10N1Nsearch_results_regionEEEallN1NsuggestionsEEE1N1Nwt_unitEEEcelsius".to_string()),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        ])?;
 
         let document: Html = Html::parse_document(
             &Startpage::fetch_html_from_upstream(self, &url, header_map, client).await?,

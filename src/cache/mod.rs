@@ -1,16 +1,17 @@
 //! This module provides the modules which provide the functionality to cache the aggregated
 //! results fetched and aggregated from the upstream search engines in a json format.
 
-use crate::{models::aggregation::SearchResults, parser::Config};
+use crate::{models::aggregation::SearchResultsArchive, parser::Config};
 use arc_swap::ArcSwap;
 use error::{CacheError, CacheResult};
-use std::convert::TryInto;
+use rkyv::util::AlignedVec;
+use std::sync::Arc;
 
 #[cfg(feature = "redis-cache")]
 use redis::RedisCache;
 
 #[cfg(feature = "memory-cache")]
-use {memory::InMemoryCache, std::sync::Arc};
+use memory::InMemoryCache;
 
 #[cfg(feature = "redis-cache")]
 #[cfg(any(feature = "encrypt-cache-results", feature = "cec-cache-results"))]
@@ -54,7 +55,7 @@ trait Cacher: Send + Sync {
     ///
     /// Returns the `SearchResults` from the cache if the program executes normally otherwise
     /// returns a `CacheError` if the results cannot be retrieved from the cache.
-    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults>;
+    async fn cached_results(&self, url: &str) -> CacheResult<SearchResultsArchive>;
 
     /// A function that checks if the cached results exists in the cache server or not.
     ///
@@ -67,14 +68,14 @@ trait Cacher: Send + Sync {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
-    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>>;
+    async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>>;
 
     /// A function which caches the results by using the `url` as the key and
     /// `json results` as the value and stores it in the cache
     ///
     /// # Arguments
     ///
-    /// * `json_results` - It takes the json results string as an argument.
+    /// * `search_results` - It takes the json results string as an argument.
     /// * `url` - It takes the url as a String.
     ///
     /// # Error
@@ -83,8 +84,8 @@ trait Cacher: Send + Sync {
     /// otherwise it returns a `CacheError` if the search results cannot be cached due to a
     /// failure.
     async fn cache_results(
-        &mut self,
-        search_results: &[SearchResults],
+        &self,
+        search_results: &[SearchResultsArchive],
         urls: &[String],
     ) -> CacheResult<()>;
 
@@ -106,7 +107,7 @@ trait Cacher: Send + Sync {
         feature = "cec-cache-results"
     ))]
     async fn encrypt_or_decrypt_results(
-        &mut self,
+        &self,
         mut bytes: Vec<u8>,
         encrypt: bool,
     ) -> CacheResult<Vec<u8>> {
@@ -155,22 +156,37 @@ trait Cacher: Send + Sync {
     /// Returns the compressed bytes on success otherwise it returns a CacheError
     /// on failure.
     #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    async fn compress_results(&mut self, mut bytes: Vec<u8>) -> CacheResult<Vec<u8>> {
+    async fn compress_results(&self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
         use tokio::io::AsyncWriteExt;
         let mut writer = async_compression::tokio::write::BrotliEncoder::new(Vec::new());
         writer
-            .write_all(&bytes)
+            .write_all(bytes)
             .await
             .map_err(|_| CacheError::CompressionError)?;
         writer
             .shutdown()
             .await
             .map_err(|_| CacheError::CompressionError)?;
-        bytes = writer.into_inner();
-        Ok(bytes)
+        Ok(writer.into_inner())
     }
 
-    /// A helper function that returns compressed-encrypted results.
+    /// A helper function that expands previously compressed results.
+    /// Feature flags (**compress-cache-results or cec-cache-results**) are required  for this to work.
+    ///
+    /// # Arguments
+    ///
+    /// * `bytes` - It takes a slice of bytes as an argument.
+    ///
+    /// # Error
+    ///
+    /// Returns the uncompressed bytes on success otherwise it returns a CacheError
+    /// on failure.
+    #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
+    async fn decompress_results(&self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
+        decompress_util(bytes).await
+    }
+
+    /// A helper function that compresses then encrypts then compresses results again.
     /// Feature flag (**cec-cache-results**) is required  for this to work.
     ///
     /// # Arguments
@@ -182,122 +198,139 @@ trait Cacher: Send + Sync {
     /// Returns the compressed and encrypted bytes on success otherwise it returns a CacheError
     /// on failure.
     #[cfg(feature = "cec-cache-results")]
-    async fn compress_encrypt_compress_results(
-        &mut self,
-        mut bytes: Vec<u8>,
-    ) -> CacheResult<Vec<u8>> {
-        // compress first
-        bytes = self.compress_results(bytes).await?;
-        // encrypt
-        bytes = self.encrypt_or_decrypt_results(bytes, true).await?;
-
-        // compress again;
-        bytes = self.compress_results(bytes).await?;
-
-        Ok(bytes)
+    async fn compress_encrypt_compress_results(&self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
+        let compressed = self.compress_results(bytes).await?;
+        let encrypted = self.encrypt_or_decrypt_results(compressed, true).await?;
+        self.compress_results(&encrypted).await
     }
 
-    /// A helper function that returns compressed results.
-    /// Feature flags (**compress-cache-results or cec-cache-results**) are required  for this to work.
-    /// If bytes where
+    /// The exact inverse of [`Cacher::compress_encrypt_compress_results`].
+    ///
     /// # Arguments
     ///
     /// * `bytes` - It takes a slice of bytes as an argument.
     ///
     /// # Error
     ///
-    /// Returns the uncompressed bytes on success otherwise it returns a CacheError
-    /// on failure.
-    #[cfg(any(feature = "compress-cache-results", feature = "cec-cache-results"))]
-    async fn decompress_results(&mut self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
+    /// Returns the original bytes on success otherwise it returns a CacheError on failure.
+    #[cfg(feature = "cec-cache-results")]
+    async fn decompress_decrypt_decompress_results(&self, bytes: &[u8]) -> CacheResult<Vec<u8>> {
+        let decompressed = self.decompress_results(bytes).await?;
+        let decrypted = self.encrypt_or_decrypt_results(decompressed, false).await?;
+        self.decompress_results(&decrypted).await
+    }
+
+    /// Runs the single compression/encryption pipeline selected by the feature flags.
+    ///
+    /// `forward = true` prepares bytes for storage and `forward = false` restores them. The
+    /// **`cec-cache-results`** flag implies both the compress and the encrypt flag, so it is
+    /// matched first to make sure exactly one pipeline is ever applied.
+    ///
+    /// # Arguments
+    ///
+    /// * `bytes` - It takes a slice of bytes as an argument.
+    /// * `forward` - A boolean choosing whether to apply or to reverse the pipeline.
+    ///
+    /// # Error
+    ///
+    /// Returns the transformed bytes on success otherwise it returns a CacheError on failure.
+    #[cfg(any(
+        feature = "compress-cache-results",
+        feature = "encrypt-cache-results",
+        feature = "cec-cache-results"
+    ))]
+    async fn transform_bytes(&self, bytes: &[u8], forward: bool) -> CacheResult<Vec<u8>> {
         cfg_if::cfg_if! {
-             if #[cfg(feature = "compress-cache-results")]
-            {
-               decompress_util(bytes).await
-
+            if #[cfg(feature = "cec-cache-results")] {
+                if forward {
+                    self.compress_encrypt_compress_results(bytes).await
+                } else {
+                    self.decompress_decrypt_decompress_results(bytes).await
+                }
             }
-            else if  #[cfg(feature = "cec-cache-results")]
-            {
-                let decompressed = decompress_util(bytes)?;
-                let decrypted = self.encrypt_or_decrypt_results(decompressed, false)?;
-
-                decompress_util(&decrypted).await
-
+            else if #[cfg(feature = "compress-cache-results")] {
+                if forward {
+                    self.compress_results(bytes).await
+                } else {
+                    self.decompress_results(bytes).await
+                }
+            }
+            else if #[cfg(feature = "encrypt-cache-results")] {
+                self.encrypt_or_decrypt_results(bytes.to_vec(), forward).await
+            }
+            else {
+                // Unreachable: this helper only exists once one of the flags above is on.
+                Ok(bytes.to_vec())
             }
         }
     }
 
-    /// A helper function that compresses or encrypts search results before they're inserted into a cache store
+    /// Prepares an archive for insertion into a cache store.
+    ///
     /// # Arguments
     ///
-    /// * `search_results` - A reference to the search_Results to process.
+    /// * `search_results` - A reference to the archived search results to process.
     ///
     /// # Error
     ///
-    /// Returns a Vec of compressed or encrypted bytes on success otherwise it returns a CacheError
-    /// on failure.
+    /// Returns the encoded buffer to store on success otherwise it returns a CacheError
+    /// on failure. Without any compress/encrypt feature the archive's own buffer is shared
+    /// as-is, so storing a result never re-encodes it.
     async fn pre_process_search_results(
-        &mut self,
-        search_results: &SearchResults,
-    ) -> CacheResult<Vec<u8>> {
-        #[allow(unused_mut)] // needs to be mutable when any of the features is enabled
-        let mut bytes: Vec<u8> = search_results.try_into()?;
-        #[cfg(feature = "compress-cache-results")]
+        &self,
+        search_results: &SearchResultsArchive,
+    ) -> CacheResult<Arc<AlignedVec>> {
+        #[allow(unused_mut)] // only reassigned once a compress/encrypt feature is enabled
+        let mut buffer = search_results.buffer();
+
+        #[cfg(any(
+            feature = "compress-cache-results",
+            feature = "encrypt-cache-results",
+            feature = "cec-cache-results"
+        ))]
         {
-            let compressed = self.compress_results(bytes).await?;
-            bytes = compressed;
+            buffer = Arc::new(into_aligned_vec(self.transform_bytes(&buffer, true).await?));
         }
 
-        #[cfg(feature = "encrypt-cache-results")]
-        {
-            let encrypted = self.encrypt_or_decrypt_results(bytes, true).await?;
-            bytes = encrypted;
-        }
-
-        #[cfg(feature = "cec-cache-results")]
-        {
-            let compressed_encrypted_compressed =
-                self.compress_encrypt_compress_results(bytes).await?;
-            bytes = compressed_encrypted_compressed;
-        }
-
-        Ok(bytes)
+        Ok(buffer)
     }
 
-    /// A helper function that decompresses or decrypts search results after they're fetched from the cache-store
+    /// Restores an archive from the bytes handed back by a cache store.
+    ///
     /// # Arguments
     ///
-    /// * `bytes` - A Vec of bytes stores in the cache.
+    /// * `bytes` - The encoded buffer read back from the cache.
     ///
     /// # Error
     ///
-    /// Returns the SearchResults struct on success otherwise it returns a CacheError
+    /// Returns the archived search results on success otherwise it returns a CacheError
     /// on failure.
-    #[allow(unused_mut)] // needs to be mutable when any of the features is enabled
     async fn post_process_search_results(
-        &mut self,
-        mut bytes: Vec<u8>,
-    ) -> CacheResult<SearchResults> {
-        #[cfg(feature = "compress-cache-results")]
-        {
-            let decompressed = self.decompress_results(&bytes).await?;
-            bytes = decompressed
-        }
+        &self,
+        bytes: Arc<AlignedVec>,
+    ) -> CacheResult<SearchResultsArchive> {
+        #[cfg(any(
+            feature = "compress-cache-results",
+            feature = "encrypt-cache-results",
+            feature = "cec-cache-results"
+        ))]
+        let bytes = Arc::new(into_aligned_vec(self.transform_bytes(&bytes, false).await?));
 
-        #[cfg(feature = "encrypt-cache-results")]
-        {
-            let decrypted = self.encrypt_or_decrypt_results(bytes, false).await?;
-            bytes = decrypted
-        }
-
-        #[cfg(feature = "cec-cache-results")]
-        {
-            let decompressed_decrypted = self.decompress_results(&bytes).await?;
-            bytes = decompressed_decrypted;
-        }
-
-        Ok(bytes.try_into()?)
+        SearchResultsArchive::from_buffer(bytes).map_err(|_| CacheError::SerializationError)
     }
+}
+
+/// Copies a byte buffer into the alignment that rkyv needs to read archived values back out
+/// of it. Only needed once a compress/encrypt feature reshapes the encoded bytes.
+#[cfg(any(
+    feature = "compress-cache-results",
+    feature = "encrypt-cache-results",
+    feature = "cec-cache-results"
+))]
+fn into_aligned_vec(bytes: Vec<u8>) -> AlignedVec {
+    let mut aligned = AlignedVec::with_capacity(bytes.len());
+    aligned.extend_from_slice(&bytes);
+    aligned
 }
 
 /// A helper function that returns compressed results.
@@ -373,7 +406,7 @@ impl SwitchCache {
     ///
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
-    async fn cached_results_exists(&mut self, urls: &[String]) -> CacheResult<Vec<bool>> {
+    async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
             self.redis_cache.cached_results_exists(urls).await
@@ -403,7 +436,7 @@ impl SwitchCache {
     /// # Error
     ///
     /// Returns the cached data on success otherwise returns a custom CacheError on failure.
-    async fn cached_results(&mut self, url: &str) -> CacheResult<SearchResults> {
+    async fn cached_results(&self, url: &str) -> CacheResult<SearchResultsArchive> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
         {
             self.redis_cache.cached_results(url).await
@@ -446,8 +479,8 @@ impl SwitchCache {
     ///
     /// Returns the cached data on success otherwise returns a custom CacheError on failure.
     async fn cache_results(
-        &mut self,
-        search_results: &[SearchResults],
+        &self,
+        search_results: &[SearchResultsArchive],
         urls: &[String],
     ) -> CacheResult<()> {
         #[cfg(all(feature = "redis-cache", not(feature = "memory-cache")))]
@@ -470,24 +503,9 @@ impl SwitchCache {
     }
 }
 
-/// TryInto implementation for SearchResults from Vec<u8>
-impl TryInto<SearchResults> for Vec<u8> {
-    type Error = CacheError;
-
-    fn try_into(self) -> Result<SearchResults, Self::Error> {
-        postcard::from_bytes(&self).map_err(|_| CacheError::SerializationError)
-    }
-}
-
-impl TryInto<Vec<u8>> for &SearchResults {
-    type Error = CacheError;
-
-    fn try_into(self) -> Result<Vec<u8>, Self::Error> {
-        postcard::to_stdvec(self).map_err(|_| CacheError::SerializationError)
-    }
-}
 /// A structure to efficiently share the cache between threads - as it is protected by a lock-free
-/// ArcSwap structure.
+/// ArcSwap structure. Reads are lock-free and wait-free (using ArcSwap::load). Writes use
+/// copy-on-write: load the current cache, clone it, mutate the clone, then atomically swap.
 pub struct SharedCache(ArcSwap<SwitchCache>);
 
 impl SharedCache {
@@ -504,13 +522,11 @@ impl SharedCache {
         )))
     }
 
-    /// A lock-free, wait-free get operation.
+    /// A lock-free, wait-free read operation.
     ///
-    /// # Returns
-    ///
-    /// returns an owned copy of the `SwitchCache` struct.
-    fn cache(&self) -> SwitchCache {
-        (*self.0.load_full()).clone()
+    /// Returns a guard that provides access to the current cache without cloning.
+    fn read(&self) -> arc_swap::Guard<Arc<SwitchCache>> {
+        self.0.load()
     }
 
     /// A function that checks if the cached results exists in the cache server or not.
@@ -525,7 +541,8 @@ impl SharedCache {
     /// Returns a Vector containing booleans for each respective url if nothing goes wrong otherwise
     /// returns a `CacheError`.
     pub async fn cached_results_exists(&self, urls: &[String]) -> CacheResult<Vec<bool>> {
-        self.cache().cached_results_exists(urls).await
+        let cache = self.read();
+        cache.cached_results_exists(urls).await
     }
 
     /// A getter function which retrieves the cached SearchResulsts from the internal cache.
@@ -539,17 +556,19 @@ impl SharedCache {
     ///
     /// Returns a `SearchResults` struct containing the search results from the cache if nothing
     /// goes wrong otherwise returns a `CacheError`.
-    pub async fn cached_results(&self, url: &str) -> CacheResult<SearchResults> {
-        self.cache().cached_results(url).await
+    pub async fn cached_results(&self, url: &str) -> CacheResult<SearchResultsArchive> {
+        let cache = self.read();
+        cache.cached_results(url).await
     }
 
     /// A setter function which caches the results by using the `url` as the key and
-    /// `SearchResults` as the value.
+    /// `SearchResultsArchive` as the value. Uses copy-on-write: clones the cache, mutates the
+    /// clone, then atomically swaps.
     ///
     /// # Arguments
     ///
-    /// * `search_results` - It takes the `SearchResults` as an argument which are results that
-    ///   needs to be cached.
+    /// * `search_results` - It takes the `SearchResultsArchive` as an argument which are results
+    ///   that needs to be cached.
     /// * `url` - It takes the search url as an argument which will be used as the key for storing
     ///   results in the cache.
     ///
@@ -559,15 +578,18 @@ impl SharedCache {
     /// on a failure.
     pub async fn cache_results(
         &self,
-        search_results: &[SearchResults],
+        search_results: &[SearchResultsArchive],
         urls: &[String],
     ) -> CacheResult<()> {
-        let mut mut_cache = self.cache();
-        let cache_results = mut_cache.cache_results(search_results, urls).await;
+        // Load current cache, clone the inner SwitchCache for mutation (copy-on-write)
+        let new_cache = (**self.read()).clone();
+        let result = new_cache.cache_results(search_results, urls).await;
 
-        #[cfg(feature = "memory-cache")]
-        self.0.store(Arc::new(mut_cache));
+        // Only store the new cache if the write succeeded
+        if result.is_ok() {
+            self.0.store(Arc::new(new_cache));
+        }
 
-        cache_results
+        result
     }
 }

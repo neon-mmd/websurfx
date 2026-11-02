@@ -9,11 +9,10 @@ use crate::models::{
 use crate::parser::Config;
 
 use error_stack::Report;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use rayon::slice::ParallelSliceMut;
+use rayon::prelude::*;
 use regex::Regex;
 use reqwest::{Client, ClientBuilder};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokio::task::JoinSet;
 use tokio::{
     fs::File,
@@ -24,8 +23,29 @@ use tokio::{
 /// A constant for holding the prebuilt Client globally in the app.
 static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
 
+/// The language an upstream is told the browser prefers.
+///
+/// Sent on every request so that a request never goes out with a missing `Accept-Language`,
+/// which on its own is a strong signal that the caller is not a browser.
+const ACCEPT_LANGUAGE: &str = "en-US,en;q=0.9";
+
+/// The `Accept` sent to the engines that answer with a page of HTML.
+const ACCEPT_HTML: &str = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+
+/// Cached compiled regex patterns for blocklist/allowlist filtering.
+/// Uses ahash for faster hashing.
+pub static FILTER_PATTERNS_CACHE: OnceLock<
+    std::sync::Mutex<std::collections::HashMap<String, Vec<Regex>, ahash::RandomState>>,
+> = OnceLock::new();
+
 /// Aliases for long type annotations
-type FutureVec = JoinSet<Result<Vec<(String, SearchResult)>, Report<EngineError>>>;
+type EngineTaskOutput = (
+    &'static str,
+    Result<Vec<(String, SearchResult)>, Report<EngineError>>,
+);
+/// A JoinSet of engine fetch tasks, each tagged with its engine name so results
+/// and errors can be attributed correctly.
+type FutureVec = JoinSet<EngineTaskOutput>;
 
 /// The function aggregates the scraped results from the user-selected upstream search engines.
 /// These engines can be chosen either from the user interface (UI) or from the configuration file.
@@ -69,25 +89,64 @@ pub async fn aggregate(
     query: &str,
     page: u32,
     config: &Config,
-    upstream_search_engines: &[EngineHandler],
+    upstream_search_engines: &[&'static EngineHandler],
     safe_search: u8,
     user_agent: &'static str,
 ) -> Result<SearchResults, Box<dyn std::error::Error>> {
     let client = CLIENT.get_or_init(|| {
+        // The headers every upstream expects to see from a browser, so that no engine can
+        // forget one and no request goes out bare. They live on the client rather than on
+        // each request, which is what makes them apply to the first attempt and to every
+        // retry alike. An engine still overrides any of them per request, and adds whatever
+        // else that particular site needs.
+        let mut spoofed = reqwest::header::HeaderMap::with_capacity(7);
+        spoofed.insert(
+            reqwest::header::ACCEPT_LANGUAGE,
+            reqwest::header::HeaderValue::from_static(ACCEPT_LANGUAGE),
+        );
+        spoofed.insert(
+            reqwest::header::ACCEPT,
+            reqwest::header::HeaderValue::from_static(ACCEPT_HTML),
+        );
+        for (name, value) in [
+            ("sec-fetch-dest", "document"),
+            ("sec-fetch-mode", "navigate"),
+            ("sec-fetch-site", "same-origin"),
+            ("sec-fetch-user", "?1"),
+            ("upgrade-insecure-requests", "1"),
+        ] {
+            let name = reqwest::header::HeaderName::from_static(name);
+            let value = reqwest::header::HeaderValue::from_static(value);
+
+            spoofed.insert(name, value);
+        }
+
         let mut cb = ClientBuilder::new()
-            .timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .timeout(Duration::from_secs(config.request_timeout as u64))
             .pool_idle_timeout(Duration::from_secs(
                 config.pool_idle_connection_timeout as u64,
             ))
             .tcp_keepalive(Duration::from_secs(config.tcp_connection_keep_alive as u64))
             .pool_max_idle_per_host(config.number_of_https_connections as usize)
-            .connect_timeout(Duration::from_secs(config.request_timeout as u64)) // Add timeout to request to avoid DDOSing the server
+            .connect_timeout(Duration::from_secs(config.request_timeout as u64))
             .use_rustls_tls()
             .tls_built_in_root_certs(config.operating_system_tls_certificates)
             .https_only(true)
             .gzip(true)
             .brotli(true)
-            .http2_adaptive_window(config.adaptive_window);
+            .http2_adaptive_window(config.adaptive_window)
+            // HTTP/2 is negotiated per host through ALPN, which is why neither
+            // `http1_only` nor `http2_prior_knowledge` is set. Prior knowledge offers `h2`
+            // and nothing else, so any upstream that answers ALPN with `http/1.1` rejects
+            // the connection outright with a `no_application_protocol` alert. That is
+            // exactly what mojeek does, and it also left yahoo dropping connections
+            // mid-session. Leaving the fallback in place lets each engine use the version
+            // it actually speaks.
+            // Enable connection reuse across requests
+            .pool_max_idle_per_host(config.number_of_https_connections as usize)
+            // Set a reasonable user agent for connection identification
+            .user_agent(user_agent)
+            .default_headers(spoofed);
 
         if config.proxy.is_some() {
             cb = cb.proxy(config.proxy.clone().unwrap());
@@ -96,18 +155,17 @@ pub async fn aggregate(
         cb.build().unwrap()
     });
 
-    let mut names: Vec<&str> = Vec::with_capacity(0);
-
     // create tasks for upstream result fetching
     let mut tasks: FutureVec = JoinSet::new();
 
     let query: Arc<String> = Arc::new(query.to_string());
     for engine_handler in upstream_search_engines {
-        let (name, search_engine) = engine_handler.clone().into_name_engine();
-        names.push(name);
+        // The engine is shared, so handing it to the task is a refcount bump rather than a
+        // rebuild of its compiled selectors.
+        let (name, search_engine) = engine_handler.name_engine();
         let query_partially_cloned = query.clone();
         tasks.spawn(async move {
-            search_engine
+            let result = search_engine
                 .results(
                     &query_partially_cloned,
                     page,
@@ -115,35 +173,44 @@ pub async fn aggregate(
                     client,
                     safe_search,
                 )
-                .await
+                .await;
+            (name, result)
         });
     }
 
     // aggregate search results, removing duplicates and handling errors the upstream engines returned
+    // Use a vector for memory efficiency; on cache miss below we do one linear
+    // scan per result which is O(n²) worst-case but n is small (dozens of results).
     let mut result_map: Vec<(String, SearchResult)> = Vec::new();
     let mut engine_errors_info: Vec<EngineErrorInfo> = Vec::new();
 
-    let mut handle_error = |error: &Report<EngineError>, engine_name: &'static str| {
-        log::error!("Engine Error: {:?}", error);
-        engine_errors_info.push(EngineErrorInfo::new(
-            error.downcast_ref::<EngineError>().unwrap(),
-            engine_name,
-        ));
-    };
-
-    while let Some(Ok(response)) = tasks.join_next().await {
-        let engine = names.pop().unwrap();
-
-        if let Ok(result) = response {
-            for (key, value) in result {
-                if let Some(value) = result_map.iter().find(|(key_s, _)| key_s == &key) {
-                    value.1.to_owned().add_engines(engine)
-                } else {
-                    result_map.push((key, value))
+    while let Some(Ok((engine, response))) = tasks.join_next().await {
+        match response {
+            Ok(result) => {
+                for (key, value) in result {
+                    if let Some(existing) = result_map
+                        .iter_mut()
+                        .find(|(key_s, _)| key_s == &key)
+                        .map(|(_, v)| v)
+                    {
+                        // The same URL came from multiple upstream engines; merge the
+                        // engine names so attribution is preserved. (Previously the
+                        // merged value was dropped on the floor.)
+                        if !existing.engine.iter().any(|e| e == engine) {
+                            existing.add_engines(engine);
+                        }
+                    } else {
+                        result_map.push((key, value))
+                    }
                 }
             }
-        } else if let Err(error) = response {
-            handle_error(&error, engine)
+            Err(error) => {
+                log::error!("Engine Error: {:?}", error);
+                engine_errors_info.push(EngineErrorInfo::new(
+                    error.downcast_ref::<EngineError>().unwrap(),
+                    engine,
+                ));
+            }
         }
     }
 
@@ -167,16 +234,14 @@ pub async fn aggregate(
     }
 
     let results: Box<[SearchResult]> = tokio::task::spawn_blocking(move || {
-        let mut unsorted_results: Box<[SearchResult]> = result_map
-            .par_iter()
-            .cloned()
-            .map(|(_, mut value)| {
-                if !value.url.contains("temu.com") {
-                    value.calculate_relevance(query.as_str())
-                }
-                value
-            })
-            .collect();
+        let mut values: Vec<SearchResult> =
+            result_map.into_iter().map(|(_, value)| value).collect();
+
+        // Batch compute relevance scores using optimized TF-IDF calculator
+        let calculator = crate::models::aggregation::TfIdfCalculator::new();
+        calculator.compute_scores(query.as_str(), &mut values);
+
+        let mut unsorted_results: Box<[SearchResult]> = values.into_boxed_slice();
 
         sort_search_results(&mut unsorted_results);
 
@@ -206,28 +271,56 @@ pub async fn filter_with_lists(
     resultant_map: &mut Vec<(String, SearchResult)>,
     file_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let reader = BufReader::new(File::open(file_path).await?);
-    let mut lines = reader.lines();
+    // Get or compile patterns from cache (with mutex for thread-safe initialization)
+    let cache = FILTER_PATTERNS_CACHE.get_or_init(|| {
+        std::sync::Mutex::new(std::collections::HashMap::with_hasher(
+            ahash::RandomState::new(),
+        ))
+    });
 
-    while let Some(line) = lines.next_line().await? {
-        let re = Regex::new(line.trim())?;
+    // Try to get cached patterns first (minimal lock time)
+    let patterns = {
+        let cache_guard = cache.lock().unwrap();
+        if let Some(cached) = cache_guard.get(file_path) {
+            cached.clone()
+        } else {
+            Vec::new() // Will compile below
+        }
+    };
 
-        let mut length = map_to_be_filtered.len();
-        let mut idx: usize = Default::default();
-        // Iterate over each search result in the map and check if it matches the regex pattern
-        while idx < length {
-            let ele = &map_to_be_filtered[idx];
-            let ele_inner = &ele.1;
-            // If the search result matches the regex pattern, move it from the original map to the resultant map
-            if re.is_match(&ele.0.to_lowercase())
-                || re.is_match(&ele_inner.title.to_lowercase())
-                || re.is_match(&ele_inner.description.to_lowercase())
-            {
-                resultant_map.push(map_to_be_filtered.swap_remove(idx));
-                length -= 1;
-            } else {
-                idx += 1;
-            }
+    // If not in cache, compile patterns (without holding the lock during I/O)
+    let patterns = if patterns.is_empty() {
+        let reader = BufReader::new(File::open(file_path).await?);
+        let mut lines = reader.lines();
+        let mut compiled: Vec<Regex> = Vec::new();
+        while let Some(line) = lines.next_line().await? {
+            compiled.push(Regex::new(line.trim())?);
+        }
+        // Store in cache (minimal lock time)
+        {
+            let mut cache_guard = cache.lock().unwrap();
+            cache_guard.insert(file_path.to_string(), compiled.clone());
+        }
+        compiled
+    } else {
+        patterns
+    };
+
+    let mut idx: usize = 0;
+    while idx < map_to_be_filtered.len() {
+        let (key, value) = &map_to_be_filtered[idx];
+        let key_lower = key.to_lowercase();
+        let title_lower = value.title.to_lowercase();
+        let description_lower = value.description.to_lowercase();
+
+        let matches = patterns.iter().any(|re| {
+            re.is_match(&key_lower) || re.is_match(&title_lower) || re.is_match(&description_lower)
+        });
+
+        if matches {
+            resultant_map.push(map_to_be_filtered.swap_remove(idx));
+        } else {
+            idx += 1;
         }
     }
 

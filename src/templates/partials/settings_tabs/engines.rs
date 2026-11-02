@@ -1,7 +1,5 @@
 //! A module that handles the engines tab for setting page view in the `websurfx` frontend.
 
-use std::collections::HashMap;
-
 use maud::{Markup, html};
 
 /// A functions that handles the html code for the engines tab for the settings page for the search page.
@@ -14,7 +12,7 @@ use maud::{Markup, html};
 /// # Returns
 ///
 /// It returns the compiled html markup code for the engines tab.
-pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
+pub fn engines(engine_names: &[(String, bool)]) -> Markup {
     html!(
         div class="engines tab"{
            h1{"Engines"}
@@ -26,7 +24,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                // Checks whether all the engines are selected or not if they are then the
                // checked `select_all` button is rendered otherwise the unchecked version
                // is rendered.
-               @if engine_names.values().all(|selected| *selected){
+               @if engine_names.iter().all(|(_, selected)| *selected){
                    .toggle_btn{
                       label class="switch"{
                          input type="checkbox" class="select_all" onchange="toggleAllSelection()" checked;
@@ -45,7 +43,7 @@ pub fn engines(engine_names: &HashMap<String, bool>) -> Markup {
                    }
                }
                hr;
-               @for (engine_name, selected) in engine_names{
+               @for (engine_name, selected) in engine_names.iter(){
                    // Checks whether the `engine_name` is selected or not if they are then the
                    // checked `engine` button is rendered otherwise the unchecked version is
                    // rendered.

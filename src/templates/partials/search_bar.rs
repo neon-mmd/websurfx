@@ -2,7 +2,7 @@
 
 use maud::{Markup, PreEscaped, html};
 
-use crate::{models::aggregation::EngineErrorInfo, templates::partials::bar::bar};
+use crate::{models::aggregation::ArchivedEngineErrorInfo, templates::partials::bar::bar};
 
 /// A constant holding the named safe search level options for the corresponding values 0, 1 and 2.
 const SAFE_SEARCH_LEVELS_NAME: [&str; 3] = ["None", "Low", "Moderate"];
@@ -20,7 +20,7 @@ const SAFE_SEARCH_LEVELS_NAME: [&str; 3] = ["None", "Low", "Moderate"];
 ///
 /// It returns the compiled html code for the search bar as a result.
 pub fn search_bar(
-    engine_errors_info: &[EngineErrorInfo],
+    engine_errors_info: &[ArchivedEngineErrorInfo],
     safe_search_level: u8,
     query: &str,
 ) -> Markup {
@@ -35,8 +35,8 @@ pub fn search_bar(
                       .dropdown_error_box{
                          @for errors in engine_errors_info{
                             .error_item{
-                               span class="engine_name"{(errors.engine)}
-                               span class="engine_name"{(errors.error)}
+                               span class="engine_name"{(errors.engine.as_str())}
+                               span class="engine_name"{(errors.error.as_str())}
                                span class="severity_color" style="background: {{{this.severity_color}}};"{}
                             }
                          }

@@ -2,19 +2,19 @@
 //! by querying the upstream duckduckgo search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::search_result_parser::SearchResultParser;
+
+/// Pre-compiled regex for cleaning DuckDuckGo result URLs
+static DDG_URL_CLEAN: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
 
 /// A new DuckDuckGo engine type defined in-order to implement the `SearchEngine` trait which allows to
 /// reduce code duplication as well as allows to create vector of different search engines easily.
@@ -61,31 +61,31 @@ impl SearchEngine for DuckDuckGo {
         };
 
         // initializing HeaderMap and adding appropriate headers.
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
-            ),
-            ("Cookie".to_string(), "kl=wt-wt".to_string()),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
+            ("Cookie", "kl=wt-wt"),
+        ])?;
 
-        let document: Html = Html::parse_document(
-            &DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, client).await?,
-        );
+        let html = DuckDuckGo::fetch_html_from_upstream(self, &url, header_map, client).await?;
+        let document: Html = Html::parse_document(&html);
 
         if self.parser.parse_for_no_results(&document).next().is_some() {
             return Err(Report::new(EngineError::EmptyResultSet));
         }
 
+        let url_clean_re = DDG_URL_CLEAN.get_or_init(|| regex::Regex::new(r"^//").unwrap());
+
         // scrape all the results from the html
         self.parser
-            .parse_for_results(&document, |title, url, desc| {
+            .parse_for_results(&document, |title, url_elem, desc| {
+                let url_html = url_elem.inner_html();
+                let url_text = url_html.trim();
+                let clean_url = url_clean_re.replace(url_text, "https://");
                 Some(SearchResult::new(
                     title.inner_html().trim(),
-                    &format!("https://{}", url.inner_html().trim()),
+                    clean_url.as_ref(),
                     desc.inner_html().trim(),
                     &["duckduckgo"],
                 ))

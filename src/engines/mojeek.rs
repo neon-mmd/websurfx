@@ -2,17 +2,14 @@
 //! by querying the upstream mojeek search engine with user provided query and with a page
 //! number if provided.
 
-use std::collections::HashMap;
-
 use reqwest::Client;
-use reqwest::header::HeaderMap;
 use scraper::Html;
 
 use crate::models::aggregation::SearchResult;
 
 use crate::models::engine::{EngineError, EngineResult, SearchEngine};
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 
 use super::search_result_parser::SearchResultParser;
 use super::{build_cookie, build_query};
@@ -118,16 +115,12 @@ impl SearchEngine for Mojeek {
 
         let cookie_string = build_cookie(&query_params);
 
-        let header_map = HeaderMap::try_from(&HashMap::from([
-            ("User-Agent".to_string(), user_agent.to_string()),
-            ("Referer".to_string(), "https://google.com/".to_string()),
-            (
-                "Content-Type".to_string(),
-                "application/x-www-form-urlencoded".to_string(),
-            ),
-            ("Cookie".to_string(), cookie_string),
-        ]))
-        .change_context(EngineError::UnexpectedError)?;
+        let header_map = crate::models::engine::build_headers(&[
+            ("User-Agent", user_agent),
+            ("Referer", "https://google.com/"),
+            ("Content-Type", "application/x-www-form-urlencoded"),
+            ("Cookie", &cookie_string),
+        ])?;
 
         let document: Html = Html::parse_document(
             &Mojeek::fetch_html_from_upstream(self, &url, header_map, client).await?,

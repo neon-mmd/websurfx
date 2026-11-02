@@ -1,7 +1,5 @@
 //! A module that handles the view for the settings page in the `websurfx` frontend.
 
-use std::collections::HashMap;
-
 use maud::{Markup, html};
 
 use crate::templates::partials::{
@@ -31,7 +29,7 @@ pub async fn settings(
     colorscheme: &str,
     theme: &str,
     animation: &Option<String>,
-    engine_names: &HashMap<String, bool>,
+    engine_names: &[(String, bool)],
 ) -> Result<Markup, Box<dyn std::error::Error>> {
     Ok(html!(
         (header(colorscheme, theme, animation))
