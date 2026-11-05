@@ -13,9 +13,6 @@ use rkyv::util::AlignedVec;
 use std::sync::Arc;
 use tokio::task::JoinSet;
 
-/// A constant holding the redis pipeline size.
-const REDIS_PIPELINE_SIZE: usize = 3;
-
 /// A named struct which stores the redis Connection url address to which the client will
 /// connect to.
 #[derive(Clone)]
@@ -96,7 +93,7 @@ impl RedisCache {
     /// Returns the json as a String from the cache on success otherwise returns a `CacheError`
     /// on a failure.
     pub async fn cached_json_exists(&self, keys: &[String]) -> CacheResult<Vec<bool>> {
-        let mut pipe = redis::Pipeline::with_capacity(REDIS_PIPELINE_SIZE);
+        let mut pipe = redis::Pipeline::new();
         for key in keys {
             pipe.exists(key);
         }
@@ -142,7 +139,7 @@ impl RedisCache {
         json_results: impl Iterator<Item = String>,
         keys: impl Iterator<Item = String>,
     ) -> CacheResult<()> {
-        let mut pipeline = redis::Pipeline::with_capacity(REDIS_PIPELINE_SIZE);
+        let mut pipeline = redis::Pipeline::new();
         for (key, json_result) in keys.zip(json_results) {
             pipeline.set_options(
                 key,

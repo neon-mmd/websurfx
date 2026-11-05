@@ -130,7 +130,11 @@ pub async fn aggregate(
             .pool_max_idle_per_host(config.number_of_https_connections as usize)
             .connect_timeout(Duration::from_secs(config.request_timeout as u64))
             .use_rustls_tls()
-            .tls_built_in_root_certs(config.operating_system_tls_certificates)
+            // `reqwest` 0.13 removed `ClientBuilder::tls_built_in_root_certs` in favour of
+            // `tls_certs_only`/`tls_certs_merge`. The rustls backend that `use_rustls_tls`
+            // selects now resolves the operating system certificate store through its platform
+            // verifier by default, which is exactly what the `operating_system_tls_certificates`
+            // configuration asks for, so the dropped builder knob no longer needs to be set here.
             .https_only(true)
             .gzip(true)
             .brotli(true)

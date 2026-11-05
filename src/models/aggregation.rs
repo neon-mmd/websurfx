@@ -141,7 +141,7 @@ static PUNCTUATION_CACHE: std::sync::OnceLock<Box<[String]>> = std::sync::OnceLo
 /// Returns the cached English stop words, computing the list once.
 pub fn stop_words_cache() -> &'static [String] {
     STOP_WORDS_CACHE.get_or_init(|| {
-        stop_words::get(stop_words::LANGUAGE::English)
+        stop_words::get(stop_words::Language::English)
             .par_iter()
             .map(|stop_word| stop_word.to_string())
             .collect()
