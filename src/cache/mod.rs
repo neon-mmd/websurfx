@@ -112,10 +112,7 @@ trait Cacher: Send + Sync {
         encrypt: bool,
     ) -> CacheResult<Vec<u8>> {
         use chacha20poly1305::{
-            ChaCha20Poly1305,
-            Key,
-            Nonce,
-            KeyInit,
+            ChaCha20Poly1305, Key, KeyInit, Nonce,
             aead::{Aead, Generate},
         };
 
