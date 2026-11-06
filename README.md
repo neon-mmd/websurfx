@@ -126,6 +126,16 @@
 
 **[⬆️ Back to Top](#--)**
 
+# Deployment 🚀
+
+## Deploy on RepoCloud
+
+Deploy Websurfx instantly with one click on RepoCloud:
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Websurfx/)
+
+**[⬆️ Back to Top](#--)**
+
 # Installation and Testing 🛠️
 
 > For full setup instructions, see: [**Installation**](docs/installation.md)
