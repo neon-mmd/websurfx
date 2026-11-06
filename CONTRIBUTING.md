@@ -44,11 +44,11 @@ Websurfx is still a relatively young project, and as such not many people know o
 
 ## Join the discussion
 
-We have a [Discord](https://discord.gg/SWnda7Mw5u) channel, feel free to join and share your ideas and ask questions about the project, we would be glad to hear you out.
+We have a [Stoat](https://stt.gg/5Hv57tdw) channel, feel free to join and share your ideas and ask questions about the project, we would be glad to hear you out.
 
 # Where To Contribute?
 
 The _rolling branch_ is where we intend all contributions should go.
 
 
-We appreciate any contributions whether of any size or topic and suggestions to help improve the Websurfx project. Please keep in mind the above requirements and guidelines before submitting a pull request and also if you have any doubts/concerns/questions about the project, its source code or anything related to the project then feel free to ask by opening an [issue](https://github.com/neon-mmd/websurfx/issues) or by asking us on our [Discord](https://discord.gg/SWnda7Mw5u) channel.
+We appreciate any contributions whether of any size or topic and suggestions to help improve the Websurfx project. Please keep in mind the above requirements and guidelines before submitting a pull request and also if you have any doubts/concerns/questions about the project, its source code or anything related to the project then feel free to ask by opening an [issue](https://github.com/neon-mmd/websurfx/issues) or by asking us on our [Stoat](https://stt.gg/5Hv57tdw) channel.

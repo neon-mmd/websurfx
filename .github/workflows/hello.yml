@@ -19,4 +19,4 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pr-message: |-
             Congrats on making your first Pull Request and thanks for taking the time to improve Websurfx! ❤️!
-            Say hello by joining the conversation in our [Discord](https://discord.gg/SWnda7Mw5u)
+            Say hello by joining the conversation in our [Stoat](https://stt.gg/5Hv57tdw)

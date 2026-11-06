@@ -3,9 +3,9 @@
 </h1>
 <p align="center">
   <b align="center"><a href="README.md">Readme</a></b> |
-  <b><a href="https://discord.gg/SWnda7Mw5u">Discord</a></b> |
+  <b><a href="https://stt.gg/5Hv57tdw">Stoat</a></b> |
   <b><a href="docs/instances.md">Instances</a></b> |
-  <b><a href="https://discord.gg/VKCAememnr">User Showcase</a></b> |
+  <b><a href="https://stt.gg/5Hv57tdw">User Showcase</a></b> |
   <b><a href="https://github.com/neon-mmd/websurfx">GitHub</a></b> |
   <b><a href="docs">Documentation</a></b>
   <br /><br />
